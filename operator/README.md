@@ -65,4 +65,4 @@ Inference, the graph, the vector store, identity and messaging each sit behind a
 
 ## The launcher's own manual
 
-[apps/launcher/README.md](../../apps/launcher/README.md) documents every verb and flag of `semiont`, how it places a stack in a codespace, and [where it keeps its files](../../apps/launcher/README.md#where-the-launcher-keeps-its-files). These pages say what to do with it; that one says what it does.
+[apps/launcher/README.md](https://github.com/xynolog/cli/blob/main/README.md) documents every verb and flag of `semiont`, how it places a stack in a codespace, and [where it keeps its files](https://github.com/xynolog/cli/blob/main/README.md#where-the-launcher-keeps-its-files). These pages say what to do with it; that one says what it does.

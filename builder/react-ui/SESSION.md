@@ -4,7 +4,7 @@ The session layer is the per-KB authentication, token-refresh, event-bus,
 and HTTP client glue that sits between the React tree and the gateway.
 
 The file layout and the invariants the implementation keeps are in the
-package's [SESSION.md](../../../packages/typescript/react-ui/docs/SESSION.md).
+package's [SESSION.md](https://github.com/xynolog/sdk/blob/main/typescript/react-ui/docs/SESSION.md).
 
 ## Core classes
 

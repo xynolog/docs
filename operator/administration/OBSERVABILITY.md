@@ -4,7 +4,7 @@ A stack can be observed three ways, each switched on separately:
 
 1. **Traces.** Every service and the Browser can export OpenTelemetry spans. A service exports nothing until it is given an OTLP endpoint; the launcher gives every service one.
 2. **Metrics and log correlation.** Counters, histograms and gauges go to the same endpoint, and every structured log line carries the `trace_id` and `span_id` of the span it was written in.
-3. **The `busLog` timeline.** With `SEMIONT_BUS_LOG=1`, a process writes one line per bus event, in a format made for `grep`. It is a developer's tool: see [Bus logging](../../../images/e2e/docs/bus-logging.md).
+3. **The `busLog` timeline.** With `SEMIONT_BUS_LOG=1`, a process writes one line per bus event, in a format made for `grep`. It is a developer's tool: see [Bus logging](https://github.com/xynolog/images/blob/main/e2e/docs/bus-logging.md).
 
 All three share the W3C `trace_id`: a `busLog` line written inside a span carries `trace=`, the id's first eight hex digits.
 
@@ -14,13 +14,13 @@ The transport contract is the single instrumentation layer. Every bus
 emit, content put/get, and worker job
 becomes a span. Trace context propagates over HTTP `traceparent`
 headers and, on a frame relayed over SSE, the payload field the bus
-registry names (`trace` in [`protocol/specs/src/bus/registry.json`](../../../protocol/specs/src/bus/registry.json)).
+registry names (`trace` in [`protocol/specs/src/bus/registry.json`](https://github.com/xynolog/protocol/blob/main/specs/src/bus/registry.json)).
 
 The spans are in the tables below, by who exports them. What the Rust services, the
 Worker service, the Weaver, the Smelter and the Librarian export is specified, with kinds and attributes, in
-[`protocol/specs/src/service-telemetry/telemetry.json`](../../../protocol/specs/src/service-telemetry/telemetry.json),
+[`protocol/specs/src/service-telemetry/telemetry.json`](https://github.com/xynolog/protocol/blob/main/specs/src/service-telemetry/telemetry.json),
 and what an SDK's transports export, in any language, in
-[`protocol/specs/src/sdk-telemetry/telemetry.json`](../../../protocol/specs/src/sdk-telemetry/telemetry.json),
+[`protocol/specs/src/sdk-telemetry/telemetry.json`](https://github.com/xynolog/protocol/blob/main/specs/src/sdk-telemetry/telemetry.json),
 which also has the count of emits a client sends. Each service's conformance suite holds it
 to its rows in both directions, and the SDK suite holds each SDK to the SDK table.
 
@@ -101,12 +101,12 @@ job:yield                                       [the Worker service]
 
 The standard OpenTelemetry variables, set in each service's environment. The launcher sets the endpoint for every service it starts; on your own platform, set it in each container's environment.
 The Rust services — the gateway, the dispatcher and the Archivist — read the ones their
-environment table lists ([`variables.json`](../../../protocol/specs/src/service-environment/variables.json))
+environment table lists ([`variables.json`](https://github.com/xynolog/protocol/blob/main/specs/src/service-environment/variables.json))
 and configure their SDK from them. The Worker service reads the ones
-[WORKER-SERVICE.md](../../../protocol/contract/WORKER-SERVICE.md#environment) lists, the Weaver the ones
-[WEAVER.md](../../../protocol/contract/WEAVER.md#environment) lists, the Smelter the ones
-[SMELTER.md](../../../protocol/contract/SMELTER.md#environment) lists, and the Librarian the ones
-[LIBRARIAN.md](../../../protocol/contract/LIBRARIAN.md#environment) lists. Every service reads these four:
+[WORKER-SERVICE.md](https://github.com/xynolog/protocol/blob/main/contract/WORKER-SERVICE.md#environment) lists, the Weaver the ones
+[WEAVER.md](https://github.com/xynolog/protocol/blob/main/contract/WEAVER.md#environment) lists, the Smelter the ones
+[SMELTER.md](https://github.com/xynolog/protocol/blob/main/contract/SMELTER.md#environment) lists, and the Librarian the ones
+[LIBRARIAN.md](https://github.com/xynolog/protocol/blob/main/contract/LIBRARIAN.md#environment) lists. Every service reads these four:
 
 | Variable                          | Default                                | Purpose                            |
 |-----------------------------------|----------------------------------------|------------------------------------|
@@ -127,7 +127,7 @@ Without a collector, `OTEL_CONSOLE_EXPORTER=true` prints spans and metrics to th
 An application built on the Rust SDK installs its own OpenTelemetry (a tracer
 provider, a meter provider and the W3C propagator, registered as the
 process's) and the transport reports to it:
-[`semiont-telemetry`](../../../packages/rust/telemetry/README.md) says how.
+[`semiont-telemetry`](https://github.com/xynolog/sdk/blob/main/rust/telemetry/README.md) says how.
 With none installed, nothing is recorded and no trace context is sent.
 
 ### Browser (SPA)
@@ -156,7 +156,7 @@ Semiont stores no telemetry; you choose where it goes. The launcher chooses for 
 
 ## With the launcher
 
-The [`semiont` launcher](../../../apps/launcher/README.md) sets all of it up by default:
+The [`semiont` launcher](https://github.com/xynolog/cli/blob/main/README.md) sets all of it up by default:
 
 ```bash
 semiont start
@@ -264,7 +264,7 @@ the jobs the worker concluded there among them.
   traces in the APM UI. A line shows the frame's payload, less the value
   of a member whose name is one a credential goes by (`token`, `password`,
   `apiKey` and the rest of a
-  [short list](../../../protocol/specs/src/bus/log-cases.json)), which is written
+  [short list](https://github.com/xynolog/protocol/blob/main/specs/src/bus/log-cases.json)), which is written
   as `[withheld]`.
 - **OTel spans + metrics** (this doc) — distributed tracing and
   metrics over OTLP. Targets a collector + APM gateway.
@@ -293,7 +293,7 @@ its own process.
 
 The gateway, the dispatcher and the Archivist are Rust and export their own metrics,
 specified with their instruments, attributes and attribute values in
-[`protocol/specs/src/service-telemetry/telemetry.json`](../../../protocol/specs/src/service-telemetry/telemetry.json):
+[`protocol/specs/src/service-telemetry/telemetry.json`](https://github.com/xynolog/protocol/blob/main/specs/src/service-telemetry/telemetry.json):
 the `semiont.process.*` and `semiont.runtime.*` instruments of the rows above, and the rows
 below. **When** is that table's word for when a series is there: `export`, whenever the
 service exports at all; `traffic`, from the first thing of its kind the service has to count.
@@ -312,7 +312,7 @@ The gateway:
 | `semiont.bus.correlation.size` | gauge          | `correlation.kind` (`claims`/`claims_max`)              | export  | Outstanding request claims, and the cap on them |
 
 The emits a client sent are a count of their own, `semiont.bus.sent`, a row of
-[`protocol/specs/src/sdk-telemetry/telemetry.json`](../../../protocol/specs/src/sdk-telemetry/telemetry.json);
+[`protocol/specs/src/sdk-telemetry/telemetry.json`](https://github.com/xynolog/protocol/blob/main/specs/src/sdk-telemetry/telemetry.json);
 `semiont.bus.emit` is the gateway's count of the emits it accepted.
 
 The dispatcher:
@@ -405,7 +405,7 @@ When no SDK is initialized, or no span is active, neither field is added.
 
 ## Related documentation
 
-- [Bus logging](../../../images/e2e/docs/bus-logging.md) — `busLog` format,
+- [Bus logging](https://github.com/xynolog/images/blob/main/e2e/docs/bus-logging.md) — `busLog` format,
   enable flags, e2e capture API.
 - [Architecture](../../architecture/ACTOR-MODEL.md) — actor topology and event-bus
   design that the trace and metric attributes describe.

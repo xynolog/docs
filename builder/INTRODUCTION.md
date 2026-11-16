@@ -75,20 +75,20 @@ believe them at first:
 
 1. **The contract is the product.** The bus protocol, the annotation model, and
    the job lifecycle are specified independently of any language (see
-   [`protocol/contract/`](../../protocol/contract/)). Everything above that line is
+   [`protocol/contract/`](https://github.com/xynolog/protocol/tree/main/contract)). Everything above that line is
    a projection of the contract.
 
 2. **Language SDKs are peers.** This book uses `@semiont/sdk` — the
    TypeScript/npm SDK — as its vehicle. The Rust SDK
-   ([`semiont`](../../packages/rust/sdk/README.md), with
-   [`semiont-http-transport`](../../packages/rust/http-transport/README.md)) has the
+   ([`semiont`](https://github.com/xynolog/sdk/blob/main/rust/sdk/README.md), with
+   [`semiont-http-transport`](https://github.com/xynolog/sdk/blob/main/rust/http-transport/README.md)) has the
    same client, cache, state units and sessions, and is held to the same
    shared case tables and conformance suite; its README maps each shape in
    this book to its Rust form. The Python SDK
-   ([`semiont`](../../packages/python/sdk/README.md)) has the same client,
+   ([`semiont`](https://github.com/xynolog/sdk/blob/main/python/sdk/README.md)) has the same client,
    cache, state units and sessions on asyncio, typed for `mypy` and `pyright`,
    and is held to the same tables and the same suite. The Go SDK
-   ([`go/sdk`](../../packages/go/sdk/README.md)), the module the `semiont`
+   ([`go/sdk`](https://github.com/xynolog/sdk/blob/main/go/README.md)), the module the `semiont`
    launcher is built on, has the same client, cache, state units and
    sessions, with a context on every call that waits and an iterator for
    every sequence, and is held to the same tables and the same suite. The
@@ -97,7 +97,7 @@ believe them at first:
    pseudocode with a working implementation.
 
 3. **Framework bindings sit above the SDK, not inside it.**
-   [`@semiont/react-ui`](../../packages/typescript/react-ui/) is the one binding.
+   [`@semiont/react-ui`](https://github.com/xynolog/sdk/tree/main/typescript/react-ui) is the one binding.
    But the SDK is deliberately framework-free — plain classes and observables,
    no React anywhere — so a Vue or Svelte binding is a seam awaiting an author,
    not a rearchitecture.
@@ -110,7 +110,7 @@ it.
 The SDK's own shape, in one sentence: you open a **session** (sign-in and token
 refresh handled for you) and get a **client** whose namespaces are **the eight
 verbs of the protocol** — four that write, three that read, and one that directs
-attention, as in [`protocol/contract/flows/`](../../protocol/contract/flows/README.md):
+attention, as in [`protocol/contract/flows/`](https://github.com/xynolog/protocol/blob/main/contract/flows/README.md):
 
 | | Verb | What it does |
 |---|---|---|
@@ -160,7 +160,7 @@ The one escape hatch is `.fresh()`: an explicit one-shot fetch for "I want the
 latest, right now." The division of labor is deliberate — a cache read and a
 gateway request are different types, so "which one am I doing?" is impossible
 to get wrong. The full behavioral contract, numbered and test-cited, is
-[CACHE-SEMANTICS](../../protocol/contract/CACHE-SEMANTICS.md); the design rationale is
+[CACHE-SEMANTICS](https://github.com/xynolog/protocol/blob/main/contract/CACHE-SEMANTICS.md); the design rationale is
 [REACTIVE-MODEL](./REACTIVE-MODEL.md).
 
 ## A chat turn in one page
@@ -319,8 +319,8 @@ Where to go by goal:
 - **Understand why the API is shaped this way** —
   [REACTIVE-MODEL](./REACTIVE-MODEL.md), then
   [STATE-UNITS](./STATE-UNITS.md).
-- **Depend on exact behavior** — [CACHE-SEMANTICS](../../protocol/contract/CACHE-SEMANTICS.md) and
-  the wire-level contracts in [`protocol/contract/`](../../protocol/contract/).
+- **Depend on exact behavior** — [CACHE-SEMANTICS](https://github.com/xynolog/protocol/blob/main/contract/CACHE-SEMANTICS.md) and
+  the wire-level contracts in [`protocol/contract/`](https://github.com/xynolog/protocol/tree/main/contract).
 - **Not a React shop? Not a TypeScript shop?** The concepts here and in the
   explanation docs are yours as-is; treat the binding- and language-specific
   material as a worked example of a pattern your stack will repeat.

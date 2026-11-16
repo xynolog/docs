@@ -27,13 +27,13 @@ docker pull ghcr.io/the-ai-alliance/semiont-browser:latest
 no knowledge-base configuration and mounts none: the app connects to knowledge
 bases from the person's web browser (see [HUMAN-UI.md](../../architecture/HUMAN-UI.md)).
 
-**Documentation:** [images/browser/README.md](../../../images/browser/README.md)
+**Documentation:** [images/browser/README.md](https://github.com/xynolog/images/blob/main/browser/README.md)
 
-**Source:** [images/browser/](../../../images/browser/)
+**Source:** [images/browser/](https://github.com/xynolog/images/tree/main/browser)
 
-**Dockerfile:** [images/browser/Dockerfile](../../../images/browser/Dockerfile)
+**Dockerfile:** [images/browser/Dockerfile](https://github.com/xynolog/images/blob/main/browser/Dockerfile)
 
-**Workflow:** [.github/workflows/publish-browser.yml](../../../.github/workflows/publish-browser.yml)
+**Workflow:** [.github/workflows/publish-browser.yml](https://github.com/xynolog/images/blob/main/.github/workflows/publish-browser.yml)
 
 ---
 
@@ -45,27 +45,27 @@ One is Node: the Browser. It installs the published `@semiont/browser` npm packa
 
 Three are Rust: the gateway, the dispatcher and the Archivist. Each image compiles its binary from the commit it is published from and ships it on `alpine`, with no source and no toolchain, and builds or fetches nothing when it starts. The Archivist's also carries `git`, which it stages a knowledge base's changes with.
 
-Four are Python: the worker, the weaver, the smelter and the librarian. Each image is built from the commit it is published from too: the service in `images/worker`, `images/weaver`, `images/smelter` or `images/librarian` and the Python packages of the repository it runs on, in an environment of exactly what its `uv.lock` pins, on the oldest Python those packages support. It carries no installer and no Node, and installs or fetches nothing when it starts. The weaver's carries every graph database's client. The librarian's carries every graph database's client and every model provider's library. The smelter's carries the `tesseract` program with its English data, which reads a scanned page, and PDFium, which reads a PDF. **The worker's carries every model provider's library**, so one image serves whichever provider a knowledge base names, of the seven the protocol lists. Building an image with one provider's library alone is one changed line: see [the worker's README](../../../images/worker/README.md#a-slimmer-image).
+Four are Python: the worker, the weaver, the smelter and the librarian. Each image is built from the commit it is published from too: the service in `images/worker`, `images/weaver`, `images/smelter` or `images/librarian` and the Python packages of the repository it runs on, in an environment of exactly what its `uv.lock` pins, on the oldest Python those packages support. It carries no installer and no Node, and installs or fetches nothing when it starts. The weaver's carries every graph database's client. The librarian's carries every graph database's client and every model provider's library. The smelter's carries the `tesseract` program with its English data, which reads a scanned page, and PDFium, which reads a PDF. **The worker's carries every model provider's library**, so one image serves whichever provider a knowledge base names, of the seven the protocol lists. Building an image with one provider's library alone is one changed line: see [the worker's README](https://github.com/xynolog/images/blob/main/worker/README.md#a-slimmer-image).
 
 | Image | Built from | Dockerfile |
 |---|---|---|
-| `semiont-gateway` | Rust, `images/gateway` | [images/gateway/Dockerfile](../../../images/gateway/Dockerfile) |
-| `semiont-dispatcher` | Rust, `images/dispatcher` | [images/dispatcher/Dockerfile](../../../images/dispatcher/Dockerfile) |
-| `semiont-archivist` | Rust, `images/archivist` | [images/archivist/Dockerfile](../../../images/archivist/Dockerfile) |
-| `semiont-librarian` | Python, `images/librarian` | [images/librarian/Dockerfile](../../../images/librarian/Dockerfile) |
-| `semiont-smelter` | Python, `images/smelter` | [images/smelter/Dockerfile](../../../images/smelter/Dockerfile) |
-| `semiont-weaver` | Python, `images/weaver` | [images/weaver/Dockerfile](../../../images/weaver/Dockerfile) |
-| `semiont-worker` | Python, `images/worker` | [images/worker/Dockerfile](../../../images/worker/Dockerfile) |
+| `semiont-gateway` | Rust, `images/gateway` | [images/gateway/Dockerfile](https://github.com/xynolog/images/blob/main/gateway/Dockerfile) |
+| `semiont-dispatcher` | Rust, `images/dispatcher` | [images/dispatcher/Dockerfile](https://github.com/xynolog/images/blob/main/dispatcher/Dockerfile) |
+| `semiont-archivist` | Rust, `images/archivist` | [images/archivist/Dockerfile](https://github.com/xynolog/images/blob/main/archivist/Dockerfile) |
+| `semiont-librarian` | Python, `images/librarian` | [images/librarian/Dockerfile](https://github.com/xynolog/images/blob/main/librarian/Dockerfile) |
+| `semiont-smelter` | Python, `images/smelter` | [images/smelter/Dockerfile](https://github.com/xynolog/images/blob/main/smelter/Dockerfile) |
+| `semiont-weaver` | Python, `images/weaver` | [images/weaver/Dockerfile](https://github.com/xynolog/images/blob/main/weaver/Dockerfile) |
+| `semiont-worker` | Python, `images/worker` | [images/worker/Dockerfile](https://github.com/xynolog/images/blob/main/worker/Dockerfile) |
 
 Each one's port, configuration and dependencies are in [the service catalog](../services/OVERVIEW.md).
 
-The Browser has its own workflow, [publish-browser.yml](../../../.github/workflows/publish-browser.yml); the seven services share [publish-service-images.yml](../../../.github/workflows/publish-service-images.yml). How a release is published is in the contributor's [Release Process](../../contributor/RELEASE.md), and building all eight from a checkout is in [Local Development](../../contributor/LOCAL-DEVELOPMENT.md).
+The Browser has its own workflow, [publish-browser.yml](https://github.com/xynolog/images/blob/main/.github/workflows/publish-browser.yml); the seven services share [publish-service-images.yml](https://github.com/xynolog/images/blob/main/.github/workflows/publish-service-images.yml). How a release is published is in the contributor's [Release Process](../../contributor/RELEASE.md), and building all eight from a checkout is in [Local Development](../../contributor/LOCAL-DEVELOPMENT.md).
 
 ---
 
 ## Versioning
 
-Every image carries the same version, the one in [`version.json`](../../../version.json), and gets these tags:
+Every image carries the same version, the one in [`version.json`](https://github.com/xynolog/images/blob/main/version.json), and gets these tags:
 
 - **The version**, such as `<version>` for a release or `<version>-build.<n>` for a development build.
 - **The commit**: `sha-<commit>`, the short SHA the image was built from.
@@ -182,7 +182,6 @@ affected package.
 ## Registry Links
 
 - **Container images:** https://github.com/orgs/The-AI-Alliance/packages?repo_name=semiont
-- **GitHub Releases:** https://github.com/The-AI-Alliance/semiont/releases
 
 ---
 
@@ -191,4 +190,3 @@ affected package.
 For issues related to container images:
 - **Bug reports:** https://github.com/The-AI-Alliance/semiont/issues
 - **Security issues:** See [SECURITY.md](./SECURITY.md)
-- **General questions:** https://github.com/The-AI-Alliance/semiont/discussions

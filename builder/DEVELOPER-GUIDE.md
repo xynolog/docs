@@ -4,12 +4,12 @@ Task-oriented recipes for building a real system on `@semiont/sdk`, in roughly t
 you'll need them. Each recipe is a short description of the capability followed by the
 lines of TypeScript that exercise it.
 
-The same namespaces and methods are available in [Rust](../../packages/rust/sdk/README.md),
-[Python](../../packages/python/sdk/README.md), [Go](../../packages/go/sdk/README.md),
-[Kotlin and Java](../../packages/kotlin/sdk/README.md), [C#](../../packages/csharp/sdk/README.md),
-and [Swift](../../packages/swift/sdk/README.md). Each SDK's README has examples in its own language.
+The same namespaces and methods are available in [Rust](https://github.com/xynolog/sdk/blob/main/rust/sdk/README.md),
+[Python](https://github.com/xynolog/sdk/blob/main/python/sdk/README.md), [Go](https://github.com/xynolog/sdk/blob/main/go/README.md),
+[Kotlin and Java](https://github.com/xynolog/sdk/blob/main/kotlin/sdk/README.md), [C#](https://github.com/xynolog/sdk/blob/main/csharp/sdk/README.md),
+and [Swift](https://github.com/xynolog/sdk/blob/main/swift/sdk/README.md). Each SDK's README has examples in its own language.
 
-The [Haskell SDK](../../packages/haskell/sdk/README.md) follows the same contract
+The [Haskell SDK](https://github.com/xynolog/sdk/blob/main/haskell/sdk/README.md) follows the same contract
 with `IO`, STM and scoped streams. Its README covers local Cabal setup, sign-in,
 delegation, live queries, state units, workers and a registry.
 
@@ -141,7 +141,7 @@ one bounded retry) — a lost or failing load surfaces in-band, never as `pendin
 and the stream itself never errors or terminates. Recovery is built in: a NEW subscription
 to the failed key (e.g. a component remount) clears the marker and starts a fresh attempt
 chain. A query that already holds a value never fails — stale-beats-error, the prior value
-stays visible through a failed refetch. → [CACHE-SEMANTICS.md](../../protocol/contract/CACHE-SEMANTICS.md) (B14–B15).
+stays visible through a failed refetch. → [CACHE-SEMANTICS.md](https://github.com/xynolog/protocol/blob/main/contract/CACHE-SEMANTICS.md) (B14–B15).
 
 **Read an annotation with the SDK's readers.** An annotation's `target` is a resource's id
 or an object, its selector is one selector or a list, and its `body` is absent, one item or
@@ -178,7 +178,7 @@ for (const ann of annotations) {
 The other SDKs have the same readers (Rust's `semiont::annotations`, Python's `semiont.annotations`,
 the Go package `annotations`, Kotlin's `semiont.annotations`, C#'s `Semiont.Annotations`,
 Swift's `Semiont` module and Haskell's `Semiont.Annotations`), and one
-table, [`reader-cases.json`](../../protocol/specs/src/annotations/reader-cases.json), holds them all to
+table, [`reader-cases.json`](https://github.com/xynolog/protocol/blob/main/specs/src/annotations/reader-cases.json), holds them all to
 the same answer for the same annotation.
 
 Live subscriptions are how you get real-time updates: **freshness follows observation** —
@@ -222,7 +222,7 @@ const { resourceId } = await session.client.yield.resource({
 The params state the `motivation` and what that motivation takes: `'linking'` extracts
 entity references (the connections later retrieval reads as graph context), `'tagging'` applies
 a tag schema, plus `'highlighting'`/`'assessing'`/`'commenting'`. Each motivation takes its own
-params and no others — [the Mark flow](../../protocol/contract/flows/MARK.md#delegation) has the table. It's a long-running job —
+params and no others — [the Mark flow](https://github.com/xynolog/protocol/blob/main/contract/flows/MARK.md#delegation) has the table. It's a long-running job —
 `.run()` for progress. Each snapshot carries a `message` CODE with typed params rather than
 a sentence — the client owns the wording, so a browser localizes it and a CLI renders English
 from the same value. `detecting-entities` names the entity type being worked on, and the last,
@@ -419,8 +419,8 @@ tolerance for a misquote; a span found another way is built the same.
 The other SDKs have the same three (Rust's `semiont::annotations`, Python's `semiont.annotations`,
 the Go package `annotations`, Kotlin's `semiont.annotations`, C#'s `Semiont.Annotations`,
 Swift's `Semiont` module and Haskell's `Semiont.Annotations`), and two
-tables, [`reconcile-cases.json`](../../protocol/specs/src/annotations/reconcile-cases.json) and
-[`builder-cases.json`](../../protocol/specs/src/annotations/builder-cases.json), hold them all to
+tables, [`reconcile-cases.json`](https://github.com/xynolog/protocol/blob/main/specs/src/annotations/reconcile-cases.json) and
+[`builder-cases.json`](https://github.com/xynolog/protocol/blob/main/specs/src/annotations/builder-cases.json), hold them all to
 the same answer.
 
 ## 10. Find link candidates (semantic search)
@@ -640,7 +640,7 @@ not name its person, here or in another tab, discards what it has not written an
 writes nothing more. A client you assemble yourself, with a cache persistence you
 make, writes unchecked. What two programs sharing one storage can still race on,
 and what other code in the same program can, is in
-[CACHE-SEMANTICS.md](../../protocol/contract/CACHE-SEMANTICS.md) (B17, item 6).
+[CACHE-SEMANTICS.md](https://github.com/xynolog/protocol/blob/main/contract/CACHE-SEMANTICS.md) (B17, item 6).
 
 How reconciliation works — there is no reconcile code path, only the existing
 contract: rehydrated entries serve immediately (plus one background
@@ -664,7 +664,7 @@ const client = new SemiontClient(raw, new HttpContentTransport(raw), raw, {
 });
 ```
 
-Full behavioral contract: [CACHE-SEMANTICS.md](../../protocol/contract/CACHE-SEMANTICS.md) **B17**.
+Full behavioral contract: [CACHE-SEMANTICS.md](https://github.com/xynolog/protocol/blob/main/contract/CACHE-SEMANTICS.md) **B17**.
 
 ---
 
@@ -743,6 +743,6 @@ after that.
 - **[Usage.md](./Usage.md)** — the per-namespace reference: every method, every option.
 - **[REACTIVE-MODEL.md](./REACTIVE-MODEL.md)** — return shapes, await-vs-subscribe, the bus.
 - **[STATE-UNITS.md](./STATE-UNITS.md)** — the state-unit pattern for reactive UIs.
-- **[@semiont/react-ui](../../packages/typescript/react-ui/README.md)** — React components for browser UIs, including the embeddable `ResourceViewer` shown above.
-- **[CACHE-SEMANTICS.md](../../protocol/contract/CACHE-SEMANTICS.md)** — the read-through cache contract behind `browse.*`.
-- **[`protocol/contract/`](../../protocol/contract/README.md)** — the contract: the eight verbs, the bus, and what every SDK is held to.
+- **[@semiont/react-ui](https://github.com/xynolog/sdk/blob/main/typescript/react-ui/README.md)** — React components for browser UIs, including the embeddable `ResourceViewer` shown above.
+- **[CACHE-SEMANTICS.md](https://github.com/xynolog/protocol/blob/main/contract/CACHE-SEMANTICS.md)** — the read-through cache contract behind `browse.*`.
+- **[`protocol/contract/`](https://github.com/xynolog/protocol/blob/main/contract/README.md)** — the contract: the eight verbs, the bus, and what every SDK is held to.

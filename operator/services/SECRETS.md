@@ -43,7 +43,7 @@ token is kept nowhere, and a new key ends every token signed with the one before
 - The Librarian's token reads its own knowledge base's three collections and nothing else, so
   Qdrant refuses it every write and any other knowledge base's index.
 
-[`token-cases.json`](../../../protocol/specs/src/vectors/token-cases.json) states each token's
+[`token-cases.json`](https://github.com/xynolog/protocol/blob/main/specs/src/vectors/token-cases.json) states each token's
 claims. A Qdrant somebody else runs is handed tokens its operator names instead
 ([Configuration](../administration/CONFIGURATION.md#graph-and-vectors)).
 

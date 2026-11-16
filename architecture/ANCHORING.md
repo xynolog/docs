@@ -200,13 +200,13 @@ bytes, hence the checksum, which the Smelter reads as a content change.
 | The image canvas | `@semiont/react-ui` — `SvgDrawingCanvas.tsx` |
 
 `@semiont/core` holds what *reasons over* a map; the Smelter, a Python service
-([images/smelter](../../images/smelter/)), holds what *produces* one. The split is
+([images/smelter](https://github.com/xynolog/images/tree/main/smelter)), holds what *produces* one. The split is
 not cosmetic: the browser needs `textUnder` at drag time, and producing a map
 takes PDFium, the `tesseract` program and a directory to write.
 
 ## Related
 
-- **[../../protocol/contract/W3C-SELECTORS.md](../../protocol/contract/W3C-SELECTORS.md)** — the selector types an annotation may carry, and which apply to which media.
+- **[../../protocol/contract/W3C-SELECTORS.md](https://github.com/xynolog/protocol/blob/main/contract/W3C-SELECTORS.md)** — the selector types an annotation may carry, and which apply to which media.
 - **[KNOWLEDGE-SYSTEM.md](KNOWLEDGE-SYSTEM.md)** — the actors, and the storage the map sits in.
-- **[../../protocol/contract/ARCHIVIST.md](../../protocol/contract/ARCHIVIST.md)** — the anchored-text store as the Archivist keeps it, and the wait for the Smelter to settle.
-- **[../../protocol/contract/TRANSPORT-CONTRACT.md](../../protocol/contract/TRANSPORT-CONTRACT.md)** — `IContentTransport`, where the map crosses a process boundary.
+- **[../../protocol/contract/ARCHIVIST.md](https://github.com/xynolog/protocol/blob/main/contract/ARCHIVIST.md)** — the anchored-text store as the Archivist keeps it, and the wait for the Smelter to settle.
+- **[../../protocol/contract/TRANSPORT-CONTRACT.md](https://github.com/xynolog/protocol/blob/main/contract/TRANSPORT-CONTRACT.md)** — `IContentTransport`, where the map crosses a process boundary.

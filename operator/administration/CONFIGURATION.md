@@ -4,14 +4,14 @@ A knowledge base carries what it needs to run in its own repository, as YAML com
 
 | File | What it holds | Schema |
 |---|---|---|
-| `.semiont/config.yaml` | The project file: the knowledge base's name, whether git stages its changes, and its permanent `did:web` identity | [`ProjectConfig`](../../../protocol/specs/src/kb-identity/ProjectConfig.json) |
-| `.semiont/stack/knowledge-base.yaml` | The gateway, the dispatcher, the archivist, the broker between them, and the issuer the knowledge base trusts | [`KnowledgeBase`](../../../protocol/specs/src/stack/KnowledgeBase.json) |
-| `.semiont/stack/index.yaml` | The graph, the vector store, the embedding model, and the librarian, the smelter and the weaver | [`KnowledgeIndex`](../../../protocol/specs/src/stack/KnowledgeIndex.json) |
-| `.semiont/stack/inference/<name>.yaml` | The inference providers, and which provider and model serve each role | [`Inference`](../../../protocol/specs/src/stack/Inference.json) |
+| `.semiont/config.yaml` | The project file: the knowledge base's name, whether git stages its changes, and its permanent `did:web` identity | [`ProjectConfig`](https://github.com/xynolog/protocol/blob/main/specs/src/kb-identity/ProjectConfig.json) |
+| `.semiont/stack/knowledge-base.yaml` | The gateway, the dispatcher, the archivist, the broker between them, and the issuer the knowledge base trusts | [`KnowledgeBase`](https://github.com/xynolog/protocol/blob/main/specs/src/stack/KnowledgeBase.json) |
+| `.semiont/stack/index.yaml` | The graph, the vector store, the embedding model, and the librarian, the smelter and the weaver | [`KnowledgeIndex`](https://github.com/xynolog/protocol/blob/main/specs/src/stack/KnowledgeIndex.json) |
+| `.semiont/stack/inference/<name>.yaml` | The inference providers, and which provider and model serve each role | [`Inference`](https://github.com/xynolog/protocol/blob/main/specs/src/stack/Inference.json) |
 
 The launcher reads them and writes each service a JSON document ([What each service is given](#what-each-service-is-given)). No service reads a stack document; the Archivist, which mounts the repository, reads `.semiont/config.yaml` from it.
 
-`semiont init` writes all of them for a new knowledge base. The launcher's fixture, [`packages/go/launcher/testdata/kb/.semiont/`](../../../packages/go/launcher/testdata/kb/.semiont/), is a complete set in which every document holds to its schema.
+`semiont init` writes all of them for a new knowledge base. The launcher's fixture, [`packages/go/launcher/testdata/kb/.semiont/`](https://github.com/xynolog/cli/tree/main/internal/launcher/testdata/kb/.xynolog), is a complete set in which every document holds to its schema.
 
 Secrets are in none of them. A document names a secret by the environment variable that holds it ([Secrets in a document](#secrets-in-a-document)).
 
@@ -33,7 +33,7 @@ site:
   siteName: "My Knowledge Base"
 ```
 
-Its schema is [`ProjectConfig`](../../../protocol/specs/src/kb-identity/ProjectConfig.json). A command run in a knowledge base whose `config.yaml` does not hold to it stops there, naming each place by its line (`status` and `roots` show the refusal instead), and the Archivist does not start on one.
+Its schema is [`ProjectConfig`](https://github.com/xynolog/protocol/blob/main/specs/src/kb-identity/ProjectConfig.json). A command run in a knowledge base whose `config.yaml` does not hold to it stops there, naming each place by its line (`status` and `roots` show the refusal instead), and the Archivist does not start on one.
 
 `git.sync: true` has the Archivist stage each change it makes in git; committing and pushing are yours. `semiont init --no-git` writes `false`.
 
@@ -74,7 +74,7 @@ spec:
     subjectClaim: sub
 ```
 
-The documents name one another by `metadata.name`: the KnowledgeIndex names the KnowledgeBase in `spec.knowledgeBase`. A document's `spec.logLevel` is the log level of the services it describes; `semiont init` writes `info`. `semiont start` holds every document to its schema before it starts anything, and refuses one that does not hold, naming the file and each place by its line. The schemas, and the objects the kinds share, are listed in [`specs/src/stack/`](../../../protocol/specs/src/stack/README.md).
+The documents name one another by `metadata.name`: the KnowledgeIndex names the KnowledgeBase in `spec.knowledgeBase`. A document's `spec.logLevel` is the log level of the services it describes; `semiont init` writes `info`. `semiont start` holds every document to its schema before it starts anything, and refuses one that does not hold, naming the file and each place by its line. The schemas, and the objects the kinds share, are listed in [`specs/src/stack/`](https://github.com/xynolog/protocol/blob/main/specs/src/stack/README.md).
 
 ### Who runs each daemon
 
@@ -83,7 +83,7 @@ The graph, the vector store, the broker and the issuer's PostgreSQL are each one
 - **`image` and `resources`**: the launcher runs it and places it, and generates and keeps its password. The document states no address and no password.
 - **`external`**: somebody else runs it. The document states where it is and, where it takes one, names the variable that holds its credential, and the launcher checks that it answers and starts nothing.
 
-Never both, and never neither: [`Runner.json`](../../../protocol/specs/src/stack/Runner.json) is the rule each of them is held to, and each one's schema says what its `external` holds. The vector store has a third way, **`shared`**, which `semiont init` writes: the Qdrant the launcher runs for every knowledge base here ([The vector store's document](#the-vector-stores-document)). It is exactly one of the three. An external address must be one the containers can reach; `localhost` inside a container is the container itself.
+Never both, and never neither: [`Runner.json`](https://github.com/xynolog/protocol/blob/main/specs/src/stack/Runner.json) is the rule each of them is held to, and each one's schema says what its `external` holds. The vector store has a third way, **`shared`**, which `semiont init` writes: the Qdrant the launcher runs for every knowledge base here ([The vector store's document](#the-vector-stores-document)). It is exactly one of the three. An external address must be one the containers can reach; `localhost` inside a container is the container itself.
 
 The issuer is chosen the same way, one level up: the KnowledgeBase names the issuer the launcher runs for every knowledge base here, or states an issuer somebody else runs ([The issuer](#the-issuer)).
 
@@ -93,7 +93,7 @@ Every container the launcher runs from a document runs the `image` that document
 
 An image of Semiont's runs only when a release built it: `semiont start` verifies its build provenance first, and runs it by its digest ([What `semiont start` checks](IMAGES.md#what-semiont-start-checks)).
 
-An image tagged `:local` is never pulled: it is one [`make local-build`](../../../Makefile) built on this machine, and a knowledge base runs it by naming it ([Local Development](../../contributor/LOCAL-DEVELOPMENT.md)). No release built it, so it runs unverified, and every start says so.
+An image tagged `:local` is never pulled: it is one the images repository's [`make build`](https://github.com/xynolog/images/blob/main/LOCAL-BUILD.md) built on this machine, and a knowledge base runs it by naming it ([Local Development](../../contributor/LOCAL-DEVELOPMENT.md)). No release built it, so it runs unverified, and every start says so.
 
 The Browser's image is named by its own document ([The Browser](#the-browser)), and the issuer's and the shared Qdrant's by theirs. The images of Ollama and the telemetry containers are the launcher's own.
 
@@ -115,11 +115,11 @@ semiont settings config anthropic   # make it this knowledge base's choice on th
 
 A start with no `--config` runs the choice recorded for the knowledge base: the one `semiont init` wrote, or the one a successful start last named, else `ollama-gemma`. A document's `metadata.name` is its file's name, and a start refuses one that differs.
 
-Each job and each actor has its engine stated by itself, keyed as a job is described ([`ArchivistEngines`](../../../protocol/specs/src/components/schemas/ArchivistEngines.json)): a `mark` job by its motivation, under `spec.engines.jobs.mark`, a `yield` job at `spec.engines.jobs.yield`, and the librarian's two actors that call a model, the `gatherer` and the `matcher`, under `spec.engines.actors`. Nothing stands in for an engine the document leaves out: a job with none is done by no software worker, and the librarian does not start without both actors' engines. An engine is how software does a job; a person who holds the worker role claims jobs from the same queue and uses none. `semiont init` gives every job and actor the one model chosen; anything finer is your edit, and providers can be mixed: a stronger model for the jobs that reason, a lighter or local one for the high-volume ones.
+Each job and each actor has its engine stated by itself, keyed as a job is described ([`ArchivistEngines`](https://github.com/xynolog/protocol/blob/main/specs/src/components/schemas/ArchivistEngines.json)): a `mark` job by its motivation, under `spec.engines.jobs.mark`, a `yield` job at `spec.engines.jobs.yield`, and the librarian's two actors that call a model, the `gatherer` and the `matcher`, under `spec.engines.actors`. Nothing stands in for an engine the document leaves out: a job with none is done by no software worker, and the librarian does not start without both actors' engines. An engine is how software does a job; a person who holds the worker role claims jobs from the same queue and uses none. `semiont init` gives every job and actor the one model chosen; anything finer is your edit, and providers can be mixed: a stronger model for the jobs that reason, a lighter or local one for the high-volume ones.
 
 The shared worker serves a knowledge base only when one of its jobs has an engine ([The worker](#the-worker)). With no job's engine stated, a start takes the knowledge base off the worker's list and says so.
 
-An engine's `provider` is one of seven, and each one an engine names needs its entry in `spec.providers`, which says how it is reached ([`Provider`](../../../protocol/specs/src/stack/Provider.json)):
+An engine's `provider` is one of seven, and each one an engine names needs its entry in `spec.providers`, which says how it is reached ([`Provider`](https://github.com/xynolog/protocol/blob/main/specs/src/stack/Provider.json)):
 
 - **`anthropic`** is Anthropic's API, reached at its own address unless the entry states a `baseURL`. Its `apiKey` names the variable holding your key.
 - **`ollama`** with no `baseURL` is the shared Ollama: the launcher uses an Ollama installed on the computer when there is one, runs one in a container when there is not, and pulls the models its engines name. With a `baseURL`, it is an Ollama somebody else runs.
@@ -139,18 +139,18 @@ The embedding's `type` and `model` and the two chunking numbers are what the vec
 
 In a launcher-run stack the graph is Neo4j and the vector store is Qdrant. The packages have other drivers behind the same interfaces, for a stack you deploy yourself: see [Adapting a stack](DEPLOYMENT.md#adapting-a-stack). The in-memory vector store keeps its index inside one process, so no stack with separate services can use it, and the launcher refuses it.
 
-A knowledge base's graph is in a Neo4j database of its own, named by its DID as [`database-cases.json`](../../../protocol/specs/src/graph/database-cases.json) names it: `kb-` and the first 60 hexadecimal digits of the DID's SHA-256, the digits its vector collections are named by. No document states the name; the launcher writes it into the weaver's and the librarian's documents. A Neo4j the launcher runs makes that database when it first starts, as its one database (`NEO4J_initial_dbms_default__database`). A Neo4j somebody else runs, at `spec.graph.external`, must already hold it: on Community, which holds one database, as its `initial.dbms.default_database`; on Enterprise, made with `CREATE DATABASE`.
+A knowledge base's graph is in a Neo4j database of its own, named by its DID as [`database-cases.json`](https://github.com/xynolog/protocol/blob/main/specs/src/graph/database-cases.json) names it: `kb-` and the first 60 hexadecimal digits of the DID's SHA-256, the digits its vector collections are named by. No document states the name; the launcher writes it into the weaver's and the librarian's documents. A Neo4j the launcher runs makes that database when it first starts, as its one database (`NEO4J_initial_dbms_default__database`). A Neo4j somebody else runs, at `spec.graph.external`, must already hold it: on Community, which holds one database, as its `initial.dbms.default_database`; on Enterprise, made with `CREATE DATABASE`.
 
-Qdrant answers only a request that carries its API key or a token signed with it. Every Qdrant the launcher runs, shared or a knowledge base's own, has a key the launcher generates and keeps, and the smelter and the librarian present tokens the launcher signs with it at each start ([Secrets](../services/SECRETS.md#values-the-launcher-keeps)). A Qdrant somebody else runs is stated at `spec.vectors.external` with its `host` and `port` and the variables holding the two tokens its operator signs, `smelterToken` and `librarianToken`; the schema requires both, since an index that checks nobody lets anyone who reaches it read and delete every knowledge base's index there. That Qdrant runs with an API key and its JWT access control on (`QDRANT__SERVICE__API_KEY`, `QDRANT__SERVICE__JWT_RBAC=true`), and each token's claims are as [`token-cases.json`](../../../protocol/specs/src/vectors/token-cases.json) states:
+Qdrant answers only a request that carries its API key or a token signed with it. Every Qdrant the launcher runs, shared or a knowledge base's own, has a key the launcher generates and keeps, and the smelter and the librarian present tokens the launcher signs with it at each start ([Secrets](../services/SECRETS.md#values-the-launcher-keeps)). A Qdrant somebody else runs is stated at `spec.vectors.external` with its `host` and `port` and the variables holding the two tokens its operator signs, `smelterToken` and `librarianToken`; the schema requires both, since an index that checks nobody lets anyone who reaches it read and delete every knowledge base's index there. That Qdrant runs with an API key and its JWT access control on (`QDRANT__SERVICE__API_KEY`, `QDRANT__SERVICE__JWT_RBAC=true`), and each token's claims are as [`token-cases.json`](https://github.com/xynolog/protocol/blob/main/specs/src/vectors/token-cases.json) states:
 
 - **The smelter's** has global manage access, `{"access": "m"}`. The smelter makes its knowledge base's collections, and makes them again whenever its index is made anew, and Qdrant makes and deletes a collection for global manage alone.
-- **The librarian's** reads the knowledge base's three collections, named by its DID as [`payload-cases.json`](../../../protocol/specs/src/vectors/payload-cases.json) names them, and nothing else.
+- **The librarian's** reads the knowledge base's three collections, named by its DID as [`payload-cases.json`](https://github.com/xynolog/protocol/blob/main/specs/src/vectors/payload-cases.json) names them, and nothing else.
 
 `semiont clean` deletes a knowledge base's index at the shared Qdrant ([Maintenance](MAINTENANCE.md)), never at one somebody else runs.
 
 ### The vector store's document
 
-The Qdrant the launcher runs for the knowledge bases whose index names `spec.vectors.shared` belongs to none of them, so its document is kept in the launcher's state home, beside the issuer's: `stack/vectors.yaml`, held to [`VectorStore`](../../../protocol/specs/src/stack/VectorStore.json) and read as strictly as the documents above. Each knowledge base keeps its index there in collections of its own, so the KnowledgeIndex says nothing more of it than `shared: {}`.
+The Qdrant the launcher runs for the knowledge bases whose index names `spec.vectors.shared` belongs to none of them, so its document is kept in the launcher's state home, beside the issuer's: `stack/vectors.yaml`, held to [`VectorStore`](https://github.com/xynolog/protocol/blob/main/specs/src/stack/VectorStore.json) and read as strictly as the documents above. Each knowledge base keeps its index there in collections of its own, so the KnowledgeIndex says nothing more of it than `shared: {}`.
 
 ```yaml
 apiVersion: semiont.the-ai-alliance.github.io/v1alpha1
@@ -197,7 +197,7 @@ What an issuer of your own must provide is in [Authentication](AUTHENTICATION.md
 
 ### The issuer's document
 
-The issuer the launcher runs serves every knowledge base here and belongs to none, so its document is kept in the launcher's state home, beside the Browser's: `stack/issuer.yaml`, held to [`Issuer`](../../../protocol/specs/src/stack/Issuer.json) and read as strictly as the documents above.
+The issuer the launcher runs serves every knowledge base here and belongs to none, so its document is kept in the launcher's state home, beside the Browser's: `stack/issuer.yaml`, held to [`Issuer`](https://github.com/xynolog/protocol/blob/main/specs/src/stack/Issuer.json) and read as strictly as the documents above.
 
 ```yaml
 apiVersion: semiont.the-ai-alliance.github.io/v1alpha1
@@ -232,7 +232,7 @@ A start keeps a running Keycloak and PostgreSQL that run what the document says,
 
 ## The Browser
 
-The Browser serves every knowledge base here and belongs to none, so its document is kept in the launcher's state home, not in a knowledge base's repository: `stack/browser.yaml`, held to [`Browser`](../../../protocol/specs/src/stack/Browser.json) and read as strictly as the documents above.
+The Browser serves every knowledge base here and belongs to none, so its document is kept in the launcher's state home, not in a knowledge base's repository: `stack/browser.yaml`, held to [`Browser`](https://github.com/xynolog/protocol/blob/main/specs/src/stack/Browser.json) and read as strictly as the documents above.
 
 ```yaml
 apiVersion: semiont.the-ai-alliance.github.io/v1alpha1
@@ -257,7 +257,7 @@ A start keeps a running Browser that runs what its document says, and restarts o
 
 ## The worker
 
-The worker does the jobs of the knowledge bases here, and its image, memory and log level belong to no knowledge base. So its document is kept in the launcher's state home beside the Browser's, not in a knowledge base's repository: `stack/workers.yaml`, held to [`WorkerPool`](../../../protocol/specs/src/stack/WorkerPool.json) and read as strictly as the documents above.
+The worker does the jobs of the knowledge bases here, and its image, memory and log level belong to no knowledge base. So its document is kept in the launcher's state home beside the Browser's, not in a knowledge base's repository: `stack/workers.yaml`, held to [`WorkerPool`](https://github.com/xynolog/protocol/blob/main/specs/src/stack/WorkerPool.json) and read as strictly as the documents above.
 
 ```yaml
 apiVersion: semiont.the-ai-alliance.github.io/v1alpha1
@@ -291,14 +291,14 @@ A knowledge base's documents describe the stack the launcher runs on one machine
 
 1. **Copy `.semiont/stack/`.** The project file stays as it is: the knowledge base's identity does not change with where it runs.
 2. **Trust its own issuer.** In `knowledge-base.yaml`, replace `spec.issuer.shared` with `spec.issuer.external`, giving its `type` and `url`. Each Semiont service then needs its own client at that issuer ([What the issuer must provide](AUTHENTICATION.md#at-the-issuer)).
-3. **Use its own stores.** In `index.yaml`, give the graph and the vector store `external` in place of `image` and `resources`. What `external` holds for each is in [`KnowledgeIndex.json`](../../../protocol/specs/src/stack/KnowledgeIndex.json); the broker is its own the same way, at `spec.messaging.external` in [`KnowledgeBase.json`](../../../protocol/specs/src/stack/KnowledgeBase.json).
+3. **Use its own stores.** In `index.yaml`, give the graph and the vector store `external` in place of `image` and `resources`. What `external` holds for each is in [`KnowledgeIndex.json`](https://github.com/xynolog/protocol/blob/main/specs/src/stack/KnowledgeIndex.json); the broker is its own the same way, at `spec.messaging.external` in [`KnowledgeBase.json`](https://github.com/xynolog/protocol/blob/main/specs/src/stack/KnowledgeBase.json).
 4. **Keep the images the documents name, or name its own.**
 
 The launcher runs documents like these too, and starts only what is left for it to run. On a platform with no launcher, the services' JSON documents are what you deliver: see [Deploying Semiont](DEPLOYMENT.md#what-your-platform-provides).
 
 ## Secrets in a document
 
-A document never holds a secret. It names one with a [`SecretRef`](../../../protocol/specs/src/stack/SecretRef.json), the environment variable the service is handed: `apiKey: { fromEnv: ANTHROPIC_API_KEY }`.
+A document never holds a secret. It names one with a [`SecretRef`](https://github.com/xynolog/protocol/blob/main/specs/src/stack/SecretRef.json), the environment variable the service is handed: `apiKey: { fromEnv: ANTHROPIC_API_KEY }`.
 
 - **`semiont start` refuses** when a variable that something it starts reads is set neither in your environment nor by a source registered with `semiont settings secret set`. A variable the documents name where nothing reads it is not asked for.
 - **A service is handed only the variables its own document names.** The Anthropic key reaches the librarian and the worker and no other service.
@@ -312,13 +312,13 @@ The launcher reads its own:
 |---|---|
 | `SEMIONT_ROOT` | The knowledge base to act on, instead of the one found by walking up from the current directory |
 
-`semiont start --help` lists the others a start reads. What a service reads from its environment is in [Secrets](../services/SECRETS.md), and for the gateway, the dispatcher and the Archivist in [`variables.json`](../../../protocol/specs/src/service-environment/variables.json).
+`semiont start --help` lists the others a start reads. What a service reads from its environment is in [Secrets](../services/SECRETS.md), and for the gateway, the dispatcher and the Archivist in [`variables.json`](https://github.com/xynolog/protocol/blob/main/specs/src/service-environment/variables.json).
 
 ## What each service is given
 
 No service reads a stack document:
 
-- **The gateway, the dispatcher, the archivist, the worker, the weaver, the smelter and the librarian** each read a JSON document, at `/etc/semiont/gateway.json`, `/etc/semiont/dispatcher.json`, `/etc/semiont/archivist.json`, `/etc/semiont/worker.json`, `/etc/semiont/weaver.json`, `/etc/semiont/smelter.json` and `/etc/semiont/librarian.json`, that the launcher writes from the stack's documents and from `.semiont/config.yaml`. Their schemas are [`GatewayConfig`](../../../protocol/specs/src/components/schemas/GatewayConfig.json), [`DispatcherConfig`](../../../protocol/specs/src/components/schemas/DispatcherConfig.json), [`ArchivistConfig`](../../../protocol/specs/src/components/schemas/ArchivistConfig.json), [`WorkerConfig`](../../../protocol/specs/src/components/schemas/WorkerConfig.json), [`WeaverConfig`](../../../protocol/specs/src/components/schemas/WeaverConfig.json), [`SmelterConfig`](../../../protocol/specs/src/components/schemas/SmelterConfig.json) and [`LibrarianConfig`](../../../protocol/specs/src/components/schemas/LibrarianConfig.json). A document names a credential by the variable that holds it, never by value. The worker's document lists the engines it runs, each with the jobs it does with that engine, so a worker started some other way is given the same document and reads nothing of the knowledge base.
+- **The gateway, the dispatcher, the archivist, the worker, the weaver, the smelter and the librarian** each read a JSON document, at `/etc/semiont/gateway.json`, `/etc/semiont/dispatcher.json`, `/etc/semiont/archivist.json`, `/etc/semiont/worker.json`, `/etc/semiont/weaver.json`, `/etc/semiont/smelter.json` and `/etc/semiont/librarian.json`, that the launcher writes from the stack's documents and from `.semiont/config.yaml`. Their schemas are [`GatewayConfig`](https://github.com/xynolog/protocol/blob/main/specs/src/components/schemas/GatewayConfig.json), [`DispatcherConfig`](https://github.com/xynolog/protocol/blob/main/specs/src/components/schemas/DispatcherConfig.json), [`ArchivistConfig`](https://github.com/xynolog/protocol/blob/main/specs/src/components/schemas/ArchivistConfig.json), [`WorkerConfig`](https://github.com/xynolog/protocol/blob/main/specs/src/components/schemas/WorkerConfig.json), [`WeaverConfig`](https://github.com/xynolog/protocol/blob/main/specs/src/components/schemas/WeaverConfig.json), [`SmelterConfig`](https://github.com/xynolog/protocol/blob/main/specs/src/components/schemas/SmelterConfig.json) and [`LibrarianConfig`](https://github.com/xynolog/protocol/blob/main/specs/src/components/schemas/LibrarianConfig.json). A document names a credential by the variable that holds it, never by value. The worker's document lists the engines it runs, each with the jobs it does with that engine, so a worker started some other way is given the same document and reads nothing of the knowledge base.
 - **The librarian's document** names the engine each of its two actors asks, from the Inference document's `spec.engines.actors`, with the address of that engine's provider and the variable that holds its key. It states two bounds, from the KnowledgeIndex's `spec.librarian`: `gather.settleTimeoutMs`, how long a gather waits for the smelter, and `search.semanticFloor`, the least similarity a hit by meaning must have. `semiont init` writes 15000 milliseconds and 0.6. The librarian defaults neither.
 
 On your own platform, these files are what you deliver ([Deployment](DEPLOYMENT.md#what-your-platform-provides)).
@@ -355,4 +355,4 @@ The launcher walks up from the current directory looking for `.semiont/`, as `gi
 - [Authentication](AUTHENTICATION.md): the issuer, and what `spec.issuer` selects
 - [The service catalog](../services/OVERVIEW.md): the roles the documents choose drivers for
 - [Project Layout](../PROJECT-LAYOUT.md): where these files sit in a knowledge base
-- [The launcher's README](../../../apps/launcher/README.md): `semiont init`, `settings`, and every flag
+- [The launcher's README](https://github.com/xynolog/cli/blob/main/README.md): `semiont init`, `settings`, and every flag

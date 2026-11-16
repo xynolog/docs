@@ -11,7 +11,7 @@ the only type that exercises every axis at its hardest setting.
 
 ## The declaration
 
-[`protocol/specs/src/media-types/registry.json`](../../protocol/specs/src/media-types/registry.json)
+[`protocol/specs/src/media-types/registry.json`](https://github.com/xynolog/protocol/blob/main/specs/src/media-types/registry.json)
 holds one row per supported type. Every SDK generates its table from it:
 TypeScript's is `MEDIA_TYPES` in `packages/typescript/core/src/media-types.ts`, Rust's is
 `semiont::media_types`, Python's is `MEDIA_TYPES` in
@@ -42,7 +42,7 @@ build. That is why behavior can be described by reading one table.
 
 The rules read from the table that more than one SDK applies (the format a
 clone takes, the name content is stored under) are stated as cases in
-[`protocol/specs/src/media-types/cases.json`](../../protocol/specs/src/media-types/cases.json),
+[`protocol/specs/src/media-types/cases.json`](https://github.com/xynolog/protocol/blob/main/specs/src/media-types/cases.json),
 and each SDK runs them.
 
 | Media type | `render` | `anchoring` | `textSource` |
@@ -110,11 +110,11 @@ the five to one answer.
 
 - **`decode`** — charset-aware passthrough. The text *is* the bytes. Free.
   What text the bytes are is protocol:
-  [the text of a resource](../../protocol/contract/W3C-SELECTORS.md#the-text-of-a-resource)
+  [the text of a resource](https://github.com/xynolog/protocol/blob/main/contract/W3C-SELECTORS.md#the-text-of-a-resource)
   states it, as a browser reads a content type and the bytes behind it, and
   two tables every reader runs hold it
-  ([`decode-cases.json`](../../protocol/specs/src/text/decode-cases.json) and
-  [`encoding-cases.json`](../../protocol/specs/src/text/encoding-cases.json)). An offset
+  ([`decode-cases.json`](https://github.com/xynolog/protocol/blob/main/specs/src/text/decode-cases.json) and
+  [`encoding-cases.json`](https://github.com/xynolog/protocol/blob/main/specs/src/text/encoding-cases.json)). An offset
   is counted in that text, so a reader that made another text of the same
   bytes would put its annotations somewhere else.
 - **`pdf-text-layer`** — parse the content stream, and where a page has no
@@ -133,7 +133,7 @@ work:
 
 So they are separate surfaces, and a call site cannot mistake one for the other:
 decoding is every SDK's (`decodeRepresentation` in `@semiont/core`); deriving is
-the Smelter's alone ([images/smelter](../../images/smelter/), `extraction.py`), and
+the Smelter's alone ([images/smelter](https://github.com/xynolog/images/tree/main/smelter), `extraction.py`), and
 it stores what it derives.
 
 **Whether a type's text comes with places on a page is derived from this field**,
@@ -226,7 +226,7 @@ exists because of one of those three declarations.
    recognition pass for the lifetime of those bytes.
 6. **It lands in the anchored-text store, at `{ab}/{cd}/{checksum}.json`**,
    filed by the arithmetic the event log files a resource's events by
-   ([`shard-cases.json`](../../protocol/specs/src/archivist/shard-cases.json)). The store
+   ([`shard-cases.json`](https://github.com/xynolog/protocol/blob/main/specs/src/archivist/shard-cases.json)). The store
    is a directory the deployment supplies, kept per knowledge base, so it
    survives a restart and `semiont clean --store anchored-text` can reclaim it.
 7. **Smelter chunks, embeds, and writes vectors.**
@@ -464,6 +464,6 @@ decide each axis knowingly:
 ## Related
 
 - **[ANCHORING.md](ANCHORING.md)** — the anchoring pipeline in depth.
-- **[../../protocol/contract/W3C-SELECTORS.md](../../protocol/contract/W3C-SELECTORS.md)** — the selector types, and which apply to which anchoring model.
-- **[../../protocol/contract/ARCHIVIST.md](../../protocol/contract/ARCHIVIST.md)** — the wait step 8 relies on: a read of anchored text waits for the Smelter to settle.
-- **[../../protocol/contract/TRANSPORT-CONTRACT.md](../../protocol/contract/TRANSPORT-CONTRACT.md)** — where the artifact crosses a process boundary.
+- **[../../protocol/contract/W3C-SELECTORS.md](https://github.com/xynolog/protocol/blob/main/contract/W3C-SELECTORS.md)** — the selector types, and which apply to which anchoring model.
+- **[../../protocol/contract/ARCHIVIST.md](https://github.com/xynolog/protocol/blob/main/contract/ARCHIVIST.md)** — the wait step 8 relies on: a read of anchored text waits for the Smelter to settle.
+- **[../../protocol/contract/TRANSPORT-CONTRACT.md](https://github.com/xynolog/protocol/blob/main/contract/TRANSPORT-CONTRACT.md)** — where the artifact crosses a process boundary.

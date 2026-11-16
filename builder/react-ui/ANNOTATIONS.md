@@ -216,7 +216,7 @@ delegates a `mark` job and follows it, `mark.cancelPending()` drops the annotati
 being composed, and `mark.dismissProgress()` clears an ended job's display.
 
 A delegated job that says nothing for `delegateSilenceMs` (three minutes, in
-[`protocol/specs/src/client/timing.json`](../../../protocol/specs/src/client/timing.json)) is
+[`protocol/specs/src/client/timing.json`](https://github.com/xynolog/protocol/blob/main/specs/src/client/timing.json)) is
 reported on the local channel `mark:delegate-timeout`. The signal ends nothing:
 the job goes on, the state unit keeps following it, and
 `delegatingMotivation$` stays set until the job ends. A frame on the job's
@@ -496,7 +496,7 @@ for (const { exact, start, end, annotation, strategy, confidence } of segments) 
 ### Test Examples
 
 See test files for comprehensive examples:
-- [AnnotationContext.test.tsx](../../../packages/typescript/react-ui/src/contexts/__tests__/AnnotationContext.test.tsx)
+- [AnnotationContext.test.tsx](https://github.com/xynolog/sdk/blob/main/typescript/react-ui/src/contexts/__tests__/AnnotationContext.test.tsx)
 
 ---
 
@@ -601,4 +601,4 @@ See [EVENTS.md](EVENTS.md) for complete real-time collaboration architecture.
 
 ## Contributing
 
-See [CONTRIBUTING.md](../../../CONTRIBUTING.md) for contribution guidelines.
+See [CONTRIBUTING.md](https://github.com/xynolog/.github/blob/main/CONTRIBUTING.md) for contribution guidelines.

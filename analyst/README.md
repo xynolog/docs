@@ -20,7 +20,7 @@ container run --publish 3000:3000 -it ghcr.io/the-ai-alliance/semiont-browser:la
 
 The image serves static files and holds no knowledge-base configuration. You connect to knowledge bases from the page.
 
-**As a desktop app.** Semiont Desktop is packaged for Apple Silicon Macs and Linux x64 as a Debian package. Download it from the [GitHub releases](https://github.com/The-AI-Alliance/semiont/releases); install notes, including the macOS Gatekeeper step and Linux system requirements, are in [apps/desktop/README.md](../../apps/desktop/README.md).
+**As a desktop app.** Semiont Desktop is packaged for Apple Silicon Macs and Linux x64 as a Debian package. Download it from the [GitHub releases](https://github.com/The-AI-Alliance/semiont/releases); install notes, including the macOS Gatekeeper step and Linux system requirements, are in [apps/desktop/README.md](https://github.com/xynolog/desktop/blob/main/README.md).
 
 ## Connect and sign in
 
@@ -39,4 +39,4 @@ The panel shows each knowledge base's status: **Connected**, **Session expired**
 - **You want to verify the image before running it.** See [Supply-chain verification](../operator/administration/IMAGES.md#supply-chain-verification).
 - **You need the Browser's logs.** `semiont logs --service browser` from the knowledge base's directory, or your container engine's `logs` command for a Browser you started yourself.
 
-How the Browser is built is in [images/browser/docs](../../images/browser/docs/).
+How the Browser is built is in [images/browser/docs](https://github.com/xynolog/images/tree/main/browser/docs).

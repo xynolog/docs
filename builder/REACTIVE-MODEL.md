@@ -14,7 +14,7 @@ Each SDK makes the same choice: the form that can be read over time is the primi
 
 ## The nine shapes
 
-Every namespace method returns exactly one of these. Which one is the method's row in [`protocol/specs/src/client/surface.json`](../../protocol/specs/src/client/surface.json), the table every SDK is held to: `lint:client-surface` fails a method whose signature is not its row's.
+Every namespace method returns exactly one of these. Which one is the method's row in [`protocol/specs/src/client/surface.json`](https://github.com/xynolog/protocol/blob/main/specs/src/client/surface.json), the table every SDK is held to: `lint:client-surface` fails a method whose signature is not its row's.
 
 | Shape | What it is | TypeScript | Rust | Python | Go | Kotlin | C# | Swift | Haskell |
 |---|---|---|---|---|---|---|---|---|---|
@@ -58,7 +58,7 @@ Observable is the right primitive for all of these. Promise has no "second value
 
 A consumer that doesn't care about progress shouldn't have to learn RxJS to use the SDK.
 
-Two Observable subclasses live in [`packages/typescript/sdk/src/awaitable.ts`](../../packages/typescript/sdk/src/awaitable.ts). Both extend `Observable<T>`, but of the two only **StreamObservable** is thenable — `CacheObservable` has an explicit `.fresh()` instead:
+Two Observable subclasses live in [`packages/typescript/sdk/src/awaitable.ts`](https://github.com/xynolog/sdk/blob/main/typescript/sdk/src/awaitable.ts). Both extend `Observable<T>`, but of the two only **StreamObservable** is thenable — `CacheObservable` has an explicit `.fresh()` instead:
 
 ```ts
 import { Observable, lastValueFrom, firstValueFrom } from 'rxjs';
@@ -136,7 +136,7 @@ The discipline is enforceable. A namespace method's return type must be one of:
 - `void`
 - `Promise<number | undefined>` (wire drives only)
 
-Plain `Observable<T>` does not appear on the public verb-namespace surface. (It still appears on lifecycle / escape-hatch surfaces — `client.transport.state$`, `client.transport.errors$`, `client.bus.on(channel)` — see "Plain Observables" below.) The rule is enforced: every namespace method is a row of [`protocol/specs/src/client/surface.json`](../../protocol/specs/src/client/surface.json) with the shape of what it returns, `lint:client-surface` fails a method whose signature is not its row's, and every SDK is held to the same table. The table names two more shapes than this list, because it covers every namespace: `job`'s four lifecycle streams are `events`, and `yield.resource`'s `UploadObservable` is its own row.
+Plain `Observable<T>` does not appear on the public verb-namespace surface. (It still appears on lifecycle / escape-hatch surfaces — `client.transport.state$`, `client.transport.errors$`, `client.bus.on(channel)` — see "Plain Observables" below.) The rule is enforced: every namespace method is a row of [`protocol/specs/src/client/surface.json`](https://github.com/xynolog/protocol/blob/main/specs/src/client/surface.json) with the shape of what it returns, `lint:client-surface` fails a method whose signature is not its row's, and every SDK is held to the same table. The table names two more shapes than this list, because it covers every namespace: `job`'s four lifecycle streams are `events`, and `yield.resource`'s `UploadObservable` is its own row.
 
 ### What this looks like at the call site
 
@@ -199,7 +199,7 @@ const done = await semiont.mark.delegate(rId, { motivation: 'linking', entityTyp
 
 ### Method-by-method assignment
 
-The authority for this list is [`protocol/specs/src/client/surface.json`](../../protocol/specs/src/client/surface.json), which names every method's shape and which every SDK is held to.
+The authority for this list is [`protocol/specs/src/client/surface.json`](https://github.com/xynolog/protocol/blob/main/specs/src/client/surface.json), which names every method's shape and which every SDK is held to.
 
 **`StreamObservable<T>`** (bounded; `then` resolves on completion):
 
@@ -353,7 +353,7 @@ that observes the bus from an effect has to survive that:
 ### Why this design
 
 1. **Live queries are genuinely reactive.** Browse reads represent "the current value of this resource, which changes when bus events fire." Promise can't express that. Observable can.
-2. **The `Cache<K,V>` primitive is a real architectural building block.** Multicast, per-key dedup, stale-while-revalidate. The subclass approach lets us keep it without leaking it through the public surface. See [CACHE-SEMANTICS.md](../../protocol/contract/CACHE-SEMANTICS.md) for the cache's behavioral contract.
+2. **The `Cache<K,V>` primitive is a real architectural building block.** Multicast, per-key dedup, stale-while-revalidate. The subclass approach lets us keep it without leaking it through the public surface. See [CACHE-SEMANTICS.md](https://github.com/xynolog/protocol/blob/main/contract/CACHE-SEMANTICS.md) for the cache's behavioral contract.
 3. **Lifecycle state is BehaviorSubject-shaped.** `token$`, `user$`, `state$` are state over time with synchronous snapshots. Native primitive.
 4. **Sugar costs ~50 lines.** Four small subclasses; `then` (streams/delegations/uploads) per the JS thenable spec, `.fresh()` (live queries) as an explicit method. No alternative shape (Promise-only API, dual-API per method, AsyncIterable conversion) is cheaper or cleaner.
 5. **No information loss.** A Promise-typed return would force a choice between progress and final value for streaming methods. The subclass surface lets the consumer pick — `await`/`.fresh()` for a value, `subscribe` for progress or live state, both can compose.
@@ -374,7 +374,7 @@ The Rust client has the same nine shapes, with no reactive library under them.
 - **Events** come as a `Stream`. A reader that falls behind is told how far (`Lagged`) and reads on.
 - **Composition** uses `futures::StreamExt` or `tokio-stream`. The crate brings no operator library.
 
-The Rust README has [the table that maps each TypeScript shape to its Rust form](../../packages/rust/sdk/README.md#from-the-typescript-sdk), and [how each shape is used](../../packages/rust/sdk/README.md#what-a-method-returns).
+The Rust README has [the table that maps each TypeScript shape to its Rust form](https://github.com/xynolog/sdk/blob/main/rust/sdk/README.md#from-the-typescript-sdk), and [how each shape is used](https://github.com/xynolog/sdk/blob/main/rust/sdk/README.md#what-a-method-returns).
 
 ## In Python
 
@@ -388,7 +388,7 @@ The Python client has the same nine shapes, on asyncio, with no reactive library
 - **Events** are an async iterator with a queue per reader, so a reader that falls behind loses nothing.
 - **Composition** is the language's own: `async for`, `asyncio.TaskGroup`, `asyncio.timeout`. The package brings no operator library.
 
-The Python README shows [each shape at the call site](../../packages/python/sdk/README.md#the-client), and [a watched query](../../packages/python/sdk/README.md#live-queries).
+The Python README shows [each shape at the call site](https://github.com/xynolog/sdk/blob/main/python/sdk/README.md#the-client), and [a watched query](https://github.com/xynolog/sdk/blob/main/python/sdk/README.md#live-queries).
 
 ## In Go
 
@@ -402,7 +402,7 @@ The Go client has the same nine shapes, with no reactive library under them. Wha
 - **Events** are iterators with a queue per reader, so a reader that falls behind loses nothing. Each reader takes a context, and ends when it is done.
 - **Composition** is the language's own: `for` over an iterator, goroutines, and `context` for deadlines and cancelling. The module brings no operator library.
 
-The Go README shows [each shape at the call site](../../packages/go/sdk/README.md#the-client), and [a watched query](../../packages/go/sdk/README.md#live-queries).
+The Go README shows [each shape at the call site](https://github.com/xynolog/sdk/blob/main/go/README.md#the-client), and [a watched query](https://github.com/xynolog/sdk/blob/main/go/README.md#live-queries).
 
 ## In Kotlin
 
@@ -416,7 +416,7 @@ The Kotlin client has the same nine shapes, on coroutines, with no reactive libr
 - **Events** are a `Flow` with a queue per reader, so a reader that falls behind loses nothing. Closing one stops its listening.
 - **Composition** is `kotlinx.coroutines`': `Flow`'s operators, structured concurrency, and `withTimeout` for deadlines. The SDK brings no operator library of its own.
 
-The Kotlin README shows [a delegation followed in both languages](../../packages/kotlin/sdk/README.md#gathering-then-delegating), and [a watched query](../../packages/kotlin/sdk/README.md#watching-live).
+The Kotlin README shows [a delegation followed in both languages](https://github.com/xynolog/sdk/blob/main/kotlin/sdk/README.md#gathering-then-delegating), and [a watched query](https://github.com/xynolog/sdk/blob/main/kotlin/sdk/README.md#watching-live).
 
 ## In C#
 
@@ -434,19 +434,19 @@ enumerator ends. Use `FreshAsync` for a one-shot read. The closed
 exhaustive. For a worker, await `Claims.NextAsync` for the next job and await
 `StopAsync` before disposing the client.
 
-The [.NET SDK README](../../packages/csharp/sdk/README.md) has runnable
+The [.NET SDK README](https://github.com/xynolog/sdk/blob/main/csharp/sdk/README.md) has runnable
 examples of following a delegation, running a worker, and watching a live
 query.
 
 ## In Swift
 
-The [Swift SDK](../../packages/swift/sdk/README.md) uses async functions and `AsyncSequence`s. A one-shot method is `async throws`, and a signal is a plain `func`. `Running<T>` and `Delegation<C>` are consumed once: `for try await` gives each report and then the final value, `completed()` gives only the final value, and a second consumer gets `MultipleConsumers`. `dispose()` cancels the work. A delegation reads as `JobEvent<C>` values. An `Upload` reads as `UploadProgress` values, and its `completed()` gives the `CreateResourceResponse`.
+The [Swift SDK](https://github.com/xynolog/sdk/blob/main/swift/sdk/README.md) uses async functions and `AsyncSequence`s. A one-shot method is `async throws`, and a signal is a plain `func`. `Running<T>` and `Delegation<C>` are consumed once: `for try await` gives each report and then the final value, `completed()` gives only the final value, and a second consumer gets `MultipleConsumers`. `dispose()` cancels the work. A delegation reads as `JobEvent<C>` values. An `Upload` reads as `UploadProgress` values, and its `completed()` gives the `CreateResourceResponse`.
 
 A live query is a `Cached<T>`: reading it gives each `CacheState`, and `fresh()` asks the service now. A worker's `Claims` reads as each `HeldJob` it comes to hold. A channel of the bus reads as a `Typed<P>` of `Heard<P>` values.
 
 ## In Haskell
 
-The [Haskell SDK](../../packages/haskell/sdk/README.md) uses native effects.
+The [Haskell SDK](https://github.com/xynolog/sdk/blob/main/haskell/sdk/README.md) uses native effects.
 Its `Running report result` handle starts work when consumed once:
 `await` returns the final result, while `withReports` gives a
 `Stream (Of report) IO result` from `streaming`. Leaving the report scope cancels
@@ -466,13 +466,13 @@ cache updates.
 
 - [Usage.md](./Usage.md) — per-namespace tour with concrete examples
 - [STATE-UNITS.md](./STATE-UNITS.md) — the foundational stateful-unit pattern (a surface consumers read but cannot write, and a dispose lifecycle); the substrate behind every flow state machine, worker adapter, and view-shaped state machine in the codebase
-- [CACHE-SEMANTICS.md](../../protocol/contract/CACHE-SEMANTICS.md) — the `Cache<K,V>` primitive's behavioral contract behind `CacheObservable`
-- [`packages/typescript/sdk/src/awaitable.ts`](../../packages/typescript/sdk/src/awaitable.ts) — the awaitable Observable subclasses' implementation
-- [protocol/contract/EVENT-BUS.md](../../protocol/contract/EVENT-BUS.md) — channel naming, scoping, correlation; the protocol layer the SDK wraps
-- [protocol/contract/CHANNELS.md](../../protocol/contract/CHANNELS.md) — channel inventory: persisted events, ephemeral signals, correlation responses, resource broadcasts
-- [protocol/contract/TRANSPORT-CONTRACT.md](../../protocol/contract/TRANSPORT-CONTRACT.md) — the `ITransport` behavioral guarantees underlying every namespace method, including `errors$`
-- [The Rust SDK's README](../../packages/rust/sdk/README.md) — the Rust form of each shape
-- [The Python SDK's README](../../packages/python/sdk/README.md) — the Python form of each shape
-- [The Go SDK's README](../../packages/go/sdk/README.md) — the Go form of each shape
-- [The Kotlin SDK's README](../../packages/kotlin/sdk/README.md) — the Kotlin and Java forms of each shape
-- The Swift SDK shows [live queries](../../packages/swift/sdk/README.md#live-queries) and [delegated work](../../packages/swift/sdk/README.md#a-first-program) using async functions and sequences.
+- [CACHE-SEMANTICS.md](https://github.com/xynolog/protocol/blob/main/contract/CACHE-SEMANTICS.md) — the `Cache<K,V>` primitive's behavioral contract behind `CacheObservable`
+- [`packages/typescript/sdk/src/awaitable.ts`](https://github.com/xynolog/sdk/blob/main/typescript/sdk/src/awaitable.ts) — the awaitable Observable subclasses' implementation
+- [protocol/contract/EVENT-BUS.md](https://github.com/xynolog/protocol/blob/main/contract/EVENT-BUS.md) — channel naming, scoping, correlation; the protocol layer the SDK wraps
+- [protocol/contract/CHANNELS.md](https://github.com/xynolog/protocol/blob/main/contract/CHANNELS.md) — channel inventory: persisted events, ephemeral signals, correlation responses, resource broadcasts
+- [protocol/contract/TRANSPORT-CONTRACT.md](https://github.com/xynolog/protocol/blob/main/contract/TRANSPORT-CONTRACT.md) — the `ITransport` behavioral guarantees underlying every namespace method, including `errors$`
+- [The Rust SDK's README](https://github.com/xynolog/sdk/blob/main/rust/sdk/README.md) — the Rust form of each shape
+- [The Python SDK's README](https://github.com/xynolog/sdk/blob/main/python/sdk/README.md) — the Python form of each shape
+- [The Go SDK's README](https://github.com/xynolog/sdk/blob/main/go/README.md) — the Go form of each shape
+- [The Kotlin SDK's README](https://github.com/xynolog/sdk/blob/main/kotlin/sdk/README.md) — the Kotlin and Java forms of each shape
+- The Swift SDK shows [live queries](https://github.com/xynolog/sdk/blob/main/swift/sdk/README.md#live-queries) and [delegated work](https://github.com/xynolog/sdk/blob/main/swift/sdk/README.md#a-first-program) using async functions and sequences.

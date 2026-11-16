@@ -153,7 +153,7 @@ The Browser's port is its document's (`spec.port`, [The Browser](CONFIGURATION.m
 
 Neither is optional at start: the Weaver and the Librarian each connect to the graph when they start, the Smelter and the Librarian each connect to the vector store, and a service that cannot connect exits. When one becomes unavailable under a running stack, writes and Browse's reads of the record continue, and what the lost store answers does not:
 
-- **Graph.** Graph queries fail: a search of resources by text, what refers to a resource, candidate search for a reference, and the graph neighborhood of a gathered context. The Weaver logs and counts each apply that fails, and catches up at its next start. See [the Librarian's two waits](../../../protocol/contract/LIBRARIAN.md#the-two-waits).
+- **Graph.** Graph queries fail: a search of resources by text, what refers to a resource, candidate search for a reference, and the graph neighborhood of a gathered context. The Weaver logs and counts each apply that fails, and catches up at its next start. See [the Librarian's two waits](https://github.com/xynolog/protocol/blob/main/contract/LIBRARIAN.md#the-two-waits).
 - **Vectors.** A search that matches nothing by text answers with nothing rather than with similar resources, Match ranks its candidates without semantic similarity, and a context gathered around an annotation comes without `semanticContext`; a context gathered around a resource fails. The Smelter logs each index write that fails, and reconciles the index against the catalog at its next start.
 
 ```bash
@@ -177,7 +177,7 @@ Qdrant answers `401` to a request that carries no key, or one that is neither it
   ```
 
   A knowledge base's own Qdrant restarts with its stack, so a `semiont stop` and `semiont start` there is enough.
-- **Somebody else's Qdrant.** Its tokens are its operator's. A `403` means the token is not signed with that Qdrant's key, or does not claim what [`token-cases.json`](../../../protocol/specs/src/vectors/token-cases.json) states for the service.
+- **Somebody else's Qdrant.** Its tokens are its operator's. A `403` means the token is not signed with that Qdrant's key, or does not claim what [`token-cases.json`](https://github.com/xynolog/protocol/blob/main/specs/src/vectors/token-cases.json) states for the service.
 
 ```bash
 semiont logs --service smelter | grep -iE "qdrant|401|403"
@@ -301,4 +301,4 @@ Scrub secrets before attaching any of it: `JWT_SECRET`, `SEMIONT_OIDC_CLIENT_SEC
 - [Services Overview](../services/OVERVIEW.md) — ports, health probes, dependencies
 - [Container Images](IMAGES.md) — versions, tags, attestations
 - [Maintenance](MAINTENANCE.md) — routine operations
-- [launcher README](../../../apps/launcher/README.md) — every verb and flag
+- [launcher README](https://github.com/xynolog/cli/blob/main/README.md) — every verb and flag

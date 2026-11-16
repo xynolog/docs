@@ -71,8 +71,6 @@ semiont useradd --email admin@example.com   # prompts for the password
 
 Open **http://localhost:3000**. The Semiont browser's Knowledge Bases panel discovers launcher-managed stacks automatically — pick yours and sign in with the email and password you just created. Sign-in happens at the identity provider, not at Semiont, so you'll be handed to its page and back, and it asks for your name on first use.
 
-![Connect to knowledge base](../../website/assets/images/connect-kb.png)
-
 Sign the launcher in as well — it holds a session of its own, which the next step needs:
 
 ```bash
@@ -95,8 +93,6 @@ semiont yield --upload papers/attention-is-all-you-need.pdf
 
 ## 8. Annotate
 
-![The Semiont browser: a document with its references highlighted, and a panel of assessments beside it](../../website/assets/images/semiont-2026-03-10.png)
-
 Open the document you just ingested and start marking it up — highlight a passage, tag an entity, link a claim to the source that supports it. You are not doing it alone: AI agents reach the same document over the same bus, proposing references and entity types for you to accept, refine, or throw out. Every annotation records who made it, human or agent, and the two are the same kind of participant here.
 
 The CLI asks for the same work. This has the stack detect references to concepts, given the resource id that step 7 printed:
@@ -117,7 +113,7 @@ claude mcp add semiont -- semiont mcp
 
 ## Next
 
-Everything you just did travelled over one event bus, spoken as [eight verbs](../../protocol/contract/flows/README.md): `semiont yield` and `semiont mark` were two of them. The launcher speaks all eight (`semiont browse --help`, and so on), and so does your code, through the SDK.
+Everything you just did travelled over one event bus, spoken as [eight verbs](https://github.com/xynolog/protocol/blob/main/contract/flows/README.md): `semiont yield` and `semiont mark` were two of them. The launcher speaks all eight (`semiont browse --help`, and so on), and so does your code, through the SDK.
 
 - **[Building with the Semiont SDK](README.md)**: the same verbs from TypeScript, Rust, Python, Go, Kotlin, Java, C#, Swift or Haskell
 - **[Working in the Browser](../analyst/FEATURES.md)**: what you can do with the document you just opened

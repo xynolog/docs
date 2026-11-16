@@ -17,7 +17,7 @@ The worker is built up below in TypeScript. [The same worker in Rust](#the-same-
 - The work is a job the knowledge base queues: a `mark` job, which annotates a resource for one motivation (`highlighting`, `commenting`, `assessing`, `linking` or `tagging`), or a `yield` job, which makes a resource. A worker of your own serves one or more of them with your own logic or your own model. Jobs are created with `job:create`, which is what `mark.delegate` and `yield.delegate` send.
 - Each job must run once, however many workers are up. A claim is atomic: of any number of simultaneous claims, exactly one wins each pending job.
 
-The dispatcher holds the queue and answers the `job:*` channels. [JOBS.md](../../../../protocol/contract/JOBS.md) is what it does, and [WORKER-CONTRACT.md](../../../../protocol/contract/WORKER-CONTRACT.md) is what a worker promises it.
+The dispatcher holds the queue and answers the `job:*` channels. [JOBS.md](https://github.com/xynolog/protocol/blob/main/contract/JOBS.md) is what it does, and [WORKER-CONTRACT.md](https://github.com/xynolog/protocol/blob/main/contract/WORKER-CONTRACT.md) is what a worker promises it.
 
 ## The lifecycle a worker reports
 
@@ -125,7 +125,7 @@ async function runJob(client: SemiontClient, job: HeldMarkJob, work: Work): Prom
 }
 ```
 
-A progress message is a code, not a sentence: each client renders it in its reader's language. The codes are in [`JobProgressMessage`](../../../../protocol/specs/src/components/schemas/JobProgressMessage.json).
+A progress message is a code, not a sentence: each client renders it in its reader's language. The codes are in [`JobProgressMessage`](https://github.com/xynolog/protocol/blob/main/specs/src/components/schemas/JobProgressMessage.json).
 
 `job.fail` says whether the queue will run the job again (`willRetry`), from the retry budget on the record the worker claimed. Tell it the failure's class when you know it: `job.fail(message, { failureClass: 'deterministic' })` for a failure no second attempt can change, and `job.fail(message, { failureClass: 'withheld' })` for an answer the model's provider withheld, by a refusal or a content filter. The queue retries neither, and whoever reads the failure tells "the provider would not answer" from "the job broke" by the class. `'transient'` says nothing about the request was judged; with no class the failure is retried as a transient one is. `job.cancelled` is an `AbortSignal`, aborted when a cancellation names the held job: stop where the work can, and say `job.cancel()`.
 
@@ -173,7 +173,7 @@ async function recordHighlights(
 
 The commit waits for the record's acknowledgement. When none comes it asks the record whether the batch landed, and fails only if that cannot be established. When the job settles, it says how its commits were established; the worker states none of that itself. The worker's stream must name `JOB_COMMIT_CHANNELS`, as the sign-in above does.
 
-Semiont's own worker is the [Worker service](../../../../images/worker/README.md), in Python. It is a service's code and exports nothing to build on. What it does with a text and with a model's reply is written rule by rule in [WORKER-SERVICE.md](../../../../protocol/contract/WORKER-SERVICE.md), and the parts a table can state exactly are case tables in [`protocol/specs/src/worker`](../../../../protocol/specs/src/worker/), which a worker in any language can run against its own code.
+Semiont's own worker is the [Worker service](https://github.com/xynolog/images/blob/main/worker/README.md), in Python. It is a service's code and exports nothing to build on. What it does with a text and with a model's reply is written rule by rule in [WORKER-SERVICE.md](https://github.com/xynolog/protocol/blob/main/contract/WORKER-SERVICE.md), and the parts a table can state exactly are case tables in [`protocol/specs/src/worker`](https://github.com/xynolog/protocol/tree/main/specs/src/worker), which a worker in any language can run against its own code.
 
 ## Complete worker
 
@@ -307,7 +307,7 @@ main().catch((e) => {
 });
 ```
 
-Let a job in hand finish before shutting down, or stop the claims, which fails it. A job whose worker simply died stays `running` until the dispatcher's sweep finds it with no progress or checkpoint for 30 minutes, and then re-queues it if its retry budget allows ([JOBS.md](../../../../protocol/contract/JOBS.md#periodic-work)).
+Let a job in hand finish before shutting down, or stop the claims, which fails it. A job whose worker simply died stays `running` until the dispatcher's sweep finds it with no progress or checkpoint for 30 minutes, and then re-queues it if its retry budget allows ([JOBS.md](https://github.com/xynolog/protocol/blob/main/contract/JOBS.md#periodic-work)).
 
 ## The same worker in Rust
 
@@ -442,7 +442,7 @@ while let Some(handed) = claims.next().await {
 claims.stop().await;
 ```
 
-`gateway` is the gateway's origin as text, `issuer` the issuer the knowledge base trusts, `client_id` the worker's client there (`SEMIONT_OIDC_CLIENT_ID`), `key` the PKCS#8 PEM of its key (`SEMIONT_OIDC_CLIENT_KEY`), and `http` the process's `reqwest::Client`. `passages` stands for your model: given the text, the passages it would highlight, each as the words it quoted (a `Vec<QuotedText>`). [The transport's README](../../../../packages/rust/http-transport/README.md#a-daemon) has what surrounds this block, and [the SDK's](../../../../packages/rust/sdk/README.md#a-worker) has the rules it keeps.
+`gateway` is the gateway's origin as text, `issuer` the issuer the knowledge base trusts, `client_id` the worker's client there (`SEMIONT_OIDC_CLIENT_ID`), `key` the PKCS#8 PEM of its key (`SEMIONT_OIDC_CLIENT_KEY`), and `http` the process's `reqwest::Client`. `passages` stands for your model: given the text, the passages it would highlight, each as the words it quoted (a `Vec<QuotedText>`). [The transport's README](https://github.com/xynolog/sdk/blob/main/rust/http-transport/README.md#a-daemon) has what surrounds this block, and [the SDK's](https://github.com/xynolog/sdk/blob/main/rust/sdk/README.md#a-worker) has the rules it keeps.
 
 What differs from TypeScript is what the language gives:
 
@@ -541,7 +541,7 @@ async def work(gateway: str, issuer: str, client_id: str, key: str) -> None:
                                 await job.complete(result)
 ```
 
-`gateway` is the gateway's origin and `issuer` is the issuer the knowledge base trusts. Nothing in the package reads the environment: the process reads its own `SEMIONT_OIDC_CLIENT_ID` and `SEMIONT_OIDC_CLIENT_KEY`, and passes what it found; `private_key_from_pem` reads the key. [The package's README](../../../../packages/python/sdk/README.md#a-worker) has the rules this program keeps.
+`gateway` is the gateway's origin and `issuer` is the issuer the knowledge base trusts. Nothing in the package reads the environment: the process reads its own `SEMIONT_OIDC_CLIENT_ID` and `SEMIONT_OIDC_CLIENT_KEY`, and passes what it found; `private_key_from_pem` reads the key. [The package's README](https://github.com/xynolog/sdk/blob/main/python/sdk/README.md#a-worker) has the rules this program keeps.
 
 What differs from TypeScript is what the language gives:
 
@@ -575,5 +575,5 @@ semiont.state$.subscribe((state) => console.log(`connection: ${state}`));
 - **Give the transport its channels.** `JOB_CLAIM_CHANNELS`, `JOB_COMMIT_CHANNELS` when it commits annotations, and the reply channels of whatever else the worker awaits.
 - **Exit on `bus.unauthorized`.** A credential that cannot claim will never be able to. A crash the operator can see is better than a worker that idles forever.
 - **Never state who a job is for.** Not in a lifecycle event and not in what the worker writes. The knowledge base derives it from the job.
-- **The reference implementation** is Semiont's own Worker service, written on the Python SDK: [`service.py`](../../../../images/worker/src/semiont_worker/service.py) for the process, [`agent.py`](../../../../images/worker/src/semiont_worker/agent.py) for an agent's sign-in, its stream and its claiming, and [`held_job.py`](../../../../images/worker/src/semiont_worker/held_job.py) for a held job's work, its checkpoints and reports, and how it ends.
+- **The reference implementation** is Semiont's own Worker service, written on the Python SDK: [`service.py`](https://github.com/xynolog/images/blob/main/worker/src/xynolog_worker/service.py) for the process, [`agent.py`](https://github.com/xynolog/images/blob/main/worker/src/xynolog_worker/agent.py) for an agent's sign-in, its stream and its claiming, and [`held_job.py`](https://github.com/xynolog/images/blob/main/worker/src/xynolog_worker/held_job.py) for a held job's work, its checkpoints and reports, and how it ends.
 - **Errors.** A call rejects with a `SemiontError`: catch it and route on its `code`. See [Error Handling](../../Usage.md#error-handling).

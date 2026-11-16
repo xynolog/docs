@@ -2,7 +2,7 @@
 
 A knowledge-base stack on Windows is Linux containers under
 [Docker Desktop](https://docs.docker.com/desktop/setup/install/windows-install/), started by the
-[`semiont` launcher](../../../apps/launcher/README.md). The launcher runs in one of two places:
+[`semiont` launcher](https://github.com/xynolog/cli/blob/main/README.md). The launcher runs in one of two places:
 
 - **inside WSL2**, as the Linux build — the same binary a Linux machine runs;
 - **on Windows itself**, as `semiont.exe`.

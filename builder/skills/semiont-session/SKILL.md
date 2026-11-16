@@ -178,7 +178,7 @@ added.unsubscribe();
 
 Scopes compose on the one connection, so a script can join many resources.
 
-The channels and their audiences are in [CHANNELS.md](../../../../protocol/contract/CHANNELS.md).
+The channels and their audiences are in [CHANNELS.md](https://github.com/xynolog/protocol/blob/main/contract/CHANNELS.md).
 
 ## A complete watcher
 

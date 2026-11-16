@@ -2,7 +2,7 @@
 
 How Semiont works inside: how it is organized and how the pieces communicate. Read it to understand why Semiont behaves as it does; a contributor will want all of it.
 
-For the contract between the pieces (channels, flows, W3C compliance), see **[../../protocol/contract/](../../protocol/contract/)**.
+For the contract between the pieces (channels, flows, W3C compliance), see **[../../protocol/contract/](https://github.com/xynolog/protocol/tree/main/contract)**.
 For running a stack, see **[../operator/](../operator/)**.
 For contributor workflow, see **[../contributor/](../contributor/)**.
 
@@ -25,6 +25,5 @@ How the actors are deployed is the operator's **[CONTAINER-TOPOLOGY.md](../opera
 
 ## Cross-references
 
-- **[../../protocol/contract/](../../protocol/contract/)** — the eight flows, the event-bus protocol, the OpenAPI reference, the W3C compliance story.
-- **[../../packages/README.md](../../packages/README.md)** — every package in each of the five languages, with what it is and whether it is published.
+- **[../../protocol/contract/](https://github.com/xynolog/protocol/tree/main/contract)** — the eight flows, the event-bus protocol, the OpenAPI reference, the W3C compliance story.
 - **[../contributor/](../contributor/README.md)** — codebase orientation for new contributors.

@@ -1,6 +1,6 @@
 # Running knowledge bases on your computer
 
-The [`semiont` launcher](../../apps/launcher/README.md) runs a stack on your own machine, for the knowledge base in the directory you run it from. If this is your first time, follow the [Quick Start](../builder/QUICK-START.md): it goes from install to a first annotation. This page covers what the Quick Start leaves out.
+The [`semiont` launcher](https://github.com/xynolog/cli/blob/main/README.md) runs a stack on your own machine, for the knowledge base in the directory you run it from. If this is your first time, follow the [Quick Start](../builder/QUICK-START.md): it goes from install to a first annotation. This page covers what the Quick Start leaves out.
 
 To put the stack on a hosted machine instead, see [Knowledge Bases](../KNOWLEDGE-BASES.md). To deploy it on your own platform, see [Deploying Semiont](administration/DEPLOYMENT.md).
 
@@ -133,16 +133,16 @@ A stack's containers reach each other through your machine's own address, so the
 ## Where things are kept
 
 - **The knowledge base** is its own directory: content, `.semiont/config.yaml`, the stack's documents in `.semiont/stack/`, and the event log. See [Project Layout](PROJECT-LAYOUT.md).
-- **Everything a stack derives or needs to run** is outside it, in a directory the launcher keeps per knowledge base: the databases, the graph, the vectors, the job queue, the views, and the secrets the launcher generated. [Where the launcher keeps its files](../../apps/launcher/README.md#where-the-launcher-keeps-its-files) says where on each system, and `semiont status --verbose` prints the paths and what each store takes on disk.
+- **Everything a stack derives or needs to run** is outside it, in a directory the launcher keeps per knowledge base: the databases, the graph, the vectors, the job queue, the views, and the secrets the launcher generated. [Where the launcher keeps its files](https://github.com/xynolog/cli/blob/main/README.md#where-the-launcher-keeps-its-files) says where on each system, and `semiont status --verbose` prints the paths and what each store takes on disk.
 - **Logs** go to each container's output. `semiont logs` reads them; there are no log files to find.
 
 ## Images built from source
 
-The documents in `.semiont/stack/` name the image each service runs, and the launcher pulls none tagged `:local`. To run images built from a checkout of this repository instead of the published ones, build them with [`make local-build`](../../Makefile), name the `:local` images in the documents, and the Browser's and the worker's in their own documents (`semiont settings browser --path` and `semiont settings worker --path` say where they are). See [Local Development](../contributor/LOCAL-DEVELOPMENT.md).
+The documents in `.semiont/stack/` name the image each service runs, and the launcher pulls none tagged `:local`. To run images built from a checkout of [xynolog/images](https://github.com/xynolog/images) instead of the published ones, build them with [`make build`](https://github.com/xynolog/images/blob/main/LOCAL-BUILD.md), name the `:local` images in the documents, and the Browser's and the worker's in their own documents (`semiont settings browser --path` and `semiont settings worker --path` say where they are). See [Local Development](../contributor/LOCAL-DEVELOPMENT.md).
 
 ## Related
 
-- [The launcher's README](../../apps/launcher/README.md): every verb and flag
+- [The launcher's README](https://github.com/xynolog/cli/blob/main/README.md): every verb and flag
 - [The service catalog](services/OVERVIEW.md): what is running, and on which ports
 - [Troubleshooting](administration/TROUBLESHOOTING.md): when a start fails or a service is unhealthy
 - [Maintenance](administration/MAINTENANCE.md): upgrades, disk, and protecting the event log

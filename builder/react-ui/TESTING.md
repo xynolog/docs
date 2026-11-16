@@ -4,7 +4,7 @@ How to test a React app, or a component, built on `@semiont/react-ui`: the test
 utilities the package exports, and the way of testing they are built for.
 
 How the library's own tests are run, written and organized is in the package's
-[TESTING.md](../../../packages/typescript/react-ui/docs/TESTING.md).
+[TESTING.md](https://github.com/xynolog/sdk/blob/main/typescript/react-ui/docs/TESTING.md).
 
 ## Testing Philosophy
 

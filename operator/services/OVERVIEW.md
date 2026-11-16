@@ -10,14 +10,14 @@ All eight are published to `ghcr.io/the-ai-alliance/`, for `linux/amd64` and `li
 
 | Service | Image | Port | Built from | What it does |
 |---|---|---|---|---|
-| [gateway](../../../images/gateway/README.md) | `semiont-gateway` | 4000 | Rust, `images/gateway` | Verifies every caller's token, relays the bus, and proxies content bytes to the Archivist. It hosts no actors and holds no datastore |
-| [dispatcher](../../../images/dispatcher/README.md) | `semiont-dispatcher` | 24105 | Rust, `images/dispatcher` | Owns the job queue and answers the `job:*` lifecycle. No content flows through it |
-| [archivist](../../../images/archivist/README.md) | `semiont-archivist` | 24103 | Rust, `images/archivist` | Keeps the record. The only service that mounts the knowledge base's working tree: it appends the event log, writes content, and keeps the views |
-| [librarian](../../../images/librarian/README.md) | `semiont-librarian` | 24104 | Python, `images/librarian` | Searches the knowledge base: finds resources by text, gathers context, lists what refers to a resource, and matches candidates |
-| [worker](../../../images/worker/README.md) | `semiont-worker` | 24100 | Python, `images/worker` | The worker pool: claims annotation and generation jobs and runs them against a model |
-| [smelter](../../../images/smelter/README.md) | `semiont-smelter` | 24101 | Python, `images/smelter` | Keeps the vector index in step with the record, and derives a PDF's anchored text |
-| [weaver](../../../images/weaver/README.md) | `semiont-weaver` | 24102 | Python, `images/weaver` | Keeps the graph in step with the record |
-| [browser](../../../images/browser/README.md) | `semiont-browser` | 3000, or the port its document names ([The Browser](../administration/CONFIGURATION.md#the-browser)) | `images/browser` | Serves the Semiont Browser's static files. The app itself runs in the user's web browser and connects to gateways from there |
+| [gateway](https://github.com/xynolog/images/blob/main/gateway/README.md) | `semiont-gateway` | 4000 | Rust, `images/gateway` | Verifies every caller's token, relays the bus, and proxies content bytes to the Archivist. It hosts no actors and holds no datastore |
+| [dispatcher](https://github.com/xynolog/images/blob/main/dispatcher/README.md) | `semiont-dispatcher` | 24105 | Rust, `images/dispatcher` | Owns the job queue and answers the `job:*` lifecycle. No content flows through it |
+| [archivist](https://github.com/xynolog/images/blob/main/archivist/README.md) | `semiont-archivist` | 24103 | Rust, `images/archivist` | Keeps the record. The only service that mounts the knowledge base's working tree: it appends the event log, writes content, and keeps the views |
+| [librarian](https://github.com/xynolog/images/blob/main/librarian/README.md) | `semiont-librarian` | 24104 | Python, `images/librarian` | Searches the knowledge base: finds resources by text, gathers context, lists what refers to a resource, and matches candidates |
+| [worker](https://github.com/xynolog/images/blob/main/worker/README.md) | `semiont-worker` | 24100 | Python, `images/worker` | The worker pool: claims annotation and generation jobs and runs them against a model |
+| [smelter](https://github.com/xynolog/images/blob/main/smelter/README.md) | `semiont-smelter` | 24101 | Python, `images/smelter` | Keeps the vector index in step with the record, and derives a PDF's anchored text |
+| [weaver](https://github.com/xynolog/images/blob/main/weaver/README.md) | `semiont-weaver` | 24102 | Python, `images/weaver` | Keeps the graph in step with the record |
+| [browser](https://github.com/xynolog/images/blob/main/browser/README.md) | `semiont-browser` | 3000, or the port its document names ([The Browser](../administration/CONFIGURATION.md#the-browser)) | `images/browser` | Serves the Semiont Browser's static files. The app itself runs in the user's web browser and connects to gateways from there |
 
 ## What each service needs
 
@@ -25,18 +25,18 @@ This is the contract a deployment satisfies, whoever does the deploying. The lau
 
 | Service | Configuration | Mounts | Reaches | Instances |
 |---|---|---|---|---|
-| gateway | `/etc/semiont/gateway.json`, a [`GatewayConfig`](../../../protocol/specs/src/components/schemas/GatewayConfig.json) document | none | The issuer's published keys; the Archivist; the broker, when the signal plane is `nats` | any number, once the signal plane is `nats` |
-| dispatcher | `/etc/semiont/dispatcher.json`, a [`DispatcherConfig`](../../../protocol/specs/src/components/schemas/DispatcherConfig.json) document | none | The gateway's bus; the broker's JetStream | one |
-| archivist | `/etc/semiont/archivist.json`, an [`ArchivistConfig`](../../../protocol/specs/src/components/schemas/ArchivistConfig.json) document | The working tree at `/kb`, read-write; the state directory, where it writes views; the anchored-text store, read-write. No other container mounts any of them | The gateway's bus | one |
-| librarian | `/etc/semiont/librarian.json`, a [`LibrarianConfig`](../../../protocol/specs/src/components/schemas/LibrarianConfig.json) document | none | The gateway, for the bus (where it reads what the record holds of a resource, and the people a reply names) and for anchored text; graph; vectors; embedding; inference; the Archivist, for bytes | one |
-| worker | `/etc/semiont/worker.json`, a [`WorkerConfig`](../../../protocol/specs/src/components/schemas/WorkerConfig.json) document | none | The gateway, for the bus and for bytes; inference | any number |
-| smelter | `/etc/semiont/smelter.json`, a [`SmelterConfig`](../../../protocol/specs/src/components/schemas/SmelterConfig.json) document | Its document alone | The gateway's bus; vectors; embedding; the Archivist, for bytes, for a resource's annotations and to keep the anchored-text store | one |
-| weaver | `/etc/semiont/weaver.json`, a [`WeaverConfig`](../../../protocol/specs/src/components/schemas/WeaverConfig.json) document | none | The gateway's bus; graph | one |
+| gateway | `/etc/semiont/gateway.json`, a [`GatewayConfig`](https://github.com/xynolog/protocol/blob/main/specs/src/components/schemas/GatewayConfig.json) document | none | The issuer's published keys; the Archivist; the broker, when the signal plane is `nats` | any number, once the signal plane is `nats` |
+| dispatcher | `/etc/semiont/dispatcher.json`, a [`DispatcherConfig`](https://github.com/xynolog/protocol/blob/main/specs/src/components/schemas/DispatcherConfig.json) document | none | The gateway's bus; the broker's JetStream | one |
+| archivist | `/etc/semiont/archivist.json`, an [`ArchivistConfig`](https://github.com/xynolog/protocol/blob/main/specs/src/components/schemas/ArchivistConfig.json) document | The working tree at `/kb`, read-write; the state directory, where it writes views; the anchored-text store, read-write. No other container mounts any of them | The gateway's bus | one |
+| librarian | `/etc/semiont/librarian.json`, a [`LibrarianConfig`](https://github.com/xynolog/protocol/blob/main/specs/src/components/schemas/LibrarianConfig.json) document | none | The gateway, for the bus (where it reads what the record holds of a resource, and the people a reply names) and for anchored text; graph; vectors; embedding; inference; the Archivist, for bytes | one |
+| worker | `/etc/semiont/worker.json`, a [`WorkerConfig`](https://github.com/xynolog/protocol/blob/main/specs/src/components/schemas/WorkerConfig.json) document | none | The gateway, for the bus and for bytes; inference | any number |
+| smelter | `/etc/semiont/smelter.json`, a [`SmelterConfig`](https://github.com/xynolog/protocol/blob/main/specs/src/components/schemas/SmelterConfig.json) document | Its document alone | The gateway's bus; vectors; embedding; the Archivist, for bytes, for a resource's annotations and to keep the anchored-text store | one |
+| weaver | `/etc/semiont/weaver.json`, a [`WeaverConfig`](https://github.com/xynolog/protocol/blob/main/specs/src/components/schemas/WeaverConfig.json) document | none | The gateway's bus; graph | one |
 | browser | none; `PORT` only | none | nothing | any number |
 
 Every service but the Browser has its own service account at the knowledge base's issuer, which it receives as `SEMIONT_OIDC_CLIENT_ID` and `SEMIONT_OIDC_CLIENT_SECRET`. The worker is the exception: it holds one key, `SEMIONT_OIDC_CLIENT_KEY`, and its document names its client at each knowledge base it serves. It signs in with that account, and the issuer's token is its bearer at the gateway, which names it by that account: the agent its work is attributed to.
 
-No service reads the knowledge base's TOML: each reads its document, which names every secret by the variable that holds it. [`service-environment/variables.json`](../../../protocol/specs/src/service-environment/variables.json) lists every environment variable the gateway, the dispatcher and the Archivist read.
+No service reads the knowledge base's TOML: each reads its document, which names every secret by the variable that holds it. [`service-environment/variables.json`](https://github.com/xynolog/protocol/blob/main/specs/src/service-environment/variables.json) lists every environment variable the gateway, the dispatcher and the Archivist read.
 
 Why each service has one instance or many is in [Scaling](../administration/SCALING.md). Which secrets reach which service is in [Secrets](SECRETS.md).
 
@@ -110,4 +110,4 @@ Several knowledge bases run side by side on one machine, so each one's container
 - [Deployment](../administration/DEPLOYMENT.md): the three ways to run a stack
 - [Configuration](../administration/CONFIGURATION.md): choosing a driver for each role
 - [Secrets](SECRETS.md): which secrets exist and which service receives each
-- [The launcher's README](../../../apps/launcher/README.md): every verb and flag
+- [The launcher's README](https://github.com/xynolog/cli/blob/main/README.md): every verb and flag

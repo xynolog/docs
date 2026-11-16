@@ -31,10 +31,10 @@ tree; every other service reads what it holds of the Archivist, on the bus or ov
 On the machine that runs the stack, that mount and every other store (the database, the graph, the
 vectors, the job queue, the anchored text, and the supervisor's log of the gateway and of the
 Librarian) are directories the launcher keeps for the knowledge base. Each is mounted into one
-container: two containers sharing a directory can each see a file at a different length. [The launcher's README](../../apps/launcher/README.md#where-the-launcher-keeps-its-files)
+container: two containers sharing a directory can each see a file at a different length. [The launcher's README](https://github.com/xynolog/cli/blob/main/README.md#where-the-launcher-keeps-its-files)
 says where, on each system, and `semiont status --verbose` lists them with what each takes on disk.
 The full layout of the log and the views is
-[specified with the Archivist](../../protocol/contract/ARCHIVIST.md).
+[specified with the Archivist](https://github.com/xynolog/protocol/blob/main/contract/ARCHIVIST.md).
 
 ## Content
 
@@ -84,8 +84,8 @@ the last event applied. It is derived from the event log and can be rebuilt at a
 
 None of it is on this filesystem. The job queue is the dispatcher's, and it keeps job state in the
 broker — a durable stream for delivery and lease, a key-value bucket for each job's record — in the
-layout [protocol/specs/src/jobs/storage.json](../../protocol/specs/src/jobs/storage.json) states. See
-[protocol/contract/JOBS.md](../../protocol/contract/JOBS.md).
+layout [protocol/specs/src/jobs/storage.json](https://github.com/xynolog/protocol/blob/main/specs/src/jobs/storage.json) states. See
+[protocol/contract/JOBS.md](https://github.com/xynolog/protocol/blob/main/contract/JOBS.md).
 
 ## Who reaches these paths
 
@@ -109,6 +109,6 @@ and [rebuilding derived state](../operator/administration/MAINTENANCE.md#rebuild
 
 ## Related
 
-- [The Archivist's specification](../../protocol/contract/ARCHIVIST.md) — the log's and the views' full layout
+- [The Archivist's specification](https://github.com/xynolog/protocol/blob/main/contract/ARCHIVIST.md) — the log's and the views' full layout
 - [KNOWLEDGE-SYSTEM.md](KNOWLEDGE-SYSTEM.md) — the actors that read and write these stores
 - [Configuration](../operator/administration/CONFIGURATION.md) — where the paths are configured

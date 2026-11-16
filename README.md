@@ -14,7 +14,7 @@ Three things are for every reader:
 
 - **[architecture/](architecture/README.md)** is how Semiont works inside: the
   actor model, the knowledge system, anchoring, and the package layers.
-- **[protocol/](../protocol/README.md)** is the protocol: the contract (the
+- **[protocol/](https://github.com/xynolog/protocol/blob/main/README.md)** is the protocol: the contract (the
   eight verbs, the event bus, and what every SDK and transport is held to),
   the specs, and the conformance suites. Read it to implement an SDK, a
   transport or a service; the other docs point to it for the details.
@@ -36,7 +36,7 @@ You write code against a knowledge base, in TypeScript, Rust, Python, Go, Kotlin
 
 - [Quick Start](builder/QUICK-START.md): a knowledge base running on your machine, to build against
 - [Building with the Semiont SDK](builder/README.md): install, where the SDK goes, the guides, the reference
-- [Embedding the React components](../packages/typescript/react-ui/README.md)
+- [Embedding the React components](https://github.com/xynolog/sdk/blob/main/typescript/react-ui/README.md)
 - [Agent skills](builder/skills/), one ready-made definition per task
 
 ## Operator
@@ -44,7 +44,7 @@ You write code against a knowledge base, in TypeScript, Rust, Python, Go, Kotlin
 You run a knowledge base, on your own machine or for others.
 
 - [Quick Start](builder/QUICK-START.md): install the launcher, create a knowledge base, start it
-- [Running knowledge bases on your computer](operator/LOCAL-SEMIONT.md), and [the launcher's manual](../apps/launcher/README.md) for every command and setting
+- [Running knowledge bases on your computer](operator/LOCAL-SEMIONT.md), and [the launcher's manual](https://github.com/xynolog/cli/blob/main/README.md) for every command and setting
 - [Deploying Semiont](operator/administration/DEPLOYMENT.md): on your machine, on a hosted machine, or on a platform of your own
 - [The service catalog](operator/services/OVERVIEW.md) and [container topology](operator/CONTAINER-TOPOLOGY.md): what a stack is made of
 - [Administration](operator/administration/): configuration, authentication, security, observability, backup, scaling, troubleshooting
@@ -54,8 +54,7 @@ You run a knowledge base, on your own machine or for others.
 
 You change Semiont itself.
 
-- [CONTRIBUTING.md](../CONTRIBUTING.md): the branch and pull-request workflow
+- [CONTRIBUTING.md](https://github.com/xynolog/.github/blob/main/CONTRIBUTING.md): the branch and pull-request workflow
 - [Orientation](contributor/README.md): where the code lives. Then [local development](contributor/LOCAL-DEVELOPMENT.md), [testing](contributor/TESTING.md), [dependencies](contributor/DEPENDENCIES.md) and [releasing](contributor/RELEASE.md)
-- [Browser development](../images/browser/docs/DEVELOPMENT.md): running the Browser from source against a stack
+- [Browser development](https://github.com/xynolog/images/blob/main/browser/docs/DEVELOPMENT.md): running the Browser from source against a stack
 - [How Semiont works inside](architecture/README.md): the actor model, the knowledge system, anchoring, media types, the package layers
-- [The packages](../packages/README.md): each package's internals are documented in its own directory

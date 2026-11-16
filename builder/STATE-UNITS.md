@@ -250,19 +250,19 @@ A unit is a struct built over an `Arc<SemiontClient>` it never closes. Its state
 
 One TypeScript rule has no Rust form: a unit is a struct, not a closure.
 
-The Rust README lists [the units and what each holds](../../packages/rust/sdk/README.md#state-units), and has [the table that maps each TypeScript shape to its Rust form](../../packages/rust/sdk/README.md#from-the-typescript-sdk).
+The Rust README lists [the units and what each holds](https://github.com/xynolog/sdk/blob/main/rust/sdk/README.md#state-units), and has [the table that maps each TypeScript shape to its Rust form](https://github.com/xynolog/sdk/blob/main/rust/sdk/README.md#from-the-typescript-sdk).
 
 ## In Python
 
 A unit is a class built over a client it never closes, inside a running event loop, and it names `StateUnit` (`semiont.state_unit`) as its base. Each thing it holds is a `Watched[T]` (`semiont.watched`): `.value` is the value now, and `async for` gives that value and then each change, until the unit ends; a reader that falls behind is given the latest. What writes it is a `Variable` the unit keeps to itself. A unit hears the client's own bus from the moment it exists, in the order things were said, and acts a turn of the loop later. `dispose()` ends it, and so does leaving `async with`, by which time what it had running has ended.
 
-As in Rust, a unit is a class, not a closure. The Python README lists [the units and what each holds](../../packages/python/sdk/README.md#state-units), with a program that watches one.
+As in Rust, a unit is a class, not a closure. The Python README lists [the units and what each holds](https://github.com/xynolog/sdk/blob/main/python/sdk/README.md#state-units), with a program that watches one.
 
 ## In Go
 
 A unit is a struct built over a `*semiont.Client` it never closes, made by its constructor (`state.NewYieldStateUnit(client, locale)`), and it declares itself a `semiont.StateUnit` where it is declared (`var _ semiont.StateUnit = (*YieldStateUnit)(nil)`). Each thing it holds is a `semiont.Watched[T]`: `Value()` is the value now, and `Changes(ctx)` gives that value and then each change, until the unit ends or the context is done; a reader that falls behind is given the latest. What writes it is a `semiont.Variable` the unit keeps to itself, handing out only its `Reading()`. A unit hears the client's own bus from the moment it exists, and runs what it starts on goroutines of its own. `Close()` ends it: what it had running stops, and every `Changes` it handed out ends.
 
-As in Rust, a unit is a struct, not a closure. The Go README lists [the units and what each holds](../../packages/go/sdk/README.md#state-units), with a program that watches one.
+As in Rust, a unit is a struct, not a closure. The Go README lists [the units and what each holds](https://github.com/xynolog/sdk/blob/main/go/README.md#state-units), with a program that watches one.
 
 ## In Kotlin
 
@@ -279,17 +279,17 @@ to stop an individual reader. Dispose the unit to cancel its work and
 complete all its readers. The client passed to a unit remains caller-owned.
 
 The C# SDK runs the shared behavior cases and exposes L1 through L3 for
-consumer tests in `Semiont.Testing`. See the [testing toolkit](../../packages/csharp/sdk/README.md#testing-a-composition).
+consumer tests in `Semiont.Testing`. See the [testing toolkit](https://github.com/xynolog/sdk/blob/main/csharp/sdk/README.md#testing-a-composition).
 
 ## In Swift
 
-The [Swift SDK](../../packages/swift/sdk/README.md#registry-and-state-units) has `MarkStateUnit`, `YieldStateUnit`, `GatherStateUnit`, `MatchStateUnit`, `BeckonStateUnit`, `HoverDwell`, `SearchPipeline` and `SessionSignals`, and `Cache` for an application's own read-through queries. Each unit exposes its state as `Watched<T>` values, read with `for await`. `dispose()` cancels a unit's work and finishes its streams. The client passed to a unit stays the application's.
+The [Swift SDK](https://github.com/xynolog/sdk/blob/main/swift/sdk/README.md#registry-and-state-units) has `MarkStateUnit`, `YieldStateUnit`, `GatherStateUnit`, `MatchStateUnit`, `BeckonStateUnit`, `HoverDwell`, `SearchPipeline` and `SessionSignals`, and `Cache` for an application's own read-through queries. Each unit exposes its state as `Watched<T>` values, read with `for await`. `dispose()` cancels a unit's work and finishes its streams. The client passed to a unit stays the application's.
 
 The Swift SDK runs the shared behavior cases, and its `SemiontTesting` library has `assertLivenessAxioms` for consumer tests.
 
 ## In Haskell
 
-The [Haskell SDK](../../packages/haskell/sdk/README.md#state-units) exposes opaque
+The [Haskell SDK](https://github.com/xynolog/sdk/blob/main/haskell/sdk/README.md#state-units) exposes opaque
 units in `Semiont.State.Mark`, `Yield`, `Gather`, `Match`, `Beckon`,
 `HoverDwell`, `Search`, and `SessionSignals`; the cache and session complete the
 ten units. Read a unit's `StateValue` with `current` in STM, or scope a stream
@@ -312,7 +312,7 @@ The structural contract — `dispose()` exists — is the only part the **type s
 
 That is the TypeScript harness. Rust's (`semiont::testing::axioms`), Python's (`semiont.testing.axioms`), Go's (`semionttest.AssertStateUnitAxioms`) and Kotlin's (its tests' `assertStateUnitAxioms`, in `src/test/kotlin/semiont/state/Axioms.kt`) hold their units under the same ids; the last column says which rules they hold too.
 
-What a unit does is held apart from the axioms. [`protocol/specs/src/client/state-units.json`](../../protocol/specs/src/client/state-units.json) states it case by case, and every SDK runs each case of the units it has: `packages/typescript/sdk/src/__tests__/state-cases.test.ts`, `packages/rust/sdk/tests/state_cases.rs`, `packages/python/sdk/tests/test_state_cases.py`, `packages/go/sdk/state/cases_test.go`, `packages/kotlin/sdk/src/test/kotlin/semiont/state/StateUnitCasesTest.kt`, [the C# case runner](../../packages/csharp/sdk/tests/Semiont.Tests/StateUnitCasesTests.cs), `packages/swift/sdk/Tests/SemiontTests/StateUnitCasesTests.swift` and `packages/haskell/sdk/test/StateUnitCases.hs`.
+What a unit does is held apart from the axioms. [`protocol/specs/src/client/state-units.json`](https://github.com/xynolog/protocol/blob/main/specs/src/client/state-units.json) states it case by case, and every SDK runs each case of the units it has: `packages/typescript/sdk/src/__tests__/state-cases.test.ts`, `packages/rust/sdk/tests/state_cases.rs`, `packages/python/sdk/tests/test_state_cases.py`, `packages/go/sdk/state/cases_test.go`, `packages/kotlin/sdk/src/test/kotlin/semiont/state/StateUnitCasesTest.kt`, [the C# case runner](https://github.com/xynolog/sdk/blob/main/csharp/sdk/tests/Xynolog.Tests/StateUnitCasesTests.cs), `packages/swift/sdk/Tests/SemiontTests/StateUnitCasesTests.swift` and `packages/haskell/sdk/test/StateUnitCases.hs`.
 
 Five enforcement tiers:
 
@@ -349,10 +349,10 @@ The MVVM "view-model" name presumes a View — a ViewModel is a Model adapted in
 ## See also
 
 - [REACTIVE-MODEL.md](./REACTIVE-MODEL.md) — the four return-shape categories (Promise / StreamObservable / CacheObservable / void) and the naming convention. State unit method returns follow the same convention.
-- [CACHE-SEMANTICS.md](../../protocol/contract/CACHE-SEMANTICS.md) — the `Cache<K,V>` primitive backing live queries, itself a state unit specialized for keyed multicast caches.
+- [CACHE-SEMANTICS.md](https://github.com/xynolog/protocol/blob/main/contract/CACHE-SEMANTICS.md) — the `Cache<K,V>` primitive backing live queries, itself a state unit specialized for keyed multicast caches.
 - [Usage.md](./Usage.md) — per-namespace tour with concrete examples; many namespace methods return state-unit Observables or trigger state-unit reactions internally.
-- [The Rust SDK's README](../../packages/rust/sdk/README.md) — the Rust units, and the table that maps each TypeScript shape to its Rust form.
-- [The Haskell SDK's README](../../packages/haskell/sdk/README.md#state-units) — native state observations, controlled waits and joined disposal.
-- [The Python SDK's README](../../packages/python/sdk/README.md#state-units) — the Python units, and a program that watches one.
-- [The Go SDK's README](../../packages/go/sdk/README.md#state-units) — the Go units, and a program that watches one.
-- [The Swift SDK’s README](../../packages/swift/sdk/README.md#registry-and-state-units) — Swift state units and disposal.
+- [The Rust SDK's README](https://github.com/xynolog/sdk/blob/main/rust/sdk/README.md) — the Rust units, and the table that maps each TypeScript shape to its Rust form.
+- [The Haskell SDK's README](https://github.com/xynolog/sdk/blob/main/haskell/sdk/README.md#state-units) — native state observations, controlled waits and joined disposal.
+- [The Python SDK's README](https://github.com/xynolog/sdk/blob/main/python/sdk/README.md#state-units) — the Python units, and a program that watches one.
+- [The Go SDK's README](https://github.com/xynolog/sdk/blob/main/go/README.md#state-units) — the Go units, and a program that watches one.
+- [The Swift SDK’s README](https://github.com/xynolog/sdk/blob/main/swift/sdk/README.md#registry-and-state-units) — Swift state units and disposal.

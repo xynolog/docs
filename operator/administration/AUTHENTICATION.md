@@ -68,8 +68,8 @@ row against the literal, not against another document:
 
 | Token | Minted at | Literal |
 |---|---|---|
-| Access | the realm the launcher creates, [`packages/go/launcher/identity.go`](../../../packages/go/launcher/identity.go) | `keycloakAccessTokenLifespan`, which `semiont init` writes into the KnowledgeBase document as `spec.issuer.shared.accessTokenLifespan`, and the launcher into the knowledge base's realm as `accessTokenLifespan`. A knowledge base changes it there. **Applied only when the realm is created** — a start leaves a realm Keycloak already holds as it is, which keeps what it was created with, and `semiont start` warns when the realm's actual lifespan disagrees with the document. |
-| Media | [`images/gateway/src/tokens.rs`](../../../images/gateway/src/tokens.rs) | `MEDIA_TOKEN_SECONDS` (five minutes) |
+| Access | the realm the launcher creates, [`packages/go/launcher/identity.go`](https://github.com/xynolog/cli/blob/main/internal/launcher/identity.go) | `keycloakAccessTokenLifespan`, which `semiont init` writes into the KnowledgeBase document as `spec.issuer.shared.accessTokenLifespan`, and the launcher into the knowledge base's realm as `accessTokenLifespan`. A knowledge base changes it there. **Applied only when the realm is created** — a start leaves a realm Keycloak already holds as it is, which keeps what it was created with, and `semiont start` warns when the realm's actual lifespan disagrees with the document. |
+| Media | [`images/gateway/src/tokens.rs`](https://github.com/xynolog/images/blob/main/gateway/src/tokens.rs) | `MEDIA_TOKEN_SECONDS` (five minutes) |
 
 ### Revocation
 
@@ -261,7 +261,7 @@ Create the client yourself. It is the same client:
 - **The client-credentials grant enabled**, and nothing else: no browser flow, no password grant.
 - **A flat `roles` claim** carrying `semiont-service` and `semiont-worker`, a **`kind`** of `agent`, and an **`aud`** carrying this knowledge base's resource identifier ([At the issuer](#at-the-issuer)).
 
-The worker's assertion names the client as its `iss` and its `sub`, and the issuer's token endpoint as its `aud`, so the issuer must accept that audience. Its whole shape is [`protocol/specs/src/session/client-assertion-cases.json`](../../../protocol/specs/src/session/client-assertion-cases.json). A worker written with any Semiont SDK (TypeScript, Python, Rust, Go or Kotlin) signs it, each SDK held to that table, so a participant's own worker is admitted the same way as Semiont's.
+The worker's assertion names the client as its `iss` and its `sub`, and the issuer's token endpoint as its `aud`, so the issuer must accept that audience. Its whole shape is [`protocol/specs/src/session/client-assertion-cases.json`](https://github.com/xynolog/protocol/blob/main/specs/src/session/client-assertion-cases.json). A worker written with any Semiont SDK (TypeScript, Python, Rust, Go or Kotlin) signs it, each SDK held to that table, so a participant's own worker is admitted the same way as Semiont's.
 
 To revoke, delete the client.
 
@@ -275,9 +275,9 @@ semiont worker kb add kb.example.org --gateway https://kb.example.org --client-i
 
 The machine runs one worker, serving a list of knowledge bases kept beside its key. A local knowledge base's `semiont start` puts it on the list when its Inference document gives one of its jobs an engine. `semiont worker kb add`, run inside one on the list, adds a knowledge base someone else runs, and the worker offers it the engines the local one's Inference document gives it, on this machine's provider keys. The launcher takes the issuer from the gateway, which names it at `/.well-known/oauth-protected-resource`. The next start runs the worker serving every knowledge base on the list: at each it signs in as the client that knowledge base's realm holds the key on, with the one key. `semiont worker kb list` shows the list, and `semiont worker kb remove <domain>` takes one off; a local one whose engines an added one is offered is refused until that one is removed. A local knowledge base taken off the list while one added from it remains leaves that one unserved, which the start says, until the local one's next start.
 
-A worker started another way is given the same in its document: one `knowledgeBases` entry for each knowledge base, with its domain, its gateway, its issuer and client id, and the engines it offers it ([the worker's configuration](../../../images/worker/README.md#configuration)). Its key is `SEMIONT_OIDC_CLIENT_KEY` in its environment, the same for every knowledge base.
+A worker started another way is given the same in its document: one `knowledgeBases` entry for each knowledge base, with its domain, its gateway, its issuer and client id, and the engines it offers it ([the worker's configuration](https://github.com/xynolog/images/blob/main/worker/README.md#configuration)). Its key is `SEMIONT_OIDC_CLIENT_KEY` in its environment, the same for every knowledge base.
 
-At each knowledge base the worker asks which knowledge base it reached before it claims, and refuses one that answers another domain. A knowledge base that revokes the grant, or that cannot be reached, stops only its own work: the worker keeps working for the others ([Worker Service § Knowledge bases](../../../protocol/contract/WORKER-SERVICE.md#knowledge-bases)).
+At each knowledge base the worker asks which knowledge base it reached before it claims, and refuses one that answers another domain. A knowledge base that revokes the grant, or that cannot be reached, stops only its own work: the worker keeps working for the others ([Worker Service § Knowledge bases](https://github.com/xynolog/protocol/blob/main/contract/WORKER-SERVICE.md#knowledge-bases)).
 
 The record names a worker's work by its account, `agents:<subject>`, and the engine it ran in each write's `generator`, so two people's workers running one model are two agents there. What a worker is called is what it says of itself: Semiont's worker says its client id, and readers name it from that.
 
@@ -321,7 +321,7 @@ An operator federating a **different** issuer owes Semiont the following. Everyt
 ### API
 
 - Every route requires a bearer token unless the spec declares it public (`security: []`).
-- What one principal may take (the streams it holds, the emits it makes) is limited alike for people and agents, by a baseline and a coefficient per role: see [Limits](../../../protocol/contract/TRANSPORT-HTTP.md#limits). A request whose token is refused is limited per holder the token names, and those that name none together: see the same table. Limits per address are an ingress's to apply.
+- What one principal may take (the streams it holds, the emits it makes) is limited alike for people and agents, by a baseline and a coefficient per role: see [Limits](https://github.com/xynolog/protocol/blob/main/contract/TRANSPORT-HTTP.md#limits). A request whose token is refused is limited per holder the token names, and those that name none together: see the same table. Limits per address are an ingress's to apply.
 - Every JSON body is validated against its schema in `protocol/specs/`.
 
 ## Troubleshooting

@@ -2,13 +2,14 @@
 
 Semiont runs from a **knowledge-base repo** — a separate, small repository
 holding your documents, configuration, and startup scripts — not from the
-[semiont monorepo](https://github.com/The-AI-Alliance/semiont), which is the
-platform source (it publishes the npm packages and the container images).
+platform's source: [sdk](https://github.com/xynolog/sdk), which builds the SDK
+packages, and [images](https://github.com/xynolog/images), which publishes the
+container images.
 
 Every KB repo shares the same shape under `.semiont/`: its project file
 (`config.yaml`), the documents describing its stack (`stack/`, one Inference
 document per way of serving its models), and the event log. The stack is run
-by the host-installed [`semiont` launcher](https://github.com/The-AI-Alliance/semiont/tree/main/apps/launcher)
+by the host-installed [`semiont` launcher](https://github.com/xynolog/cli)
 (a single static binary), which *pulls* the published, attested
 `ghcr.io/the-ai-alliance/semiont-*` images the documents name and mounts into
 each one the configuration it writes from them — KB repos build no images of
@@ -75,8 +76,8 @@ choosing a config, the ports, and where things are kept.
 |---|---|---|
 | **[synthetic-family](https://github.com/pingel-org/synthetic-family)** | Synthetic family history and genealogy | `git clone https://github.com/pingel-org/synthetic-family.git` |
 
-Built a knowledge base others could learn from? Open a
-[discussion](https://github.com/The-AI-Alliance/semiont/discussions) to get
+Built a knowledge base others could learn from? Open an
+[issue](https://github.com/xynolog/docs/issues) to get
 it listed here.
 
 ## Starting from scratch
@@ -96,10 +97,10 @@ Or clone the empty template:
 
 | Template | Description | Clone |
 |---|---|---|
-| **[semiont-template-kb](https://github.com/The-AI-Alliance/semiont-template-kb)** | Empty template — start here for a new project | `git clone https://github.com/The-AI-Alliance/semiont-template-kb.git` |
+| **[kb-template](https://github.com/xynolog/kb-template)** | Empty template — start here for a new project | `git clone https://github.com/The-AI-Alliance/semiont-template-kb.git` |
 
-The template is the canonical source of the shared `.semiont/` scaffolding —
-the demo KBs above are forks of it, kept in sync.
+The template holds the `.xynolog/` folder `xynolog init` writes, and a
+`.devcontainer/` that runs its stack in a codespace.
 
 ## In a GitHub Codespace
 

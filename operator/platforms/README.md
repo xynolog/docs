@@ -4,7 +4,7 @@ Every Semiont service runs as a Linux container. What differs from place to plac
 
 ## With the launcher
 
-The [`semiont` launcher](../../../apps/launcher/README.md) runs a stack on these systems, for `arm64` and `amd64`:
+The [`semiont` launcher](https://github.com/xynolog/cli/blob/main/README.md) runs a stack on these systems, for `arm64` and `amd64`:
 
 | System | Container runtime | Notes |
 |---|---|---|

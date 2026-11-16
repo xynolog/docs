@@ -17,7 +17,7 @@ For OCaml installation, sign-in, and live queries, see the [OCaml builder guide]
 | A program that already holds tokens | [The tokens themselves](#tokens-you-already-hold) | `MemorySignIn` and `SemiontSession.fromKept`, or `SemiontSession.fromHttp` | its README | `MemorySignIn` and `session_from_kept` | its README | its README | `SemiontSession.FromKeptAsync` or `SemiontClient` | `SemiontClient.fromHttp` or `sessionFromKept` | `Session.fromIssuedSession` or `Client.fromHttp` | `Session.start`, then `Client.connect` |
 | Every way above | [The HTTP client you give it](#the-http-client): its requests go through that client | `fetch` | `http=` | `http` | `HTTP` | `http` | `HttpClient` | `HTTPClient` | `HttpClient` | `OAuth.http` and the gateway adapter passed to `Client.connect` |
 
-See the SDK guides for [TypeScript](../../packages/typescript/sdk/README.md#connect), [Python](../../packages/python/sdk/README.md#signing-in), [Go](../../packages/go/sdk/README.md#signing-in), [Kotlin](../../packages/kotlin/sdk/README.md#signing-in), [Rust](../../packages/rust/http-transport/README.md), [.NET](../../packages/csharp/sdk/README.md#signing-in), [Swift](../../packages/swift/sdk/README.md#connect), [Haskell](../../packages/haskell/sdk/README.md#signing-in), and [OCaml](../../packages/ocaml/sdk/README.md#sign-in-and-connect).
+See the SDK guides for [TypeScript](https://github.com/xynolog/sdk/blob/main/typescript/sdk/README.md#connect), [Python](https://github.com/xynolog/sdk/blob/main/python/sdk/README.md#signing-in), [Go](https://github.com/xynolog/sdk/blob/main/go/README.md#signing-in), [Kotlin](https://github.com/xynolog/sdk/blob/main/kotlin/sdk/README.md#signing-in), [Rust](https://github.com/xynolog/sdk/blob/main/rust/http-transport/README.md), [.NET](https://github.com/xynolog/sdk/blob/main/csharp/sdk/README.md#signing-in), [Swift](https://github.com/xynolog/sdk/blob/main/swift/sdk/README.md#connect), [Haskell](https://github.com/xynolog/sdk/blob/main/haskell/sdk/README.md#signing-in), and [OCaml](https://github.com/xynolog/sdk/blob/main/ocaml/sdk/README.md#sign-in-and-connect).
 
 ## What every way has in common
 
@@ -78,17 +78,17 @@ In .NET, `Issuer.SignInDeviceAsync` stores the granted credentials in the
 supplied `ISignInKept`. Open a session over that same entry with
 `SemiontSession.FromKeptAsync`, which gives the session with the client it
 was built with. The
-[.NET SDK guide](../../packages/csharp/sdk/README.md#signing-in) shows it.
+[.NET SDK guide](https://github.com/xynolog/sdk/blob/main/csharp/sdk/README.md#signing-in) shows it.
 
 [Usage](./Usage.md#setup) has the TypeScript options, and [`semiont-session`](./skills/semiont-session/SKILL.md) a long-running script built on it.
 
 ## The sign-in `semiont login` keeps
 
-[`semiont login`](../../apps/launcher/README.md#login-and-upload) signs a person in to a running stack's knowledge base and keeps the sign-in, one for each stack, in the launcher's state directory. The [sign-in store](../../protocol/specs/src/sign-in-store/README.md) is the contract for that file: where it is on each system, what an entry holds, the lock every writer takes, and what a renewal keeps.
+[`semiont login`](https://github.com/xynolog/cli/blob/main/README.md#login-and-upload) signs a person in to a running stack's knowledge base and keeps the sign-in, one for each stack, in the launcher's state directory. The [sign-in store](https://github.com/xynolog/protocol/blob/main/specs/src/sign-in-store/README.md) is the contract for that file: where it is on each system, what an entry holds, the lock every writer takes, and what a renewal keeps.
 
 A program on any of the SDKs builds its session over that entry, so a person who has run `semiont login` approves nothing more, and one sign-in serves the launcher and the program. Each reads the entry, renews it, and writes it back under the lock. A renewal another program made meanwhile stands, and a stack signed out meanwhile stays signed out.
 
-The TypeScript SDK reaches no file itself: a TypeScript program gives its `SignInStore` the files it reads, writes and locks (`SignInFiles`), and the store tells them which file and mode to use. The [TypeScript SDK guide](../../packages/typescript/sdk/README.md#the-sign-in-semiont-login-keeps) says what those files must do to share the store with the launcher.
+The TypeScript SDK reaches no file itself: a TypeScript program gives its `SignInStore` the files it reads, writes and locks (`SignInFiles`), and the store tells them which file and mode to use. The [TypeScript SDK guide](https://github.com/xynolog/sdk/blob/main/typescript/sdk/README.md#the-sign-in-semiont-login-keeps) says what those files must do to share the store with the launcher.
 
 A program in a container sees the launcher's state directory only if it is mounted into the container.
 

@@ -10,7 +10,7 @@ channel list, see `packages/typescript/core/src/bus-protocol.ts` —
 
 What only someone working on react-ui itself needs, the wire log in e2e tests
 and two gotchas in the implementation, is in the package's
-[EVENTS.md](../../../packages/typescript/react-ui/docs/EVENTS.md).
+[EVENTS.md](https://github.com/xynolog/sdk/blob/main/typescript/react-ui/docs/EVENTS.md).
 
 ## Two buses
 

@@ -1,8 +1,6 @@
 # Package Architecture
 
-Semiont is a monorepo with two workspaces, the npm packages and the Rust crates, and nine Python projects, three Go modules and a Gradle build beside them. No language's packages depend on another's. All are built against [`protocol/specs/`](../../protocol/specs/src/openapi.json), the protocol each implements from its side.
-
-For what each package is and where it is published, see **[../../packages/README.md](../../packages/README.md)**: one table per language.
+Semiont is a monorepo with two workspaces, the npm packages and the Rust crates, and nine Python projects, three Go modules and a Gradle build beside them. No language's packages depend on another's. All are built against [`protocol/specs/`](https://github.com/xynolog/protocol/blob/main/specs/src/openapi.json), the protocol each implements from its side.
 
 ## The npm packages
 
@@ -123,13 +121,11 @@ Four crates are published to crates.io: `semiont`, `semiont-http-transport`, `se
 
 ## The Go modules
 
-`packages/go/sdk` is one module, `github.com/The-AI-Alliance/semiont/packages/go/sdk`, package `semiont`: the client, its transport over a gateway, sign-in, the state units (package `state`) and the doubles a test is built on (package `semionttest`). It depends on `oapi-codegen`'s runtime, `google/uuid`, the OpenTelemetry API and `golang.org/x/text`, and on nothing else in this repository. What it holds of `protocol/specs/` is generated, committed and held by drift gates. Each release publishes it by the tag `packages/go/sdk/v<version>`, and a program in this repository requires it with a `replace` directive on its path, so it builds against the tree.
+The Go SDK is one module, `github.com/xynolog/sdk/go`, in [sdk's `go/`](https://github.com/xynolog/sdk/blob/main/go/README.md), package `xynolog`: the client, its transport over a gateway, sign-in, the state units (package `state`) and the doubles a test is built on (package `xynologtest`). It depends on `oapi-codegen`'s runtime, `google/uuid`, the OpenTelemetry API and `golang.org/x/text`, and on nothing else of Xynolog's. What it holds of `protocol/specs/` is generated, committed and held by drift gates. It is published by a tag of sdk named `go/v<version>`.
 
-`packages/go/sdk/conformance` is a module of its own: the three programs the conformance suite drives Go's SDK through (wire, live and worker), and the only Go code that takes an OpenTelemetry exporter.
+`go/conformance` is a module of its own, `github.com/xynolog/sdk/go/conformance`: the three programs the conformance suite drives Go's SDK through (wire, live and worker), and the only Go code that takes an OpenTelemetry exporter.
 
-`packages/go/launcher` is a module of its own, `github.com/The-AI-Alliance/semiont/packages/go/launcher`: what the launcher is built from. Package `launcher` is the engine (`init`, `start`, `stop`, `status`, codespaces, identity and custody), `stack` reads a knowledge base's `.semiont/` documents, `provenance` decides whether an image is one a release built, `images` reads what a service image declares about itself, and `verbs` is the eight verbs on the command line and over MCP, on `packages/go/sdk`; `harness` and `fakert` are what its tests are built on. Beside the Go SDK it depends on the MCP Go SDK, `nats-server`, `jsonschema`, `sigstore-go`, `yaml` and `golang.org/x`. It is published nowhere, and nothing but the launcher requires it.
-
-`apps/launcher` is the `semiont` launcher: the binary that starts and stops a stack, signs a person in, and speaks the eight verbs at a terminal. It is the program's `main` and the tests that build it and drive it; what it does is `packages/go/launcher`'s, and its commands on a knowledge base are front ends on `packages/go/sdk`. It requires both with a `replace` directive on their paths. It is built for each platform and released as an archive and through Homebrew.
+The launcher is the module `github.com/xynolog/cli`, in [cli](https://github.com/xynolog/cli): the `xynolog` binary that starts and stops a stack, signs a person in, and speaks the eight verbs at a terminal. `cmd/xynolog` is the program's `main` and the tests that build it and drive it. [`internal/launcher`](https://github.com/xynolog/cli/blob/main/internal/launcher/README.md) is the engine (`init`, `start`, `stop`, `status`, codespaces, identity and custody), `stack` reads a knowledge base's `.xynolog/` documents, `provenance` decides whether an image is one a release built, `images` reads what a service image declares about itself, and `verbs` is the eight verbs on the command line and over MCP, on the Go SDK; `harness` and `fakert` are what its tests are built on. Beside the Go SDK, which it requires at a published version, it depends on the MCP Go SDK, `nats-server`, `jsonschema`, `sigstore-go`, `yaml` and `golang.org/x`. It is built for each platform and released as an archive and through Homebrew.
 
 ## The Gradle build
 
@@ -172,6 +168,5 @@ driver serves the wire, live, and worker conformance suites.
 
 ## See also
 
-- **[../../packages/README.md](../../packages/README.md)** — every package in each of the five languages, with what it is and whether it is published.
 - **[KNOWLEDGE-SYSTEM.md](KNOWLEDGE-SYSTEM.md)** — the seven KB actors, and the service each runs in.
 - **[CONTAINER-TOPOLOGY.md](../operator/CONTAINER-TOPOLOGY.md)** — how the service images fit together in a running stack.

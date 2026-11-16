@@ -34,4 +34,4 @@ Found something that doesn't work? File an issue and tag it `accessibility`. Inc
 ## See also
 
 - **[KEYBOARD-NAV.md](KEYBOARD-NAV.md)** — keyboard shortcut reference.
-- **[images/browser/docs/ACCESSIBILITY.md](../../images/browser/docs/ACCESSIBILITY.md)** — implementation guide for contributors (ARIA patterns, focus management, automated testing).
+- **[images/browser/docs/ACCESSIBILITY.md](https://github.com/xynolog/images/blob/main/browser/docs/ACCESSIBILITY.md)** — implementation guide for contributors (ARIA patterns, focus management, automated testing).
