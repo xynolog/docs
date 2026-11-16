@@ -1,4 +1,4 @@
-// Ambient vocabulary for the react-ui and Browser docs' code fences — the ui
+// Ambient vocabulary for the react-ui docs' code fences — the ui
 // suite's counterpart of prelude.ts, under the same review rule: a snippet edit
 // that adds boilerplate to satisfy the gate is wrong; extend this prelude.
 //

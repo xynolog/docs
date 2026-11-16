@@ -3,17 +3,24 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "description": "Doc-snippets fixture: compile-checks the code fences of the builder docs and skills, the protocol docs, the package READMEs, and the react-ui and Browser docs, with their READMEs, against dist through the exports map, the way each doc's reader resolves them",
+  "description": "Doc-snippets fixture: compile-checks the code fences of the builder docs, the skills and the react-ui docs against the SDK packages of the bundle sdk.lock pins, through their exports maps, the way each doc's reader resolves them. CI fills dependencies from the bundle.",
   "scripts": {
     "check": "node check.mjs"
   },
+  "dependencies": {},
   "devDependencies": {
-    "@xynolog/observability": "*",
-    "@xynolog/react-ui": "*",
-    "@xynolog/sdk": "*",
+    "@heroicons/react": "^2.2.0",
+    "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.8",
+    "@types/node": "^26.6.6",
     "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "jest-axe": "^11.0.0",
     "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-i18next": "^18.0.1",
+    "react-router": "^8.5.1",
     "rxjs": "^7.8.1",
     "typescript": "^6.0.2",
     "vitest": "^5.1.0"

@@ -1,4 +1,4 @@
-// Ambient vocabulary for the agent skills' code fences (docs/builder/skills).
+// Ambient vocabulary for the agent skills' code fences (builder/skills).
 //
 // A skill teaches a script in pieces: the first fence signs in, and the ones
 // after it use what that fence made. Each fence is checked as a module of its

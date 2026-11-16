@@ -4,26 +4,15 @@
 // the way that suite's reader resolves them. Doc rot fails here instead of
 // waiting for a reader to paste a dead snippet.
 //
-// Four suites, each one TypeScript program with its own preludes:
-//   - sdk: the builder docs (docs/builder) and the protocol docs
-//     (protocol/contract and its flows), plus the repo-root and packages/typescript/sdk READMEs, which
-//     carry the first sdk code most readers see and are the least likely to
-//     be revisited when a signature moves. They teach scripts as well as
+// Three suites, each one TypeScript program with its own preludes:
+//   - sdk: the builder docs (builder/*.md). They teach scripts as well as
 //     applications, so Node's types are on; resolved like an external node
 //     consumer (nodenext).
-//   - skills: the agent skills (docs/builder/skills/*/SKILL.md, and their
-//     README). They teach Node scripts, so Node's types are on; resolved like
-//     the sdk suite.
-//   - packages: the READMEs of the packages the SDK is built on
-//     (packages/typescript/*/README.md, but the sdk's and react-ui's, which the suites
-//     beside this one hold). Node's types are on, and there is no prelude: a
-//     fence there is a whole example, and imports or declares what it uses.
-//   - ui: the react-ui docs (docs/builder/react-ui and packages/typescript/react-ui/docs)
-//     and the Browser docs, with their READMEs. Resolved like the Browser
-//     (bundler resolution, as Vite does), with the Browser's `@/` alias, since
-//     the Browser docs teach its own modules. Only diagnostics inside the doc
-//     fences and the prelude count: an error in Browser source is the Browser
-//     typecheck's to report.
+//   - skills: the agent skills (builder/skills/*/SKILL.md, and their README).
+//     They teach Node scripts, so Node's types are on; resolved like the sdk
+//     suite.
+//   - ui: the react-ui docs (builder/react-ui). Resolved like an application
+//     bundled with Vite (bundler resolution).
 //
 // A suite's `ambientModules` are the packages its docs are about. A snippet
 // may use their exports without importing them: each name a snippet uses but
@@ -43,14 +32,15 @@
 //     stack. It flags `await e` where NO constituent of e's type is thenable
 //     (any/unknown are skipped; `for await` is not checked — no doc snippet
 //     uses it).
-//   - @xynolog/* resolve via workspace links → exports map → dist (consumer-
-//     shaped); TRANSITIVE deps still resolve via monorepo hoisting. Full
-//     external fidelity is the verdaccio drift check's job, not this gate's.
+//   - @xynolog/* resolve to the npm tarballs of the SDK artifact bundle that
+//     sdk.lock pins, installed with their own dependencies, through each
+//     package's exports map, as a consumer of the published packages resolves
+//     them. Every other module a fence or prelude imports is a dependency of
+//     this fixture's package.json.
 //
 // Fence contract: every ts/tsx/typescript fence compiles by default (opt-out,
 // not opt-in). A fence that deliberately shows what does not exist — a
-// proposal, pseudocode — is marked in its info string, which lint:docs-names
-// honours too:
+// proposal, pseudocode — is marked in its info string:
 //     ```ts sketch
 // Exemption is the last resort — anti-pattern snippets usually still compile
 // (they're behaviorally wrong, not type-wrong), and comment-elided literals
@@ -60,7 +50,7 @@
 
 import { createRequire } from 'node:module';
 import {
-  readFileSync, writeFileSync, mkdirSync, rmSync, readdirSync,
+  existsSync, readFileSync, writeFileSync, mkdirSync, rmSync, readdirSync,
 } from 'node:fs';
 import { dirname, join, resolve, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -69,7 +59,12 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
 const ts = require('typescript');
 
-const REPO_ROOT = resolve(__dirname, '../../..');
+const REPO_ROOT = resolve(__dirname, '../..');
+
+// The SDK checked out at the commit sdk.lock pins, where CI puts it. The ui
+// suite reads react-ui's own declarations from it, which its tarball leaves
+// out. It sits inside this fixture so their imports resolve to its node_modules.
+const SDK_CHECKOUT = join(__dirname, '.xynolog-sdk');
 
 const markdownIn = (dir) => readdirSync(join(REPO_ROOT, dir))
   .filter((f) => f.endsWith('.md'))
@@ -78,63 +73,38 @@ const markdownIn = (dir) => readdirSync(join(REPO_ROOT, dir))
 
 const SUITES = {
   sdk: {
-    docs: [
-      ...markdownIn('docs/builder'),
-      ...markdownIn('protocol/contract'),
-      ...markdownIn('protocol/contract/flows'),
-      'README.md',
-      'packages/typescript/sdk/README.md',
-    ],
+    docs: markdownIn('builder'),
     preludes: ['prelude.ts'],
     options: { types: ['node'] },
     ambientModules: [],
-    onlyDocDiagnostics: false,
   },
   // The agent skills: Node scripts, taught fence by fence. Node's types are on,
   // and a name a fence uses that @xynolog/sdk exports is imported for it.
   skills: {
     docs: [
-      ...markdownIn('docs/builder/skills'),
-      ...readdirSync(join(REPO_ROOT, 'docs/builder/skills'), { withFileTypes: true })
+      ...markdownIn('builder/skills'),
+      ...readdirSync(join(REPO_ROOT, 'builder/skills'), { withFileTypes: true })
         .filter((entry) => entry.isDirectory())
-        .map((entry) => join('docs/builder/skills', entry.name, 'SKILL.md'))
+        .map((entry) => join('builder/skills', entry.name, 'SKILL.md'))
         .sort(),
     ],
     preludes: ['prelude-skills.ts'],
     options: { types: ['node'] },
     ambientModules: ['@xynolog/sdk'],
-    onlyDocDiagnostics: false,
-  },
-  // The READMEs of the packages the SDK is built on. Each shows
-  // its package to someone working on it, with one example that runs. A fence
-  // imports or declares everything it uses: there is no shared vocabulary.
-  packages: {
-    docs: ['core', 'http-transport', 'observability'].map((dir) => join('packages', 'typescript', dir, 'README.md')),
-    preludes: [],
-    options: { types: ['node'] },
-    ambientModules: [],
-    onlyDocDiagnostics: false,
   },
   ui: {
-    docs: [
-      ...markdownIn('docs/builder/react-ui'),
-      ...markdownIn('packages/typescript/react-ui/docs'),
-      ...markdownIn('images/browser/docs'),
-      'packages/typescript/react-ui/README.md',
-      'images/browser/README.md',
-    ],
+    docs: markdownIn('builder/react-ui'),
     // react-ui's own declarations for the untyped jest-axe and its vitest
     // matcher ride along, so its accessibility tests read as the docs show them.
     preludes: [
       'prelude-ui.ts',
       'prelude-ui-assets.ts',
-      '../../../packages/typescript/react-ui/src/types/jest-axe.d.ts',
-      '../../../packages/typescript/react-ui/src/types/vitest-matchers.d.ts',
+      join(SDK_CHECKOUT, 'typescript/react-ui/src/types/jest-axe.d.ts'),
+      join(SDK_CHECKOUT, 'typescript/react-ui/src/types/vitest-matchers.d.ts'),
     ],
     options: {
       module: ts.ModuleKind.ESNext,
       moduleResolution: ts.ModuleResolutionKind.Bundler,
-      paths: { '@/*': [join(REPO_ROOT, 'images/browser/src/*')] },
       allowUmdGlobalAccess: true,
     },
     ambientModules: [
@@ -145,7 +115,6 @@ const SUITES = {
       'vitest',
       '@testing-library/react',
     ],
-    onlyDocDiagnostics: true,
   },
 };
 
@@ -256,7 +225,12 @@ function checkSuite(name, suite) {
   mkdirSync(outDir, { recursive: true });
 
   const options = { ...baseOptions, ...suite.options };
-  const preludePaths = suite.preludes.map((p) => join(__dirname, p));
+  const preludePaths = suite.preludes.map((p) => resolve(__dirname, p));
+  const absent = preludePaths.filter((p) => !existsSync(p));
+  if (absent.length > 0) {
+    console.error(`doc-snippets [${name}]: missing prelude(s): ${absent.join(', ')}`);
+    return false;
+  }
   const owner = exportedNames(suite.ambientModules, options, outDir, preludePaths);
 
   // ── extract ───────────────────────────────────────────────────────────
@@ -306,7 +280,6 @@ function checkSuite(name, suite) {
   const checker = program.getTypeChecker();
 
   const byGenPath = new Map(snippets.map((s) => [resolve(s.genPath), s]));
-  const counted = new Set([...byGenPath.keys(), ...preludePaths.map((p) => resolve(p))]);
   const failures = [];
 
   const docLocation = (fileName, zeroBasedLine) => {
@@ -319,7 +292,6 @@ function checkSuite(name, suite) {
   // 1. tsc --noEmit equivalent.
   for (const diag of ts.getPreEmitDiagnostics(program)) {
     if (diag.category !== ts.DiagnosticCategory.Error) continue;
-    if (suite.onlyDocDiagnostics && diag.file && !counted.has(resolve(diag.file.fileName))) continue;
     const message = ts.flattenDiagnosticMessageText(diag.messageText, ' ');
     if (diag.file) {
       const { line } = diag.file.getLineAndCharacterOfPosition(diag.start ?? 0);
