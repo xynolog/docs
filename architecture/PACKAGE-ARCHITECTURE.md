@@ -1,6 +1,6 @@
 # Package Architecture
 
-Xynolog is a monorepo with two workspaces, the npm packages and the Rust crates, and nine Python projects, three Go modules and a Gradle build beside them. No language's packages depend on another's. All are built against [`protocol/specs/`](https://github.com/xynolog/protocol/blob/main/specs/src/openapi.json), the protocol each implements from its side.
+Xynolog's packages live in several repositories: the SDKs, in nine languages, in [sdk](https://github.com/xynolog/sdk); the Rust crates and Python projects the services are built from in [images](https://github.com/xynolog/images); and the launcher's Go module in [cli](https://github.com/xynolog/cli). No language's packages depend on another's. All are built against [`protocol/specs/`](https://github.com/xynolog/protocol/blob/main/specs/src/openapi.json), the protocol each implements from its side.
 
 ## The npm packages
 
