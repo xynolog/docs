@@ -1,16 +1,6 @@
-Xynoplex Documentation
-Copyright 2026 Xynoplex
+Xynolog Documentation
+Copyright 2026 Xynolog
 
-Carried-forward documentation
-
-The documentation in the baseline snapshot is carried forward as it stood
-through 2026-08-26 and remains distributed under the Apache License, Version
-2.0.
-
-Xynoplex work
-
-All work in this documentation made on or after 2026-08-27 is owned by
-Xynoplex. The repository history records the pre-boundary documentation as a
-single snapshot commit, followed by the post-boundary changes to it.
+This product is licensed under the Apache License, Version 2.0.
 
 Third-party notices remain with the files or dependencies to which they apply.
