@@ -1,4 +1,4 @@
-# `@semiont/sdk` Usage Guide
+# `@xynolog/sdk` Usage Guide
 
 ## Table of Contents
 
@@ -28,7 +28,7 @@
 
 Three framings hold the SDK's surface together. Skim them once and the per-namespace details below become predictable.
 
-**Eight verbs.** Every operation belongs to one of eight flows that describe what a participant *does* with a shared corpus: four that write (*yield, mark, bind, frame*), three that read (*browse, match, gather*), and one that directs attention (*beckon*). Frame writes the vocabulary the other writing verbs draw on. Each flow is a namespace on `SemiontClient`. The verb is the unit of mental model; methods belong to flows, not to nouns. The protocol-level definitions live in [`protocol/contract/flows`](../../protocol/contract/flows); the per-namespace examples in this guide track the same vocabulary.
+**Eight verbs.** Every operation belongs to one of eight flows that describe what a participant *does* with a shared corpus: four that write (*yield, mark, bind, frame*), three that read (*browse, match, gather*), and one that directs attention (*beckon*). Frame writes the vocabulary the other writing verbs draw on. Each flow is a namespace on `XynologClient`. The verb is the unit of mental model; methods belong to flows, not to nouns. The protocol-level definitions live in [`protocol/contract/flows`](https://github.com/xynolog/protocol/tree/main/contract/flows); the per-namespace examples in this guide track the same vocabulary.
 
 **Six return shapes.** Method return types follow a predictable convention:
 
@@ -49,14 +49,14 @@ Streams, delegations and uploads are thenable, so `await` works without learning
 
 There are three idiomatic construction shapes, by audience:
 
-### Scripts: `SemiontSession.signInDevice(...)`, then `SemiontSession.fromKept(...)`
+### Scripts: `XynologSession.signInDevice(...)`, then `XynologSession.fromKept(...)`
 
-A script signs in at the knowledge base's identity provider with the device grant: `signInDevice` discovers the issuer from the gateway (RFC 9728), asks it for a code, hands the verification URL to `onCode`, and resolves once the person has approved in any browser, with the sign-in kept in the `SignInKept` it was given. `fromKept` then opens a session over that sign-in. `SemiontClient` has no signIn factory: a bare token lives for minutes, as long as the issuer says, with nothing to renew it, so any script outliving that window would start failing in ways nothing surfaced. The session machinery is what makes tokens safe to hold: proactive refresh at the issuer, each renewal kept where the sign-in is, validation, lifecycle observables.
+A script signs in at the knowledge base's identity provider with the device grant: `signInDevice` discovers the issuer from the gateway (RFC 9728), asks it for a code, hands the verification URL to `onCode`, and resolves once the person has approved in any browser, with the sign-in kept in the `SignInKept` it was given. `fromKept` then opens a session over that sign-in. `XynologClient` has no signIn factory: a bare token lives for minutes, as long as the issuer says, with nothing to renew it, so any script outliving that window would start failing in ways nothing surfaced. The session machinery is what makes tokens safe to hold: proactive refresh at the issuer, each renewal kept where the sign-in is, validation, lifecycle observables.
 
-Where the sign-in is kept decides what a restart does: a `MemorySignIn` lives as long as the process; `keptIn(storage, kb.id)` keeps it in a `SessionStorage` under the knowledge base's `id`, so distinct scripts sharing one storage must use distinct `id`s; an entry of the `SignInStore` is the sign-in `semiont login` keeps, renewed there for the launcher's verbs too. `signOut(kept)` revokes it at the issuer and forgets it.
+Where the sign-in is kept decides what a restart does: a `MemorySignIn` lives as long as the process; `keptIn(storage, kb.id)` keeps it in a `SessionStorage` under the knowledge base's `id`, so distinct scripts sharing one storage must use distinct `id`s; an entry of the `SignInStore` is the sign-in `xynolog login` keeps, renewed there for the launcher's verbs too. `signOut(kept)` revokes it at the issuer and forgets it.
 
 ```typescript
-import { MemorySignIn, SemiontSession, type KnowledgeBase } from '@semiont/sdk';
+import { MemorySignIn, XynologSession, type KnowledgeBase } from '@xynolog/sdk';
 
 const kb: KnowledgeBase = {
   id: 'my-watcher',
@@ -66,14 +66,14 @@ const kb: KnowledgeBase = {
 };
 
 const kept = new MemorySignIn();
-await SemiontSession.signInDevice({
+await XynologSession.signInDevice({
   kb,
   kept,
   onCode: ({ verificationUri, userCode }) => console.log(`Open ${verificationUri} and enter ${userCode}`),
 });
-const opened = await SemiontSession.fromKept({ kb, kept });
+const opened = await XynologSession.fromKept({ kb, kept });
 
-// opened.session.client is the same SemiontClient surface; the session
+// opened.session.client is the same XynologClient surface; the session
 // manages the access-token lifecycle around it (proactive refresh,
 // validation, each renewal kept in `kept`).
 
@@ -84,25 +84,25 @@ opened.dispose(); // when done: the client it was built with, then the session
 
 `KnowledgeBase` is a uniform shape regardless of transport kind. The transport-specific connection details live in the nested `endpoint` discriminated union (`{ kind: 'http', host, port, protocol }` for HTTP gateways, `{ kind: 'local', kbId }` for a transport with no wire). Code that doesn't construct transports never inspects `endpoint`.
 
-The session refreshes at the issuer with the refresh token the grant returned. For non-standard flows (a service account's client-credentials grant, an interactive re-prompt), supply `refresh` to `SemiontSession.fromHttp(...)` instead.
+The session refreshes at the issuer with the refresh token the grant returned. For non-standard flows (a service account's client-credentials grant, an interactive re-prompt), supply `refresh` to `XynologSession.fromHttp(...)` instead.
 
-A browser app signs in with the authorization code grant instead: `SemiontBrowser.beginSignIn` sends the person to the issuer and `completeSignIn` finishes on the callback page. Already hold an access and refresh pair from either grant? Keep it in a `MemorySignIn` and open it with `SemiontSession.fromKept(...)`.
+A browser app signs in with the authorization code grant instead: `XynologBrowser.beginSignIn` sends the person to the issuer and `completeSignIn` finishes on the callback page. Already hold an access and refresh pair from either grant? Keep it in a `MemorySignIn` and open it with `XynologSession.fromKept(...)`.
 
-### Already-have-a-token: `SemiontClient.fromHttp(...)` / `SemiontSession.fromHttp(...)`
+### Already-have-a-token: `XynologClient.fromHttp(...)` / `XynologSession.fromHttp(...)`
 
 For consumers that already hold a JWT (CLI cached-token path, env-var token, embedded auth flow that produced one elsewhere), skip the auth round-trip:
 
 ```typescript
-import { MemorySignIn, SemiontClient, SemiontSession } from '@semiont/sdk';
+import { MemorySignIn, XynologClient, XynologSession } from '@xynolog/sdk';
 
 // One-shot
-const semiont = SemiontClient.fromHttp({
+const xynolog = XynologClient.fromHttp({
   baseUrl: 'http://localhost:4000',
   token: 'your-jwt',
 });
 
 // Long-running — supply your own refresh callback. Gives an OpenedSession.
-const opened = SemiontSession.fromHttp({
+const opened = XynologSession.fromHttp({
   kb: {
     id: 'local',
     label: 'Local Gateway',
@@ -125,9 +125,9 @@ The session factory owns the load-bearing "same `BehaviorSubject` instance flows
 When you need direct control of `token$`, an alternate transport, or to inject a `tokenRefresher` callback at the transport level (it is told the token the gateway refused), construct each piece by hand. A transport assumes no channels of its own: a full client gives it `BRIDGED_CHANNELS`.
 
 ```typescript
-import { SemiontClient, HttpTransport, HttpContentTransport } from '@semiont/sdk';
-import { baseUrl, accessToken, type AccessToken } from '@semiont/sdk';
-import { BRIDGED_CHANNELS } from '@semiont/core';
+import { XynologClient, HttpTransport, HttpContentTransport } from '@xynolog/sdk';
+import { baseUrl, accessToken, type AccessToken } from '@xynolog/sdk';
+import { BRIDGED_CHANNELS } from '@xynolog/core';
 import { BehaviorSubject } from 'rxjs';
 
 const token$ = new BehaviorSubject<AccessToken | null>(accessToken('your-jwt'));
@@ -136,22 +136,22 @@ const transport = new HttpTransport({ baseUrl: baseUrl('http://localhost:4000'),
 // as the third arg wires `client.auth` and `client.system`. Non-HTTP transports
 // implement only ITransport — omit the third arg and `client.auth` / `.system`
 // are `undefined`.
-const semiont = new SemiontClient(transport, new HttpContentTransport(transport), transport);
+const xynolog = new XynologClient(transport, new HttpContentTransport(transport), transport);
 
 // Update token from outside
 token$.next(accessToken(newToken));
 ```
 
-`@semiont/sdk` re-exports the common branded types and the functions that make them from `@semiont/core`, for one-import convenience.
+`@xynolog/sdk` re-exports the common branded types and the functions that make them from `@xynolog/core`, for one-import convenience.
 
-The four kinds of id are made by their constructors: `resourceId`, `annotationId`, `jobId`, `userId`. Each holds text to its kind's rule, which is the spec's ([`protocol/specs/src/identifiers/kinds.json`](../../protocol/specs/src/identifiers/kinds.json)), and throws a `TypeError` for text the rule refuses: a resource's, an annotation's and a job's id is a name of 1 to 128 letters, digits, `_` and `-`, never a URI or a path, and whoever did something is named by a DID. One kind is not assignable to another, and what the knowledge base answers is typed already, so a constructor stands only where text enters: a URL, a form, a script's argument.
+The four kinds of id are made by their constructors: `resourceId`, `annotationId`, `jobId`, `userId`. Each holds text to its kind's rule, which is the spec's ([`protocol/specs/src/identifiers/kinds.json`](https://github.com/xynolog/protocol/blob/main/specs/src/identifiers/kinds.json)), and throws a `TypeError` for text the rule refuses: a resource's, an annotation's and a job's id is a name of 1 to 128 letters, digits, `_` and `-`, never a URI or a path, and whoever did something is named by a DID. One kind is not assignable to another, and what the knowledge base answers is typed already, so a constructor stands only where text enters: a URL, a form, a script's argument.
 
 ```ts
-import { resourceId as makeResourceId } from '@semiont/sdk';
+import { resourceId as makeResourceId } from '@xynolog/sdk';
 
 function opened(href: string) {
   const id = makeResourceId(new URL(href).pathname.split('/').at(-1) ?? ''); // throws if it is not an id
-  return semiont.browse.resource(id);
+  return xynolog.browse.resource(id);
 }
 ```
 
@@ -159,14 +159,14 @@ function opened(href: string) {
 
 ### Public bus access
 
-The client does **not** expose `emit / on / stream` methods. All bus traffic flows through typed namespace methods (`semiont.mark.archive(...)`, `semiont.browse.resource(...)`, etc.). The sanctioned escape hatch for a channel read by name is the client's own bus, `semiont.bus.on(channel)`, or the typed bus over its transport, `semiont.wire` (`emit`, `frames`, `request`). A channel of a resource's scope is read on the wire for its resource, `semiont.wire.frames(channel, resourceId)`, which holds the scope while it is read. See [`REACTIVE-MODEL.md` § Two paths to the bus](./REACTIVE-MODEL.md#two-paths-to-the-bus).
+The client does **not** expose `emit / on / stream` methods. All bus traffic flows through typed namespace methods (`xynolog.mark.archive(...)`, `xynolog.browse.resource(...)`, etc.). The sanctioned escape hatch for a channel read by name is the client's own bus, `xynolog.bus.on(channel)`, or the typed bus over its transport, `xynolog.wire` (`emit`, `frames`, `request`). A channel of a resource's scope is read on the wire for its resource, `xynolog.wire.frames(channel, resourceId)`, which holds the scope while it is read. See [`REACTIVE-MODEL.md` § Two paths to the bus](./REACTIVE-MODEL.md#two-paths-to-the-bus).
 
 ## Yield
 
 ```typescript
 // File upload — UploadObservable: subscribe for the upload lifecycle
 // (`started` → optional `progress` → `finished`); await for `{ resourceId }`.
-const { resourceId } = await semiont.yield.resource({
+const { resourceId } = await xynolog.yield.resource({
   name: 'My Document',
   file: new File([content], 'doc.md'),
   format: 'text/markdown',
@@ -182,7 +182,7 @@ const { resourceId } = await semiont.yield.resource({
 // `entityTypes` are stamped on the synthesized resource (so
 // `browse.resources({ entityType: 'Character' })` finds it) and also
 // fed into the LLM prompt as a topical bias.
-semiont.yield.delegate({
+xynolog.yield.delegate({
   title: 'Generated Summary',
   storageUri: 'file://generated/summary.md',
   context: gatheredContext,
@@ -221,7 +221,7 @@ semiont.yield.delegate({
 // Composes with task/structure; a delegated 'linking' pass afterwards still
 // works alongside it.
 // The Q&A recipe: ask the question via `title`, then
-semiont.yield.delegate({
+xynolog.yield.delegate({
   title: 'What does the appendix say about retry budgets?',
   storageUri: 'file://generated/answer.md',
   context: resourceContext,
@@ -238,7 +238,7 @@ semiont.yield.delegate({
 // The OUTCOME. Awaiting gives the job's completion, the `job:complete` it
 // ended with. Its `result` is a yield job's: the resource it made, or a
 // decline. The two share no member, so one check narrows it without a cast.
-const done = await semiont.yield.delegate({
+const done = await xynolog.yield.delegate({
   title: 'Generated Summary',
   storageUri: 'file://generated/summary.md',
   context: gatheredContext,
@@ -255,9 +255,9 @@ if (done.result && 'resourceId' in done.result) {
 }
 
 // Clone
-const { token } = await semiont.yield.cloneToken(resourceId);
-const source = await semiont.yield.fromToken(token);
-await semiont.yield.createFromToken({ token, name: 'Clone', content });
+const { token } = await xynolog.yield.cloneToken(resourceId);
+const source = await xynolog.yield.fromToken(token);
+await xynolog.yield.createFromToken({ token, name: 'Clone', content });
 ```
 
 ## Mark
@@ -269,7 +269,7 @@ Adding to the entity-type vocabulary is [Frame](#frame). Mark classifies a resou
 ```typescript
 // Create an annotation. The wire layer derives `resourceId` from
 // `input.target.source`.
-const { annotationId } = await semiont.mark.annotation({
+const { annotationId } = await xynolog.mark.annotation({
   motivation: 'highlighting',
   target: {
     source: resourceId,
@@ -283,11 +283,11 @@ const { annotationId } = await semiont.mark.annotation({
 });
 
 // Delete an annotation
-await semiont.mark.delete(resourceId, annotationId);
+await xynolog.mark.delete(resourceId, annotationId);
 
 // Archive / unarchive
-await semiont.mark.archive(resourceId);
-await semiont.mark.unarchive(resourceId);
+await xynolog.mark.archive(resourceId);
+await xynolog.mark.unarchive(resourceId);
 
 // Replace a resource's own entity-type classification — replace/diff:
 // pass the current types and the desired full set; the difference is
@@ -295,12 +295,12 @@ await semiont.mark.unarchive(resourceId);
 // surfaces in browse.resources({ entityType }). (Stamps the resource
 // with types from the Frame vocabulary — defining the vocabulary
 // itself is frame.addEntityTypes.)
-await semiont.mark.updateEntityTypes(resourceId, ['Draft'], ['Draft', 'Question']);
+await xynolog.mark.updateEntityTypes(resourceId, ['Draft'], ['Draft', 'Question']);
 
 // A delegated annotation pass — DelegationObservable<MarkJobCompletion>:
 // subscribe for the job's events, await for its completion. The params
 // state the motivation and what that motivation takes.
-semiont.mark.delegate(resourceId, {
+xynolog.mark.delegate(resourceId, {
   motivation: 'linking',
   entityTypes: ['Person', 'Organization'],
 }).subscribe({
@@ -310,14 +310,14 @@ semiont.mark.delegate(resourceId, {
 });
 ```
 
-Each motivation takes its own params and no others; [the Mark flow](../../protocol/contract/flows/MARK.md#delegation) lists them. The completion's `result` is a `mark` job's ([`MarkJobResult`](../../protocol/specs/src/components/schemas/MarkJobResult.json)), one of two. A job that did its work gives its counts, the same for every motivation: `found`, what the model proposed; `persisted`, what was written; and `errors`, how many of the proposed could not be anchored in the text, absent when none. A resource whose text could not be read gives a decline, `{ declined: true, reason }`.
+Each motivation takes its own params and no others; [the Mark flow](https://github.com/xynolog/protocol/blob/main/contract/flows/MARK.md#delegation) lists them. The completion's `result` is a `mark` job's ([`MarkJobResult`](https://github.com/xynolog/protocol/blob/main/specs/src/components/schemas/MarkJobResult.json)), one of two. A job that did its work gives its counts, the same for every motivation: `found`, what the model proposed; `persisted`, what was written; and `errors`, how many of the proposed could not be anchored in the text, absent when none. A resource whose text could not be read gives a decline, `{ declined: true, reason }`.
 
 ## Bind
 
-One method. The result arrives on `semiont.browse.annotations()` via the enriched `mark:body-updated` event.
+One method. The result arrives on `xynolog.browse.annotations()` via the enriched `mark:body-updated` event.
 
 ```typescript
-await semiont.bind.body(resourceId, annotationId, [
+await xynolog.bind.body(resourceId, annotationId, [
   { op: 'add', item: { type: 'SpecificResource', source: targetResourceId, purpose: 'linking' } },
 ]);
 ```
@@ -330,13 +330,13 @@ The schema-layer flow. Frame operates on the KB's conceptual vocabulary — what
 
 ```typescript
 // Add a single entity type
-await semiont.frame.addEntityType('Person');
+await xynolog.frame.addEntityType('Person');
 
 // Add multiple in one call
-await semiont.frame.addEntityTypes(['Location', 'Organization', 'Event']);
+await xynolog.frame.addEntityTypes(['Location', 'Organization', 'Event']);
 
 // Live-read the current vocabulary (lives on Browse, not Frame)
-semiont.browse.entityTypes().subscribe((types) => {
+xynolog.browse.entityTypes().subscribe((types) => {
   console.log('Current vocabulary:', types);
 });
 ```
@@ -348,7 +348,7 @@ Adding the same entity type twice is idempotent: the second `frame:add-entity-ty
 Tag schemas are structural-analysis frameworks (IRAC, IMRAD, Toulmin, custom). They're **runtime-registered per knowledge base** — the SDK ships the type, the KB owns the schema data and registers it via `frame.addTagSchema(...)` at session/skill startup. The dispatcher embeds the resolved schema in worker job params at job-creation time, so an unknown `schemaId` rejects synchronously with `Tag schema not registered: <id>`.
 
 ```typescript
-import type { TagSchema } from '@semiont/sdk';
+import type { TagSchema } from '@xynolog/sdk';
 
 // Define the schema (typically lives in your KB's `src/tag-schemas.ts`).
 const LEGAL_IRAC_SCHEMA: TagSchema = {
@@ -367,10 +367,10 @@ const LEGAL_IRAC_SCHEMA: TagSchema = {
 // Register at startup. Idempotent — re-runs with identical content
 // are silent at the projection layer; differing content overwrites
 // and logs a warning.
-await semiont.frame.addTagSchema(LEGAL_IRAC_SCHEMA);
+await xynolog.frame.addTagSchema(LEGAL_IRAC_SCHEMA);
 
 // Now a delegated tagging pass can use it.
-await semiont.mark.delegate(rId, {
+await xynolog.mark.delegate(rId, {
   motivation: 'tagging',
   schemaId: LEGAL_IRAC_SCHEMA.id,
   categories: LEGAL_IRAC_SCHEMA.tags.map((t) => t.name),
@@ -379,12 +379,12 @@ await semiont.mark.delegate(rId, {
 // Live-read registered schemas (Browse, not Frame). The cache
 // invalidates on `frame:tag-schema-added` so it stays current as new
 // schemas land.
-semiont.browse.tagSchemas().subscribe((st) => {
+xynolog.browse.tagSchemas().subscribe((st) => {
   if (st.status === 'ready') console.log('Registered schemas:', st.value.map((s) => s.id));
 });
 ```
 
-For the full per-flow contract — including the `__system__`-stream event-sourcing layer, projection materialization, and "most-recent wins + log warning" conflict semantics — see [`protocol/contract/flows/FRAME.md`](../../protocol/contract/flows/FRAME.md). There are no schema-evolution operations (rename / remove / version / migrate).
+For the full per-flow contract — including the `__system__`-stream event-sourcing layer, projection materialization, and "most-recent wins + log warning" conflict semantics — see [`protocol/contract/flows/FRAME.md`](https://github.com/xynolog/protocol/blob/main/contract/flows/FRAME.md). There are no schema-evolution operations (rename / remove / version / migrate).
 
 ## Browse
 
@@ -397,52 +397,52 @@ Streaming methods (`gather.annotation`, `match.search`) return `StreamObservable
 ### Live Queries (subscribe)
 
 ```typescript
-import { isReady, readyValue } from '@semiont/sdk';
+import { isReady, readyValue } from '@xynolog/sdk';
 import { filter } from 'rxjs/operators';
 
 // Subscribe to a resource — re-emits on yield:updated, mark:archived, etc.
-semiont.browse.resource(resourceId).subscribe((st) => {
+xynolog.browse.resource(resourceId).subscribe((st) => {
   if (st.status === 'ready') console.log('Resource:', st.value.name);
   else if (st.status === 'failed') console.error('Load failed:', st.error);
   // 'pending' — render a skeleton
 });
 
 // Subscribe to annotations — re-emits on mark:added, mark:removed, mark:body-updated
-semiont.browse.annotations(resourceId).subscribe((st) => {
+xynolog.browse.annotations(resourceId).subscribe((st) => {
   console.log('Annotations:', readyValue(st)?.length);   // readyValue: value | undefined
 });
 
 // Subscribe to entity types — re-emits on frame:entity-type-added (global stream)
-semiont.browse.entityTypes().pipe(filter(isReady)).subscribe((st) => {
+xynolog.browse.entityTypes().pipe(filter(isReady)).subscribe((st) => {
   console.log('Entity types:', st.value);
 });
 
 // One-shot read — the network round trip is always spelled .fresh().
-const resource = await semiont.browse.resource(resourceId).fresh();   // ResourceDescriptor; rejects on failure
+const resource = await xynolog.browse.resource(resourceId).fresh();   // ResourceDescriptor; rejects on failure
 ```
 
 ### One-Shot Reads (Promise)
 
 ```typescript
 // Text content
-const content = await semiont.browse.resourceContent(resourceId);
+const content = await xynolog.browse.resourceContent(resourceId);
 
 // Binary representation — verbatim stored bytes; the stored media type comes back as `contentType`
-const { data, contentType } = await semiont.browse.resourceRepresentation(resourceId);
+const { data, contentType } = await xynolog.browse.resourceRepresentation(resourceId);
 
 // Event history: each event as the log holds it, with the `agent` who did it
-const events = await semiont.browse.resourceEvents(resourceId);
+const events = await xynolog.browse.resourceEvents(resourceId);
 const who = events.map((event) => event.agent.name ?? event.agent['@id']);
 
 // Annotation history: one annotation's events, in order
-const history = await semiont.browse.annotationHistory(resourceId, annotationId);
+const history = await xynolog.browse.annotationHistory(resourceId, annotationId);
 
 // File browser
-const files = await semiont.browse.files('/docs', 'mtime');
+const files = await xynolog.browse.files('/docs', 'mtime');
 
 // What the knowledge base says of itself: { name, domain, gitBranch? }.
 // Asked on every call and never cached — a branch changes with no event.
-const { name, domain, gitBranch } = await semiont.browse.kb();
+const { name, domain, gitBranch } = await xynolog.browse.kb();
 ```
 
 An annotation's target, selector and body each come in more than one shape. The SDK's readers
@@ -455,7 +455,7 @@ siblings) read each whichever it is:
 `match.search` finds what a reference could refer to. It is long-running, and returns a `StreamObservable` of scored results — `await` for the final emission, or `subscribe` for streaming progress. `referenceId` is typed as `AnnotationId` (the annotation containing the reference body to search candidates for).
 
 ```typescript
-semiont.match.search(resourceId, referenceId, gatheredContext, {
+xynolog.match.search(resourceId, referenceId, gatheredContext, {
   limit: 10,
   useSemanticScoring: true,
 }).subscribe({
@@ -468,7 +468,7 @@ semiont.match.search(resourceId, referenceId, gatheredContext, {
 `match.resources` searches resources by text. It is a live query, like the listing `browse.resources`: subscribe to it, or call `.fresh()`. Its filters are `archived`, `entityType` and `limit`. The answer's `matchKind` is `'lexical'` when the text matched, and `'semantic'` when nothing matched by text and these resources discuss the query.
 
 ```typescript
-const found = await semiont.match.resources('ontology', { entityType: 'Concept', limit: 20 }).fresh();
+const found = await xynolog.match.resources('ontology', { entityType: 'Concept', limit: 20 }).fresh();
 console.log(found.matchKind, found.resources.map((r) => r.name));
 ```
 
@@ -478,7 +478,7 @@ console.log(found.matchKind, found.resources.map((r) => r.name));
 carries the `GatheredContext` directly on `.response`.
 
 ```typescript
-semiont.gather.annotation(resourceId, annotationId, { contextWindow: 2000 }).subscribe({
+xynolog.gather.annotation(resourceId, annotationId, { contextWindow: 2000 }).subscribe({
   next: (complete) => console.log('Context:', complete.response),
   error: (err) => console.error('Failed:', err.message),
 });
@@ -488,7 +488,7 @@ semiont.gather.annotation(resourceId, annotationId, { contextWindow: 2000 }).sub
 a `Promise` rather than an Observable, resolving the `GatheredContext` directly:
 
 ```typescript
-const context = await semiont.gather.resource(resourceId, {
+const context = await xynolog.gather.resource(resourceId, {
   depth: 2,
   maxResources: 10,
   excludeEntityTypes: ['Draft'],   // omit these entity types from the semantic recall
@@ -499,7 +499,7 @@ const context = await semiont.gather.resource(resourceId, {
 the resource the reference is on and the text it covers. It is a live query.
 
 ```typescript
-const references = await semiont.gather.referencedBy(resourceId).fresh();
+const references = await xynolog.gather.referencedBy(resourceId).fresh();
 for (const ref of references) console.log(`${ref.resourceName ?? ref.target.source}: "${ref.target.selector.exact}"`);
 ```
 
@@ -512,15 +512,15 @@ are this viewer's own fan-out. Wire drives (`Promise<number | undefined>`) becko
 
 ```typescript
 // Wire drives — every other participant's viewer
-const watching = await semiont.beckon.attention(resourceId, annotationId);
+const watching = await xynolog.beckon.attention(resourceId, annotationId);
 if (watching === 0) console.warn('nobody is watching');
-await semiont.beckon.attention(resourceId);    // the resource as a whole
-await semiont.beckon.openResource(resourceId); // open it on their screens
-await semiont.beckon.sparkleAll(annotationId); // sparkle it on their screens
+await xynolog.beckon.attention(resourceId);    // the resource as a whole
+await xynolog.beckon.openResource(resourceId); // open it on their screens
+await xynolog.beckon.sparkleAll(annotationId); // sparkle it on their screens
 
 // Local signals — this viewer only (never the wire)
-semiont.beckon.hover(annotationId);
-semiont.beckon.sparkle(annotationId);
+xynolog.beckon.hover(annotationId);
+xynolog.beckon.sparkle(annotationId);
 ```
 
 `browse.openResource()` / `beckon.openResource()` are the teachable pair: browse opens it
@@ -530,34 +530,34 @@ in the same namespace and must stay local.
 
 ## Auth
 
-Like `system`, the `auth` namespace lives on `IGatewayOperations` and is `undefined` on a `SemiontClient` constructed without a gateway. HTTP-context callers narrow with `!`:
+Like `system`, the `auth` namespace lives on `IGatewayOperations` and is `undefined` on a `XynologClient` constructed without a gateway. HTTP-context callers narrow with `!`:
 
 ```typescript
-const user = await semiont.auth!.me();
-const metadata = await semiont.auth!.protectedResourceMetadata();  // which issuers this KB trusts
-const { token } = await semiont.auth!.mediaToken(resourceId);
+const user = await xynolog.auth!.me();
+const metadata = await xynolog.auth!.protectedResourceMetadata();  // which issuers this KB trusts
+const { token } = await xynolog.auth!.mediaToken(resourceId);
 ```
 
-Signing in is not an `auth` op: it happens at the issuer, through `SemiontSession.signInDevice(...)` (then `SemiontSession.fromKept(...)`) or `SemiontBrowser.beginSignIn` / `completeSignIn`, which wire the tokens into `token$` AND own the refresh that keeps them alive past the issuer's access-token lifetime — minutes, and the issuer's number to choose.
+Signing in is not an `auth` op: it happens at the issuer, through `XynologSession.signInDevice(...)` (then `XynologSession.fromKept(...)`) or `XynologBrowser.beginSignIn` / `completeSignIn`, which wire the tokens into `token$` AND own the refresh that keeps them alive past the issuer's access-token lifetime — minutes, and the issuer's number to choose.
 
 ## System
 
-What a knowledge base says about itself. The `system` namespace lives on `IGatewayOperations`. A `SemiontClient` constructed with a gateway (e.g. `fromHttp`, or `session.client`) has `client.system: SystemNamespace`; one constructed without a gateway has `client.system: undefined`. HTTP-context callers narrow with `!`:
+What a knowledge base says about itself. The `system` namespace lives on `IGatewayOperations`. A `XynologClient` constructed with a gateway (e.g. `fromHttp`, or `session.client`) has `client.system: SystemNamespace`; one constructed without a gateway has `client.system: undefined`. HTTP-context callers narrow with `!`:
 
 ```typescript
-const status = await semiont.system!.status();   // identity, branch, features
-const health = await semiont.system!.healthCheck();
+const status = await xynolog.system!.status();   // identity, branch, features
+const health = await xynolog.system!.healthCheck();
 ```
 
-There is no administration namespace. Accounts live at the knowledge base's identity provider and are administered there — `semiont useradd` for a launcher-run Keycloak, the issuer's own console otherwise.
+There is no administration namespace. Accounts live at the knowledge base's identity provider and are administered there — `xynolog useradd` for a launcher-run Keycloak, the issuer's own console otherwise.
 
 ## Job
 
 ```typescript
-import { isReportedJobResult, isMarkJobResult } from '@semiont/core';
+import { isReportedJobResult, isMarkJobResult } from '@xynolog/core';
 
-const status = await semiont.job.status(jobId);
-const final = await semiont.job.pollUntilComplete(jobId, {
+const status = await xynolog.job.status(jobId);
+const final = await xynolog.job.pollUntilComplete(jobId, {
   onProgress: (s) => console.log(s.status),
 });
 
@@ -577,10 +577,10 @@ consumer side of the launcher's published KB view, for building "pick a knowledg
 surfaces without hand-typed hosts and ports.
 
 ```typescript
-import { httpDiscovery, textDiscovery, subscribeDiscovery, parseDiscoveryDocument } from '@semiont/sdk';
-import type { DiscoveredKB } from '@semiont/core';
+import { httpDiscovery, textDiscovery, subscribeDiscovery, parseDiscoveryDocument } from '@xynolog/sdk';
+import type { DiscoveredKB } from '@xynolog/core';
 
-// Browser, same origin as the Semiont Browser: poll + diff.
+// Browser, same origin as the Xynolog Browser: poll + diff.
 const sub = subscribeDiscovery(httpDiscovery(), { intervalMs: 5_000 })
   .subscribe(({ state, added, updated, removed }) => {
     if (state.kind === 'absent') {
@@ -597,7 +597,7 @@ const fileTransport = textDiscovery(() => readFile(kbsJsonPath, 'utf8').catch(()
 ```
 
 Semantics the sdk owns so consumers don't re-derive them: schema validation against
-`@semiont/core`'s generated `DiscoveryDocument` types (a structurally invalid or
+`@xynolog/core`'s generated `DiscoveryDocument` types (a structurally invalid or
 unknown-`version` document reads as `absent` with a diagnostic — never a partial parse);
 ETag/`If-None-Match` polling (a 304 emits nothing); and diffing keyed by
 `did ?? host:port`. Entries are endpoint descriptors only — discovery never creates
@@ -618,7 +618,7 @@ re-emits); the last unsubscribe releases it. There's no separate call to make.
 // Subscribing keeps the view live. The SDK acquires `resourceId`'s scope
 // for as long as it's observed (ref-counted across all
 // `browse.*(resourceId)` subscriptions) and releases it on teardown.
-const sub = semiont.browse.annotations(resourceId).subscribe((annotations) => {
+const sub = xynolog.browse.annotations(resourceId).subscribe((annotations) => {
   render(annotations);
 });
 
@@ -627,7 +627,7 @@ sub.unsubscribe();
 ```
 
 A one-shot read needs no subscription and acquires no scope —
-`semiont.browse.annotations(resourceId).fresh()` fetches a fresh value and returns.
+`xynolog.browse.annotations(resourceId).fresh()` fetches a fresh value and returns.
 
 Scopes compose: one connection holds every observed
 resource's scope simultaneously — N mounted viewers on N resources are all
@@ -643,12 +643,12 @@ again), outstanding requests' replies are re-requested from the server's
 retention buffer (`pendingReplies`), and the caches fed by events with no
 watermark — lists of resources, resources, entity types, tag schemas, the
 engines — are asked for again. See
-[TRANSPORT-HTTP.md](../../protocol/contract/TRANSPORT-HTTP.md) for the wire
+[TRANSPORT-HTTP.md](https://github.com/xynolog/protocol/blob/main/contract/TRANSPORT-HTTP.md) for the wire
 contract.
 
 ### Worker / actor adapters
 
-Worker-side adapters consume `BusPrimitive`, the transport-neutral bus interface that `@semiont/core` exports, and what a `Bus` is built over. A worker's claiming is the SDK's own: `client.job.claim`, which runs over the client's transport. The primitive has seven members: `emit(channel, payload, envelope?)`; `stream(channel)` and `frames(channel)`, the payload and envelope views of a channel; `state$`; `trackReply(correlationId)`; `isSubscribed(channel)`; and `subscribeToResource(resourceId)`. `emit`, `stream` and `frames` are typed by the channel name, so the payload comes from `EventMap[channel]` rather than from a type argument a caller supplies. Every `ITransport` is one. The HTTP `ActorStateUnit` from `@semiont/http-transport` has all of it but `subscribeToResource`, which its transport owns. A worker claims jobs like this:
+Worker-side adapters consume `BusPrimitive`, the transport-neutral bus interface that `@xynolog/core` exports, and what a `Bus` is built over. A worker's claiming is the SDK's own: `client.job.claim`, which runs over the client's transport. The primitive has seven members: `emit(channel, payload, envelope?)`; `stream(channel)` and `frames(channel)`, the payload and envelope views of a channel; `state$`; `trackReply(correlationId)`; `isSubscribed(channel)`; and `subscribeToResource(resourceId)`. `emit`, `stream` and `frames` are typed by the channel name, so the payload comes from `EventMap[channel]` rather than from a type argument a caller supplies. Every `ITransport` is one. The HTTP `ActorStateUnit` from `@xynolog/http-transport` has all of it but `subscribeToResource`, which its transport owns. A worker claims jobs like this:
 
 ```typescript sketch
 const claims = client.job.claim({
@@ -659,7 +659,7 @@ claims.subscribe((job) => {
 });
 ```
 
-The client's transport must name `JOB_CLAIM_CHANNELS` in its stream: the two broadcasts a worker reads reach only a stream that names them. The [`semiont-worker` skill](./skills/semiont-worker/SKILL.md) is the whole of it.
+The client's transport must name `JOB_CLAIM_CHANNELS` in its stream: the two broadcasts a worker reads reach only a stream that names them. The [`xynolog-worker` skill](./skills/xynolog-worker/SKILL.md) is the whole of it.
 
 ## Debugging the bus
 
@@ -672,24 +672,24 @@ When something on the bus is silently not happening — a job-claim worker that 
 [bus RECV] mark:added scope=res-abc {annotation: ..., ...}
 ```
 
-A line shows the payload, and never a credential in it: the value of a member whose name is one a credential goes by (`token`, `password`, `apiKey` and the rest of a [short list](../../protocol/specs/src/bus/log-cases.json)) is written as `[withheld]`.
+A line shows the payload, and never a credential in it: the value of a member whose name is one a credential goes by (`token`, `password`, `apiKey` and the rest of a [short list](https://github.com/xynolog/protocol/blob/main/specs/src/bus/log-cases.json)) is written as `[withheld]`.
 
 Toggle:
 
 ```bash
-SEMIONT_BUS_LOG=1 <command>          # A process (the services, a worker, the CLI, scripts)
-window.__SEMIONT_BUS_LOG__ = true;   # Browser (DevTools or e2e init)
+XYNOLOG_BUS_LOG=1 <command>          # A process (the services, a worker, the CLI, scripts)
+window.__XYNOLOG_BUS_LOG__ = true;   # Browser (DevTools or e2e init)
 ```
 
-Cost when disabled: a single truthy check, zero allocations. Five op codes — `EMIT`, `RECV`, `SSE`, `PUT`, `GET` — cover every transport-level write and read. Failure modes are diagnosable from a missing line: gateway `EMIT` missing → request never reached the server; gateway `SSE` missing → handler emitted no result; Browser `RECV` missing → server wrote but bytes never parsed client-side. The full guide with the timeline format and e2e capture API is at [`images/e2e/docs/bus-logging.md`](../../images/e2e/docs/bus-logging.md).
+Cost when disabled: a single truthy check, zero allocations. Five op codes — `EMIT`, `RECV`, `SSE`, `PUT`, `GET` — cover every transport-level write and read. Failure modes are diagnosable from a missing line: gateway `EMIT` missing → request never reached the server; gateway `SSE` missing → handler emitted no result; Browser `RECV` missing → server wrote but bytes never parsed client-side. The full guide with the timeline format and e2e capture API is at [`images/e2e/docs/bus-logging.md`](https://github.com/xynolog/images/blob/main/e2e/docs/bus-logging.md).
 
 When OpenTelemetry is initialized, every bus-log line gets a `trace=<8hex>` suffix that correlates the grep timeline with the trace UI.
 
 **Runtime SSE health.** For a long-running worker or daemon, subscribe to the transport's connection-state observable to surface health in your status endpoint:
 
 ```typescript
-import { HttpTransport } from '@semiont/sdk';
-import type { ConnectionState } from '@semiont/core';
+import { HttpTransport } from '@xynolog/sdk';
+import type { ConnectionState } from '@xynolog/core';
 
 const httpTransport = session.client.transport as HttpTransport;
 
@@ -701,11 +701,11 @@ httpTransport.state$.subscribe((state: ConnectionState) => {
 
 `degraded` is the threshold to escalate — it means the SSE has been reconnecting for >`DEGRADED_THRESHOLD_MS` and isn't a blip. `closed` is terminal (`stop()` / `dispose()` was called).
 
-**Worker-specific gotcha.** A job-claim adapter widens the SSE channel set on `start()` to include `job:queued` and the other channels it needs. If your worker is silently doing nothing, the most common cause is `adapter.start()` not being called — `SEMIONT_BUS_LOG=1` makes this immediately visible (no `RECV job:queued` lines).
+**Worker-specific gotcha.** A job-claim adapter widens the SSE channel set on `start()` to include `job:queued` and the other channels it needs. If your worker is silently doing nothing, the most common cause is `adapter.start()` not being called — `XYNOLOG_BUS_LOG=1` makes this immediately visible (no `RECV job:queued` lines).
 
 ## Error Handling
 
-Every error thrown through the SDK extends `SemiontError`, the unified base from `@semiont/core` (re-exported from `@semiont/sdk`). It carries a discriminated `code` field plus `details`. Each error class tightens `code` to a specific literal union.
+Every error thrown through the SDK extends `XynologError`, the unified base from `@xynolog/core` (re-exported from `@xynolog/sdk`). It carries a discriminated `code` field plus `details`. Each error class tightens `code` to a specific literal union.
 
 A transport's errors (HTTP's `APIError`) map their native failure codes to a transport-neutral vocabulary, `TransportErrorCode`, so a routing layer doesn't have to know which transport produced the error:
 
@@ -723,11 +723,11 @@ Bus-layer and session-layer errors keep their own code namespaces:
 
 | Class | Codes | Thrown by |
 |---|---|---|
-| `APIError` (extends `SemiontError`) | `TransportErrorCode` (above) — plus `APIError.status` for the original HTTP status | HTTP transport (`@semiont/http-transport`) |
+| `APIError` (extends `XynologError`) | `TransportErrorCode` (above) — plus `APIError.status` for the original HTTP status | HTTP transport (`@xynolog/http-transport`) |
 | `BusRequestError` | `bus.timeout`, `bus.rejected`, `bus.closed`, `bus.unauthorized`, `bus.not-found`, `bus.unsubscribed`, `bus.peer-unavailable`, `bus.none-pending` | bus-mediated commands inside namespaces. (`bus.timeout` should be rare: the emit is gated on an open connection, and a reply published during a disconnect replays from the server's retention buffer on reconnect — a timeout that does fire usually means the gateway is genuinely down or slow.) |
 | `JobFailedError` | `job.failed` — the job a call was following failed and will not be tried again; `jobId` names it, and `failureClass`, where the failure has one, says whether the provider withheld its answer (`withheld`), the job broke (`deterministic`) or it ran out of attempts at something that may pass later (`transient`) | `mark.delegate`, `yield.delegate` |
 | `GenerationStallError` | `job.stalled` — a generation said nothing for its stall deadline, and its cancellation was requested | `yield.delegate` |
-| `SemiontSessionError` | `session.auth-failed`, `session.refresh-exhausted`, `session.credential-refused`, `session.construct-failed`, `session.keep-failed`, `session.save-refused` | the session layer — said on the session's `errors$` (and, for the sessions a `SemiontBrowser` opens, its `error$`), not as a per-call rejection |
+| `XynologSessionError` | `session.auth-failed`, `session.refresh-exhausted`, `session.credential-refused`, `session.construct-failed`, `session.keep-failed`, `session.save-refused` | the session layer — said on the session's `errors$` (and, for the sessions a `XynologBrowser` opens, its `error$`), not as a per-call rejection |
 
 **What ends a session.** Two things, each with its own code.
 
@@ -760,13 +760,13 @@ expired. A gateway that cannot be asked refuses nothing: the session keeps its t
 This matters for what your handler should do: neither code is a prompt to retry. By the time you
 see one, retrying already happened. Signing in again is what is left.
 
-Catch broadly on `SemiontError` and route on `code`; reach for `APIError` (imported from `@semiont/http-transport`) only when a handler genuinely needs HTTP-specific fields like `status`.
+Catch broadly on `XynologError` and route on `code`; reach for `APIError` (imported from `@xynolog/http-transport`) only when a handler genuinely needs HTTP-specific fields like `status`.
 
 ```typescript
-import { SemiontError, BusRequestError } from '@semiont/sdk';
+import { XynologError, BusRequestError } from '@xynolog/sdk';
 
 try {
-  await semiont.mark.annotation(input);
+  await xynolog.mark.annotation(input);
 } catch (error) {
   if (error instanceof BusRequestError) {
     if (error.code === 'bus.timeout') {
@@ -774,16 +774,16 @@ try {
     } else {
       console.error(`Bus rejected (${error.code}): ${error.message}`);
     }
-  } else if (error instanceof SemiontError) {
+  } else if (error instanceof XynologError) {
     // `code` is from `TransportErrorCode` for transport-layer errors,
     // bus-specific for `BusRequestError`, session-specific for
-    // `SemiontSessionError`.
+    // `XynologSessionError`.
     if (error.code === 'unauthorized') {
       // renew; a session whose issuer refuses to renew it ends, with why
     } else if (error.code === 'forbidden') {
       // surface permission-denied
     } else {
-      console.error(`Semiont error (${error.code}): ${error.message}`);
+      console.error(`Xynolog error (${error.code}): ${error.message}`);
     }
   } else {
     throw error;
@@ -791,27 +791,27 @@ try {
 }
 ```
 
-`APIError` is transport-specific. Catch on `SemiontError` and route on the neutral code; reach for `APIError` only in HTTP-aware code that needs `error.status`:
+`APIError` is transport-specific. Catch on `XynologError` and route on the neutral code; reach for `APIError` only in HTTP-aware code that needs `error.status`:
 
 ```typescript
-import { APIError } from '@semiont/http-transport';
+import { APIError } from '@xynolog/http-transport';
 
 if (error instanceof APIError) {
   console.error(`HTTP ${error.status} (${error.code}): ${error.message}`);
 }
 ```
 
-`SemiontSessionError` is asynchronous — a session says it on its `errors$`, not as a thrown rejection on a namespace call, and a `SemiontBrowser` passes those of the sessions it opens to its `error$`. The session's `errors$` is its one stream of what went wrong: its own errors and its transport's failures (every transport-mediated error, just before it's thrown), each said once, so a host layer (e.g. `SemiontBrowser`'s session-ended / permission-denied modal routing) can subscribe once and surface them globally.
+`XynologSessionError` is asynchronous — a session says it on its `errors$`, not as a thrown rejection on a namespace call, and a `XynologBrowser` passes those of the sessions it opens to its `error$`. The session's `errors$` is its one stream of what went wrong: its own errors and its transport's failures (every transport-mediated error, just before it's thrown), each said once, so a host layer (e.g. `XynologBrowser`'s session-ended / permission-denied modal routing) can subscribe once and surface them globally.
 
 ## Logging
 
-`HttpTransport` accepts an optional `logger` (`winston`, `pino`, or any `Logger`-shaped object from `@semiont/core`). The transport emits structured request/response logs through it:
+`HttpTransport` accepts an optional `logger` (`winston`, `pino`, or any `Logger`-shaped object from `@xynolog/core`). The transport emits structured request/response logs through it:
 
 ```typescript
-import { HttpTransport, HttpContentTransport } from '@semiont/sdk';
-import { SemiontClient } from '@semiont/sdk';
-import { baseUrl, type AccessToken } from '@semiont/sdk';
-import { BRIDGED_CHANNELS } from '@semiont/core';
+import { HttpTransport, HttpContentTransport } from '@xynolog/sdk';
+import { XynologClient } from '@xynolog/sdk';
+import { baseUrl, type AccessToken } from '@xynolog/sdk';
+import { BRIDGED_CHANNELS } from '@xynolog/core';
 import { BehaviorSubject } from 'rxjs';
 
 const transport = new HttpTransport({
@@ -820,7 +820,7 @@ const transport = new HttpTransport({
   token$: new BehaviorSubject<AccessToken | null>(null),
   logger,    // Logger instance: winston / pino / etc.
 });
-const client = new SemiontClient(transport, new HttpContentTransport(transport), transport);
+const client = new XynologClient(transport, new HttpContentTransport(transport), transport);
 ```
 
-The factory shorthands (`fromHttp`, `SemiontSession.fromKept`) take no `logger`; use manual construction when you need transport-level logging.
+The factory shorthands (`fromHttp`, `XynologSession.fromKept`) take no `logger`; use manual construction when you need transport-level logging.

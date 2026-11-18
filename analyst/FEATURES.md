@@ -1,6 +1,6 @@
 # Working in the Browser
 
-What an analyst does in the Semiont Browser, in the order the work usually goes: find or add a resource, read it, annotate it, link it, and generate from it. Names in **bold** are the labels on screen.
+What an analyst does in the Xynolog Browser, in the order the work usually goes: find or add a resource, read it, annotate it, link it, and generate from it. Names in **bold** are the labels on screen.
 
 A **resource** is anything a knowledge base holds: a document, an image, a PDF, any file. To get the Browser and sign in, see [README.md](README.md).
 
@@ -103,7 +103,7 @@ The toolbar opens one panel at a time:
 
 ## Archive and clone
 
-**Archive** moves a resource out of the active list without deleting it, and **Unarchive** restores it. **Clone** makes a shareable link from which someone can create their own copy. Both are described in [ARCHIVE-CLONE.md](../../images/browser/docs/ARCHIVE-CLONE.md).
+**Archive** moves a resource out of the active list without deleting it, and **Unarchive** restores it. **Clone** makes a shareable link from which someone can create their own copy. Both are described in [ARCHIVE-CLONE.md](https://github.com/xynolog/images/blob/main/browser/docs/ARCHIVE-CLONE.md).
 
 ## Moderation
 
@@ -113,5 +113,5 @@ The **Moderation** section has three pages: **Recent Resources**, **Entity Tags*
 
 - [KEYBOARD-NAV.md](KEYBOARD-NAV.md): the keyboard shortcuts
 - [ACCESSIBILITY.md](ACCESSIBILITY.md): what the Browser provides for assistive technology
-- [docs/builder](../builder/README.md): doing the same work from code, or from the `semiont` launcher
-- [images/browser/docs](../../images/browser/docs/): how the Browser is built
+- [docs/builder](../builder/README.md): doing the same work from code, or from the `xynolog` launcher
+- [images/browser/docs](https://github.com/xynolog/images/tree/main/browser/docs): how the Browser is built

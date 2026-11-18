@@ -1,10 +1,10 @@
 # Testing
 
-How to test a React app, or a component, built on `@semiont/react-ui`: the test
+How to test a React app, or a component, built on `@xynolog/react-ui`: the test
 utilities the package exports, and the way of testing they are built for.
 
 How the library's own tests are run, written and organized is in the package's
-[TESTING.md](../../../packages/typescript/react-ui/docs/TESTING.md).
+[TESTING.md](https://github.com/xynolog/sdk/blob/main/typescript/react-ui/docs/TESTING.md).
 
 ## Testing Philosophy
 
@@ -35,7 +35,7 @@ it('should render navigation with branding', () => {
   );
 
   // Tests actual component behavior
-  expect(screen.getByText('Semiont')).toBeInTheDocument();
+  expect(screen.getByText('Xynolog')).toBeInTheDocument();
   expect(screen.getByText('nav.know')).toBeInTheDocument();
 });
 ```
@@ -57,13 +57,13 @@ it('should render navigation with branding', () => {
 
 A component says things on a bus; a test listens on the real bus rather than mocking it.
 A provider-free component — a panel, an entry, a viewer — speaks on the session it is handed,
-so the test makes that session with `createTestSemiontWrapper` and listens on its `eventBus`:
+so the test makes that session with `createTestXynologWrapper` and listens on its `eventBus`:
 
 ```tsx
-import { createTestSemiontWrapper, renderWithProviders, fireEvent } from '@semiont/react-ui/test-utils';
+import { createTestXynologWrapper, renderWithProviders, fireEvent } from '@xynolog/react-ui/test-utils';
 
 // Session-scoped channels (mark:*, beckon:*, browse:click, …): the bus of the session the component is given
-const { session, eventBus } = createTestSemiontWrapper();
+const { session, eventBus } = createTestXynologWrapper();
 const { container } = renderWithProviders(
   <ReferenceEntry session={session} reference={annotation} isFocused={false} />,
 );
@@ -76,10 +76,10 @@ expect(clicked).toHaveBeenCalledWith({ annotationId: annotation.id });
 sub.unsubscribe();
 ```
 
-`renderWithProviders` hands back the `SemiontBrowser` it provides on request
+`renderWithProviders` hands back the `XynologBrowser` it provides on request
 (`returnShellBus`); its `stream(channel)` reads the app-scoped channels. (`returnEventBus`
 returns the bus of the session it provides, for a component that reads its session from
-`SemiontProvider`.)
+`XynologProvider`.)
 
 ```tsx
 // App-scoped channels (panel:*, shell:*, tabs:*, nav:*, settings:*): the browser
@@ -89,7 +89,7 @@ const sub = browser!.stream('panel:toggle').subscribe(toggled);
 ```
 
 The browser, session and client in these tests are the real ones, over the in-memory doubles
-of `@semiont/sdk/testing`. A bus operation nobody scripted rejects, naming itself.
+of `@xynolog/sdk/testing`. A bus operation nobody scripted rejects, naming itself.
 
 ## Test Utilities
 
@@ -98,18 +98,18 @@ of `@semiont/sdk/testing`. A bus operation nobody scripted rejects, naming itsel
 Test utilities are exported from a separate entry point:
 
 ```typescript
-import { renderWithProviders } from '@semiont/react-ui/test-utils';
+import { renderWithProviders } from '@xynolog/react-ui/test-utils';
 ```
 
 ### renderWithProviders
 
-Renders a component inside `TranslationProvider`, `SemiontProvider`, `ToastProvider` and
+Renders a component inside `TranslationProvider`, `XynologProvider`, `ToastProvider` and
 `LineNumbersProvider`.
 
 **Basic Usage:**
 
 ```tsx
-import { renderWithProviders, screen } from '@semiont/react-ui/test-utils';
+import { renderWithProviders, screen } from '@xynolog/react-ui/test-utils';
 
 it('should render component', () => {
   renderWithProviders(<Toolbar context="simple" activePanel={null} />);
@@ -123,7 +123,7 @@ it('should render component', () => {
 React Testing Library render option.
 
 ```tsx
-import { renderWithProviders, createMockTranslationManager, screen } from '@semiont/react-ui/test-utils';
+import { renderWithProviders, createMockTranslationManager, screen } from '@xynolog/react-ui/test-utils';
 
 it('labels the toolbar in the given words', () => {
   renderWithProviders(<Toolbar context="simple" activePanel={null} />, {
@@ -144,7 +144,7 @@ Creates a translation manager from a namespace → key → text table. A key the
 renders as the bare key:
 
 ```tsx
-import { createMockTranslationManager } from '@semiont/react-ui/test-utils';
+import { createMockTranslationManager } from '@xynolog/react-ui/test-utils';
 
 const translations = createMockTranslationManager({
   Toolbar: {
@@ -158,14 +158,14 @@ renderWithProviders(<Toolbar context="document" activePanel={null} />, { transla
 
 ### createTestBrowserWithSignals
 
-Builds a real `SemiontBrowser` whose active `SessionSignals` are pre-populated, so modal
+Builds a real `XynologBrowser` whose active `SessionSignals` are pre-populated, so modal
 tests can control the modal-driving flags without driving a session through its state
 machine. Tests pass it via the `browser` option to `renderWithProviders`. The overrides
 are the two flags, raised through the methods production calls, and their acknowledgement
 callbacks, which stand in for the real methods under a spy:
 
 ```tsx
-import { createTestBrowserWithSignals } from '@semiont/react-ui/test-utils';
+import { createTestBrowserWithSignals } from '@xynolog/react-ui/test-utils';
 
 const browser = createTestBrowserWithSignals({
   sessionEnded: { reason: 'expired' },
@@ -193,13 +193,13 @@ Without `translationManager`, `renderWithProviders` uses `defaultMocks.translati
 which renders every key as `Namespace.key`:
 
 ```ts
-import { defaultMocks } from '@semiont/react-ui/test-utils';
+import { defaultMocks } from '@xynolog/react-ui/test-utils';
 
 defaultMocks.translationManager.t('Toolbar', 'settings'); // 'Toolbar.settings'
 ```
 
-Without `browser`, it builds a real `SemiontBrowser` whose active session is a real
-`SemiontSession` from `createTestSession({ gateway: stubGateway() })` (`@semiont/sdk/testing`):
+Without `browser`, it builds a real `XynologBrowser` whose active session is a real
+`XynologSession` from `createTestSession({ gateway: stubGateway() })` (`@xynolog/sdk/testing`):
 no HTTP, no network. Every browser and client made this way is disposed after each test.
 
 ## Testing API Integration
@@ -207,37 +207,37 @@ no HTTP, no network. Every browser and client made this way is disposed after ea
 ### Stubbing a Live Query
 
 A provider-free component reads through the session it is handed. Take that session from
-`createTestSemiontWrapper`, spy on its client's query, and render inside its `SemiontWrapper`.
+`createTestXynologWrapper`, spy on its client's query, and render inside its `XynologWrapper`.
 A query's failure is an emission — `{ status: 'failed', error }` — never a stream error, so a
 failure is stubbed the same way:
 
 ```tsx
 import { of } from 'rxjs';
-import { createTestSemiontWrapper, renderInEnglish, screen } from '@semiont/react-ui/test-utils';
+import { createTestXynologWrapper, renderInEnglish, screen } from '@xynolog/react-ui/test-utils';
 
 it('names the resource this one was derived from', () => {
-  const { SemiontWrapper, session, client } = createTestSemiontWrapper();
+  const { XynologWrapper, session, client } = createTestXynologWrapper();
   vi.spyOn(client.browse, 'resource').mockReturnValue(
     CacheObservable.from(of<CacheState<ResourceDescriptor>>({ status: 'ready', value: { ...resource, name: 'Source Doc' } })),
   );
 
   renderInEnglish(
     <ResourceInfoPanel session={session} resourceId={rId} documentEntityTypes={[]} wasDerivedFrom={resourceId} />,
-    { wrapper: SemiontWrapper },
+    { wrapper: XynologWrapper },
   );
 
   expect(screen.getByText('Source Doc')).toBeInTheDocument();
 });
 
 it('keeps the raw id when the source cannot be read', () => {
-  const { SemiontWrapper, session, client } = createTestSemiontWrapper();
+  const { XynologWrapper, session, client } = createTestXynologWrapper();
   vi.spyOn(client.browse, 'resource').mockReturnValue(
     CacheObservable.from(of<CacheState<ResourceDescriptor>>({ status: 'failed', error: new Error('Network error') })),
   );
 
   renderInEnglish(
     <ResourceInfoPanel session={session} resourceId={rId} documentEntityTypes={[]} wasDerivedFrom={resourceId} />,
-    { wrapper: SemiontWrapper },
+    { wrapper: XynologWrapper },
   );
 
   expect(screen.getByText(resourceId)).toBeInTheDocument();
@@ -249,7 +249,7 @@ it('keeps the raw id when the source cannot be read', () => {
 ### Test with Specific Translations
 
 ```tsx
-import { renderWithProviders, createMockTranslationManager, screen } from '@semiont/react-ui/test-utils';
+import { renderWithProviders, createMockTranslationManager, screen } from '@xynolog/react-ui/test-utils';
 
 it('should display Spanish translations', () => {
   const translations = createMockTranslationManager({
@@ -270,7 +270,7 @@ it('should display Spanish translations', () => {
 ### Test with Default Mock
 
 ```tsx
-import { renderWithProviders, screen } from '@semiont/react-ui/test-utils';
+import { renderWithProviders, screen } from '@xynolog/react-ui/test-utils';
 
 it('should render with namespace.key format', () => {
   renderWithProviders(<Toolbar context="document" activePanel={null} />);
@@ -290,7 +290,7 @@ The modal tests also replace `@headlessui/react`'s dialog parts with plain
 elements through `vi.mock`, as `SessionEndedModal.test.tsx` does:
 
 ```tsx
-import { renderWithProviders, createTestBrowserWithSignals, screen } from '@semiont/react-ui/test-utils';
+import { renderWithProviders, createTestBrowserWithSignals, screen } from '@xynolog/react-ui/test-utils';
 
 describe('SessionEndedModal', () => {
   it('says why the session ended', () => {
@@ -320,17 +320,17 @@ Drive a component the way a person does, with `user-event`, and assert on what i
 the SDK: spy on the client the component was handed.
 
 ```tsx
-import { createTestSemiontWrapper, renderInEnglish, screen } from '@semiont/react-ui/test-utils';
+import { createTestXynologWrapper, renderInEnglish, screen } from '@xynolog/react-ui/test-utils';
 import { userEvent } from '@testing-library/user-event';
 
 it('opens the resource this one was derived from', async () => {
   const user = userEvent.setup();
-  const { SemiontWrapper, session, client } = createTestSemiontWrapper();
+  const { XynologWrapper, session, client } = createTestXynologWrapper();
   const openResource = vi.spyOn(client.browse, 'openResource');
 
   renderInEnglish(
     <ResourceInfoPanel session={session} resourceId={rId} documentEntityTypes={[]} wasDerivedFrom={resourceId} />,
-    { wrapper: SemiontWrapper },
+    { wrapper: XynologWrapper },
   );
 
   await user.click(screen.getByText(resourceId));
@@ -342,7 +342,7 @@ it('opens the resource this one was derived from', async () => {
 ## Snapshot Testing
 
 ```tsx
-import { renderWithProviders } from '@semiont/react-ui/test-utils';
+import { renderWithProviders } from '@xynolog/react-ui/test-utils';
 
 it('should match snapshot', () => {
   const { container } = renderWithProviders(<NavigationMenu Link={Link} routes={routes} t={t} />);
@@ -353,12 +353,12 @@ it('should match snapshot', () => {
 ## Testing Accessibility
 
 `jest-axe` ships no type declarations: react-ui declares them in
-`packages/typescript/react-ui/src/types/jest-axe.d.ts`, adds the matcher to vitest's `Assertion` in
-`packages/typescript/react-ui/src/types/vitest-matchers.d.ts`, and its `vitest.setup.ts` extends
+sdk's `typescript/react-ui/src/types/jest-axe.d.ts`, adds the matcher to vitest's `Assertion` in
+sdk's `typescript/react-ui/src/types/vitest-matchers.d.ts`, and its `vitest.setup.ts` extends
 `expect` once for every test.
 
 ```tsx
-import { renderWithProviders, screen } from '@semiont/react-ui/test-utils';
+import { renderWithProviders, screen } from '@xynolog/react-ui/test-utils';
 import { axe, toHaveNoViolations } from 'jest-axe';
 
 expect.extend(toHaveNoViolations);
@@ -482,13 +482,13 @@ vi.mock('../NavigationMenu', () => ({
 }));
 
 // CORRECT - Use real component
-import { NavigationMenu } from '@semiont/react-ui';
+import { NavigationMenu } from '@xynolog/react-ui';
 ```
 
 ### ❌ Don't: Mock EventBus methods
 
 ```tsx
-import { EventBus } from '@semiont/core';
+import { EventBus } from '@xynolog/core';
 
 // WRONG - Breaks real event flow
 vi.spyOn(EventBus.prototype, 'on');

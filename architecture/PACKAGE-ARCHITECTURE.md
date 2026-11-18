@@ -1,8 +1,6 @@
 # Package Architecture
 
-Semiont is a monorepo with two workspaces, the npm packages and the Rust crates, and nine Python projects, three Go modules and a Gradle build beside them. No language's packages depend on another's. All are built against [`protocol/specs/`](../../protocol/specs/src/openapi.json), the protocol each implements from its side.
-
-For what each package is and where it is published, see **[../../packages/README.md](../../packages/README.md)**: one table per language.
+Xynolog's packages live in several repositories: the SDKs, in nine languages, in [sdk](https://github.com/xynolog/sdk); the Rust crates and Python projects the services are built from in [images](https://github.com/xynolog/images); and the launcher's Go module in [cli](https://github.com/xynolog/cli). No language's packages depend on another's. All are built against [`protocol/specs/`](https://github.com/xynolog/protocol/blob/main/specs/src/openapi.json), the protocol each implements from its side.
 
 ## The npm packages
 
@@ -14,17 +12,17 @@ graph BT
     browser["images/browser<br/><i>Vite + React SPA</i>"]
 
     %% Layer 3: What an application is built from
-    react["@semiont/react-ui<br/><i>React components & hooks</i>"]
+    react["@xynolog/react-ui<br/><i>React components & hooks</i>"]
 
     %% Layer 2: SDK
-    sdk["@semiont/sdk<br/><i>SemiontClient + namespaces + session<br/>state units, cache</i>"]
+    sdk["@xynolog/sdk<br/><i>XynologClient + namespaces + session<br/>state units, cache</i>"]
 
     %% Layer 1: Wire
-    api["@semiont/http-transport<br/><i>HttpTransport, HttpContentTransport</i>"]
+    api["@xynolog/http-transport<br/><i>HttpTransport, HttpContentTransport</i>"]
 
     %% Layer 0: Foundation
-    core["@semiont/core<br/><i>OpenAPI types, typed ids,<br/>bus protocol</i>"]
-    obs["@semiont/observability<br/><i>OTel helpers</i>"]
+    core["@xynolog/core<br/><i>OpenAPI types, typed ids,<br/>bus protocol</i>"]
+    obs["@xynolog/observability<br/><i>OTel helpers</i>"]
 
     browser --> react
     browser --> sdk
@@ -62,16 +60,16 @@ Each edge is an entry in that package's `package.json` `dependencies`.
 
 ```mermaid
 graph BT
-    gateway["images/gateway<br/><i>semiont-gateway</i>"]
-    dispatcher["images/dispatcher<br/><i>semiont-dispatcher</i>"]
+    gateway["images/gateway<br/><i>xynolog-gateway</i>"]
+    dispatcher["images/dispatcher<br/><i>xynolog-dispatcher</i>"]
 
-    rcore["semiont-core<br/><i>What the Rust services share</i>"]
-    robs["semiont-observability<br/><i>Telemetry export, log lines</i>"]
-    rserve["semiont-http-service<br/><i>Serving HTTP, verifying the issuer's tokens</i>"]
-    rhttp["semiont-http-transport<br/><i>The transport over a gateway, sign-in</i>"]
-    rtel["semiont-telemetry<br/><i>Spans and counts, no exporter</i>"]
-    rsdk["semiont<br/><i>The Rust SDK</i>"]
-    codegen["semiont-codegen<br/><i>Build-time generation from protocol/specs/</i>"]
+    rcore["xynolog-core<br/><i>What the Rust services share</i>"]
+    robs["xynolog-observability<br/><i>Telemetry export, log lines</i>"]
+    rserve["xynolog-http-service<br/><i>Serving HTTP, verifying the issuer's tokens</i>"]
+    rhttp["xynolog-http-transport<br/><i>The transport over a gateway, sign-in</i>"]
+    rtel["xynolog-telemetry<br/><i>Spans and counts, no exporter</i>"]
+    rsdk["xynolog<br/><i>The Rust SDK</i>"]
+    codegen["xynolog-codegen<br/><i>Build-time generation from protocol/specs/</i>"]
 
     gateway --> rcore
     gateway --> robs
@@ -105,43 +103,41 @@ graph BT
     class rhttp,rtel,rsdk,codegen published
 ```
 
-Four crates are published to crates.io: `semiont`, `semiont-http-transport`, `semiont-telemetry` and `semiont-codegen`. `semiont-core`, `semiont-observability` and `semiont-http-service` are the services' own. The dispatcher also has two crates of its own beside its binary, for its handlers and its JetStream queue. The Archivist has two as well, for its record and its staging drivers.
+Four crates are published to crates.io: `xynolog`, `xynolog-http-transport`, `xynolog-telemetry` and `xynolog-codegen`. `xynolog-core`, `xynolog-observability` and `xynolog-http-service` are the services' own. The dispatcher also has two crates of its own beside its binary, for its handlers and its JetStream queue. The Archivist has two as well, for its record and its staging drivers.
 
 ## The Python projects
 
-`packages/python/sdk` is one distribution, `semiont`: the client, its transport over a gateway, sign-in, and telemetry with no exporter, which Rust keeps in four crates. It depends on `httpx`, `pydantic` and `opentelemetry-api`, and on nothing else in this repository. What it holds of `protocol/specs/` is generated, committed and held by drift gates.
+In sdk, `python/sdk` is one distribution, `xynolog`: the client, its transport over a gateway, sign-in, and telemetry with no exporter, which Rust keeps in four crates. It depends on `httpx`, `pydantic` and `opentelemetry-api`, and on nothing else of Xynolog's. What it holds of `protocol/specs/` is generated, committed and held by drift gates.
 
-`packages/python/inference` is `semiont-inference`: the model providers a Python service asks, behind one interface. It depends on `semiont`, and each provider's own library is an extra of it, required by nothing.
+In images, `shared/python/inference` is `xynolog-inference`: the model providers a Python service asks, behind one interface. It depends on `xynolog`, and each provider's own library is an extra of it, required by nothing.
 
-`packages/python/graph` is `semiont-graph`: the graph databases a Python service writes and reads, behind one interface. It depends on `semiont`, and each database's own client is an extra of it, required by nothing.
+In images, `shared/python/graph` is `xynolog-graph`: the graph databases a Python service writes and reads, behind one interface. It depends on `xynolog`, and each database's own client is an extra of it, required by nothing.
 
-`packages/python/vectors` is `semiont-vectors`: the vector index a Python service writes and searches, and the embedding providers that make its vectors, each behind one interface. It depends on `semiont`, and asks a Qdrant and a provider over HTTP, so it takes no database's client and no provider's library.
+In images, `shared/python/vectors` is `xynolog-vectors`: the vector index a Python service writes and searches, and the embedding providers that make its vectors, each behind one interface. It depends on `xynolog`, and asks a Qdrant and a provider over HTTP, so it takes no database's client and no provider's library.
 
-`packages/python/service` is `semiont-service`: what every Python service does to be one, which is to read its configuration document, answer for its health, write its log and export its telemetry. It depends on `semiont`, and on OpenTelemetry's SDK and OTLP exporter, which only a process that exports takes. It is the services' own code, built into their images and published to no index.
+In images, `shared/python/service` is `xynolog-service`: what every Python service does to be one, which is to read its configuration document, answer for its health, write its log and export its telemetry. It depends on `xynolog`, and on OpenTelemetry's SDK and OTLP exporter, which only a process that exports takes. It is the services' own code, built into their images and published to no index.
 
-`images/worker`, `images/weaver`, `images/smelter` and `images/librarian` are `semiont-worker`, `semiont-weaver`, `semiont-smelter` and `semiont-librarian`: the Worker, the Weaver, the Smelter and the Librarian. Each depends on `semiont`, on `semiont-service` and on more of the packages above: the Worker on `semiont-inference`, the Weaver on `semiont-graph`, the Smelter on `semiont-vectors`, and the Librarian on all three. The Smelter also takes `pypdfium2`, whose wheel carries PDFium, which reads a PDF. Nothing depends on a service: it is a service's code, run from its image, and published to no index.
+`images/worker`, `images/weaver`, `images/smelter` and `images/librarian` are `xynolog-worker`, `xynolog-weaver`, `xynolog-smelter` and `xynolog-librarian`: the Worker, the Weaver, the Smelter and the Librarian. Each depends on `xynolog`, on `xynolog-service` and on more of the packages above: the Worker on `xynolog-inference`, the Weaver on `xynolog-graph`, the Smelter on `xynolog-vectors`, and the Librarian on all three. The Smelter also takes `pypdfium2`, whose wheel carries PDFium, which reads a PDF. Nothing depends on a service: it is a service's code, run from its image, and published to no index.
 
 ## The Go modules
 
-`packages/go/sdk` is one module, `github.com/The-AI-Alliance/semiont/packages/go/sdk`, package `semiont`: the client, its transport over a gateway, sign-in, the state units (package `state`) and the doubles a test is built on (package `semionttest`). It depends on `oapi-codegen`'s runtime, `google/uuid`, the OpenTelemetry API and `golang.org/x/text`, and on nothing else in this repository. What it holds of `protocol/specs/` is generated, committed and held by drift gates. Each release publishes it by the tag `packages/go/sdk/v<version>`, and a program in this repository requires it with a `replace` directive on its path, so it builds against the tree.
+The Go SDK is one module, `github.com/xynolog/sdk/go`, in [sdk's `go/`](https://github.com/xynolog/sdk/blob/main/go/README.md), package `xynolog`: the client, its transport over a gateway, sign-in, the state units (package `state`) and the doubles a test is built on (package `xynologtest`). It depends on `oapi-codegen`'s runtime, `google/uuid`, the OpenTelemetry API and `golang.org/x/text`, and on nothing else of Xynolog's. What it holds of `protocol/specs/` is generated, committed and held by drift gates. It is published by a tag of sdk named `go/v<version>`.
 
-`packages/go/sdk/conformance` is a module of its own: the three programs the conformance suite drives Go's SDK through (wire, live and worker), and the only Go code that takes an OpenTelemetry exporter.
+`go/conformance` is a module of its own, `github.com/xynolog/sdk/go/conformance`: the three programs the conformance suite drives Go's SDK through (wire, live and worker), and the only Go code that takes an OpenTelemetry exporter.
 
-`packages/go/launcher` is a module of its own, `github.com/The-AI-Alliance/semiont/packages/go/launcher`: what the launcher is built from. Package `launcher` is the engine (`init`, `start`, `stop`, `status`, codespaces, identity and custody), `stack` reads a knowledge base's `.semiont/` documents, `provenance` decides whether an image is one a release built, `images` reads what a service image declares about itself, and `verbs` is the eight verbs on the command line and over MCP, on `packages/go/sdk`; `harness` and `fakert` are what its tests are built on. Beside the Go SDK it depends on the MCP Go SDK, `nats-server`, `jsonschema`, `sigstore-go`, `yaml` and `golang.org/x`. It is published nowhere, and nothing but the launcher requires it.
-
-`apps/launcher` is the `semiont` launcher: the binary that starts and stops a stack, signs a person in, and speaks the eight verbs at a terminal. It is the program's `main` and the tests that build it and drive it; what it does is `packages/go/launcher`'s, and its commands on a knowledge base are front ends on `packages/go/sdk`. It requires both with a `replace` directive on their paths. It is built for each platform and released as an archive and through Homebrew.
+The launcher is the module `github.com/xynolog/cli`, in [cli](https://github.com/xynolog/cli): the `xynolog` binary that starts and stops a stack, signs a person in, and speaks the eight verbs at a terminal. `cmd/xynolog` is the program's `main` and the tests that build it and drive it. [`internal/launcher`](https://github.com/xynolog/cli/blob/main/internal/launcher/README.md) is the engine (`init`, `start`, `stop`, `status`, codespaces, identity and custody), `stack` reads a knowledge base's `.xynolog/` documents, `provenance` decides whether an image is one a release built, `images` reads what a service image declares about itself, and `verbs` is the eight verbs on the command line and over MCP, on the Go SDK; `harness` and `fakert` are what its tests are built on. Beside the Go SDK, which it requires at a published version, it depends on the MCP Go SDK, `nats-server`, `jsonschema`, `sigstore-go`, `yaml` and `golang.org/x`. It is built for each platform and released as an archive and through Homebrew.
 
 ## The Gradle build
 
-`packages/kotlin/sdk` is the Kotlin SDK, one artifact for Kotlin and Java programs, package `semiont` and those beneath it: the client, its transport over a gateway (`semiont.http`), sign-in, the state units (`semiont.state`), a worker's claims (`semiont.jobs`) and the doubles a test is built on (`semiont.testing`). It depends on `kotlinx.coroutines`, `kotlinx.serialization` and the OpenTelemetry API, and on nothing else in this repository. What it holds of `protocol/specs/` its own build generates from `protocol/specs/src` before every compile, and nothing generated is committed. It is published nowhere yet.
+In sdk, `kotlin/sdk` is the Kotlin SDK, one artifact for Kotlin and Java programs, package `xynolog` and those beneath it: the client, its transport over a gateway (`xynolog.http`), sign-in, the state units (`xynolog.state`), a worker's claims (`xynolog.jobs`) and the doubles a test is built on (`xynolog.testing`). It depends on `kotlinx.coroutines`, `kotlinx.serialization` and the OpenTelemetry API, and on nothing else of Xynolog's. What it holds of `protocol/specs/` its own build generates from `protocol/specs/src` before every compile, and nothing generated is committed. It is published nowhere yet.
 
 Its `conformance` source set is the three programs the conformance suite drives the Kotlin SDK through (wire, live and worker), and the only Kotlin that takes an OpenTelemetry exporter.
 
-`packages/swift/sdk` is the Swift SDK for Apple apps and Linux services.
-The `Semiont` library includes the client and its HTTP transport, live queries,
+In sdk, `swift/sdk` is the Swift SDK for Apple apps and Linux services.
+The `Xynolog` library includes the client and its HTTP transport, live queries,
 sign-in and the registry, state units, and worker claims. The SwiftPM build
 plugin generates its wire models and tables from `protocol/specs/src`.
-`SemiontTesting` is a separate product with scripted transports and sessions,
+`XynologTesting` is a separate product with scripted transports and sessions,
 shared storage, and fault and delivery assertions. The instrumented Linux
 driver serves the wire, live, and worker conformance suites.
 
@@ -149,29 +145,28 @@ driver serves the wire, live, and worker conformance suites.
 
 | Image | Runs | From |
 |---|---|---|
-| `semiont-librarian` | `python -P -m semiont_librarian` | `images/librarian` |
-| `semiont-smelter` | `python -P -m semiont_smelter` | `images/smelter` |
-| `semiont-weaver` | `python -P -m semiont_weaver` | `images/weaver` |
-| `semiont-worker` | `python -P -m semiont_worker` | `images/worker` |
-| `semiont-browser` | the built SPA | `images/browser` |
-| `semiont-gateway` | a Rust binary | `images/gateway` |
-| `semiont-archivist` | a Rust binary | `images/archivist` |
-| `semiont-dispatcher` | a Rust binary | `images/dispatcher` |
+| `xynolog-librarian` | `python -P -m xynolog_librarian` | `images/librarian` |
+| `xynolog-smelter` | `python -P -m xynolog_smelter` | `images/smelter` |
+| `xynolog-weaver` | `python -P -m xynolog_weaver` | `images/weaver` |
+| `xynolog-worker` | `python -P -m xynolog_worker` | `images/worker` |
+| `xynolog-browser` | the built SPA | `images/browser` |
+| `xynolog-gateway` | a Rust binary | `images/gateway` |
+| `xynolog-archivist` | a Rust binary | `images/archivist` |
+| `xynolog-dispatcher` | a Rust binary | `images/dispatcher` |
 
 ## Architectural principles
 
 1. **One composition root per process.** Each service's entry point builds what that process needs and nothing else.
 
-2. **Strict API boundary.** `images/browser` holds no service's code. Its only `@semiont/*` imports are `@semiont/sdk`, `@semiont/http-transport` and `@semiont/react-ui` — every interaction with a knowledge base goes through the SDK over `HttpTransport`.
+2. **Strict API boundary.** `images/browser` holds no service's code. Its only `@xynolog/*` imports are `@xynolog/sdk`, `@xynolog/http-transport` and `@xynolog/react-ui` — every interaction with a knowledge base goes through the SDK over `HttpTransport`.
 
 3. **Layered dependencies.** A package depends only on packages in lower layers. No circular dependencies.
 
 4. **The spec is the boundary between languages.** No package of one language depends on a package of another: not a crate, an npm package, a Python project, a Go module or the Gradle build. What they agree on is in `protocol/specs/`, and each side generates its types from it.
 
-5. **Platform independence.** The npm packages work in both a browser and Node.js. Where one has a Node-only part it is a subpath of its own (`@semiont/observability/node`).
+5. **Platform independence.** The npm packages work in both a browser and Node.js. Where one has a Node-only part it is a subpath of its own (`@xynolog/observability/node`).
 
 ## See also
 
-- **[../../packages/README.md](../../packages/README.md)** — every package in each of the five languages, with what it is and whether it is published.
 - **[KNOWLEDGE-SYSTEM.md](KNOWLEDGE-SYSTEM.md)** — the seven KB actors, and the service each runs in.
 - **[CONTAINER-TOPOLOGY.md](../operator/CONTAINER-TOPOLOGY.md)** — how the service images fit together in a running stack.

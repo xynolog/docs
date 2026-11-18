@@ -1,18 +1,18 @@
 ---
-name: semiont-relate
+name: xynolog-relate
 description: Record relationships between canonical nodes — read a passage and the nodes it mentions, decide how they relate, and write each relationship as a Relationship resource the passage is bound to
 disable-model-invocation: false
 user-invocable: true
 allowed-tools: Bash, Read, Write, Glob, Grep
 ---
 
-You are helping a user record how the entities in a Semiont knowledge base relate. After [`semiont-wiki`](../semiont-wiki/SKILL.md) has given each entity a resource of its own (a character, a party, a place, a case), the next step is the relationships between them: who is whose parent, which party is the counterparty under a contract, where a character was exiled to, which judge wrote which opinion.
+You are helping a user record how the entities in a Xynolog knowledge base relate. After [`xynolog-wiki`](../xynolog-wiki/SKILL.md) has given each entity a resource of its own (a character, a party, a place, a case), the next step is the relationships between them: who is whose parent, which party is the counterparty under a contract, where a character was exiled to, which judge wrote which opinion.
 
 This skill builds the edge layer of [the layered data model](../README.md#the-layers).
 
 ## What an edge is
 
-A reference in Semiont leads to one resource: an annotation on a passage, bound to the resource the passage mentions. A relationship has two ends, so it is recorded as a resource of its own:
+A reference in Xynolog leads to one resource: an annotation on a passage, bound to the resource the passage mentions. A relationship has two ends, so it is recorded as a resource of its own:
 
 - A **Relationship resource** for each related pair, with entity types `['Relationship', '<type>']`. Its text names the two nodes, and a reference on each name is bound to that node.
 - A **reference on the passage** that establishes the relationship, bound to the Relationship resource and tagged with the relationship's type.
@@ -25,10 +25,10 @@ The stack's worker detects mentions of entity types. It has no job that extracts
 
 ## Before you start: declare the relationship types
 
-Each relationship type is an entity type: it is stamped on the Relationship resources and names the references that lead to them. Declare the ones the corpus uses. [`semiont-ingest`](../semiont-ingest/SKILL.md) is the usual place.
+Each relationship type is an entity type: it is stamped on the Relationship resources and names the references that lead to them. Declare the ones the corpus uses. [`xynolog-ingest`](../xynolog-ingest/SKILL.md) is the usual place.
 
 ```typescript
-await semiont.frame.addEntityTypes([
+await xynolog.frame.addEntityTypes([
   'Relationship',
   'kinship', 'patronage', 'antagonism', 'alliance',      // people
   'counterparty', 'employer-employee', 'lessor-lessee',  // legal and commercial
@@ -39,19 +39,19 @@ await semiont.frame.addEntityTypes([
 
 ## Sign in
 
-`SemiontSession.signInDevice(...)` signs a person in at the knowledge base's issuer with the device authorization grant (RFC 8628): the issuer mints a code, `onCode` shows the person where to approve it, and no password passes through the script. The sign-in is kept in `kept`, a `MemorySignIn` here, so the script signs in again each time it starts; `SemiontSession.fromKept(...)` then opens the session over it, which keeps the token fresh. An access token is short-lived (five minutes from the Keycloak a launcher stack runs), so a session, not a bare client, is what keeps a script working past that. `fromKept` gives the session with the client it was built with, which end together. Sign in once, use `opened.session.client` for every call, and `opened.dispose()` when done: that closes its client, then ends the session.
+`XynologSession.signInDevice(...)` signs a person in at the knowledge base's issuer with the device authorization grant (RFC 8628): the issuer mints a code, `onCode` shows the person where to approve it, and no password passes through the script. The sign-in is kept in `kept`, a `MemorySignIn` here, so the script signs in again each time it starts; `XynologSession.fromKept(...)` then opens the session over it, which keeps the token fresh. An access token is short-lived (five minutes from the Keycloak a launcher stack runs), so a session, not a bare client, is what keeps a script working past that. `fromKept` gives the session with the client it was built with, which end together. Sign in once, use `opened.session.client` for every call, and `opened.dispose()` when done: that closes its client, then ends the session.
 
 ```typescript
-import { SemiontSession, MemorySignIn, httpKb } from '@semiont/sdk';
+import { XynologSession, MemorySignIn, httpKb } from '@xynolog/sdk';
 
-const url = new URL(process.env.SEMIONT_API_URL ?? 'http://localhost:4000');
+const url = new URL(process.env.XYNOLOG_API_URL ?? 'http://localhost:4000');
 const kb = httpKb({
-  id: 'semiont-relate', label: 'Semiont',
+  id: 'xynolog-relate', label: 'Xynolog',
   host: url.hostname, port: Number(url.port || 4000),
   protocol: url.protocol === 'https:' ? 'https' : 'http',
 });
 const kept = new MemorySignIn();
-await SemiontSession.signInDevice({
+await XynologSession.signInDevice({
   kb,
   kept,
   onCode: ({ verificationUri, verificationUriComplete, userCode }) => {
@@ -59,8 +59,8 @@ await SemiontSession.signInDevice({
     if (!verificationUriComplete) console.error(`Code: ${userCode}`);
   },
 });
-const opened = await SemiontSession.fromKept({ kb, kept });
-const semiont = opened.session.client;
+const opened = await XynologSession.fromKept({ kb, kept });
+const xynolog = opened.session.client;
 ```
 
 ## Step 1: read a passage and the nodes it mentions
@@ -68,10 +68,10 @@ const semiont = opened.session.client;
 A reference that has been bound has a `SpecificResource` body naming its node: `isResolvedReference` is that test, and `getBodySource` gives the node. Print the passage and its bound references, and read them.
 
 ```typescript
-import { getBodySource, isResolvedReference } from '@semiont/sdk';
+import { getBodySource, isResolvedReference } from '@xynolog/sdk';
 
-const text = await semiont.browse.resourceContent(rId);
-const annotations = await semiont.browse.annotations(rId).fresh();
+const text = await xynolog.browse.resourceContent(rId);
+const annotations = await xynolog.browse.annotations(rId).fresh();
 
 console.log(text);
 for (const ann of annotations) {
@@ -79,7 +79,7 @@ for (const ann of annotations) {
 }
 ```
 
-A passage with fewer than two bound references has no pair to relate. Run [`semiont-wiki`](../semiont-wiki/SKILL.md) on it first.
+A passage with fewer than two bound references has no pair to relate. Run [`xynolog-wiki`](../xynolog-wiki/SKILL.md) on it first.
 
 ## Step 2: decide
 
@@ -104,19 +104,19 @@ Order matters for a directed type: for `born-in`, `a` is the person and `b` the 
 One resource for each pair and type, however many passages establish it. Its name is how the script finds it again.
 
 ```typescript
-import type { ResourceDescriptor, ResourceId } from '@semiont/sdk';
+import type { ResourceDescriptor, ResourceId } from '@xynolog/sdk';
 
 async function relationshipResource(
   type: string, a: ResourceDescriptor, b: ResourceDescriptor,
 ): Promise<ResourceId> {
   const name = `${type}: ${a.name} and ${b.name}`;
 
-  const listed = await semiont.match.resources(name, { entityType: type, limit: 100 }).fresh();
+  const listed = await xynolog.match.resources(name, { entityType: type, limit: 100 }).fresh();
   const existing = listed.resources.find((r) => r.name === name);
   if (existing) return existing['@id'];
 
   const text = `# ${name}\n\n- From: ${a.name}\n- To: ${b.name}\n`;
-  const { resourceId: relationshipId } = await semiont.yield.resource({
+  const { resourceId: relationshipId } = await xynolog.yield.resource({
     name,
     file: Buffer.from(text, 'utf-8'),
     format: 'text/markdown',
@@ -125,7 +125,7 @@ async function relationshipResource(
   });
 
   // The relationship refers to each of its two nodes.
-  const refer = (node: ResourceDescriptor, prefix: string) => semiont.mark.annotation({
+  const refer = (node: ResourceDescriptor, prefix: string) => xynolog.mark.annotation({
     motivation: 'linking',
     target: { source: relationshipId, selector: { type: 'TextQuoteSelector', exact: node.name, prefix } },
     body: [{ type: 'SpecificResource', source: node['@id'], purpose: 'linking' }],
@@ -141,10 +141,10 @@ async function relationshipResource(
 The reference covers the text that establishes the relationship. Its `tagging` body names the relationship's type, as a detected reference's names its entity type.
 
 ```typescript
-import type { ResourceId } from '@semiont/sdk';
+import type { ResourceId } from '@xynolog/sdk';
 
 async function recordEdge(passage: ResourceId, exact: string, type: string, relationship: ResourceId) {
-  await semiont.mark.annotation({
+  await xynolog.mark.annotation({
     motivation: 'linking',
     target: { source: passage, selector: { type: 'TextQuoteSelector', exact } },
     body: [
@@ -163,9 +163,9 @@ It reads the decisions from a JSON file shaped like step 2's and records each on
 import { readFileSync } from 'node:fs';
 
 import {
-  SemiontSession, MemorySignIn, httpKb, resourceId,
-  type ResourceDescriptor, type ResourceId, type SemiontClient,
-} from '@semiont/sdk';
+  XynologSession, MemorySignIn, httpKb, resourceId,
+  type ResourceDescriptor, type ResourceId, type XynologClient,
+} from '@xynolog/sdk';
 
 interface Statement {
   passage: string;
@@ -176,16 +176,16 @@ interface Statement {
 }
 
 async function relationshipResource(
-  semiont: SemiontClient, type: string, a: ResourceDescriptor, b: ResourceDescriptor,
+  xynolog: XynologClient, type: string, a: ResourceDescriptor, b: ResourceDescriptor,
 ): Promise<ResourceId> {
   const name = `${type}: ${a.name} and ${b.name}`;
 
-  const listed = await semiont.match.resources(name, { entityType: type, limit: 100 }).fresh();
+  const listed = await xynolog.match.resources(name, { entityType: type, limit: 100 }).fresh();
   const existing = listed.resources.find((r) => r.name === name);
   if (existing) return existing['@id'];
 
   const text = `# ${name}\n\n- From: ${a.name}\n- To: ${b.name}\n`;
-  const { resourceId: relationshipId } = await semiont.yield.resource({
+  const { resourceId: relationshipId } = await xynolog.yield.resource({
     name,
     file: Buffer.from(text, 'utf-8'),
     format: 'text/markdown',
@@ -193,7 +193,7 @@ async function relationshipResource(
     storageUri: `file://generated/relationships/${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.md`,
   });
 
-  const refer = (node: ResourceDescriptor, prefix: string) => semiont.mark.annotation({
+  const refer = (node: ResourceDescriptor, prefix: string) => xynolog.mark.annotation({
     motivation: 'linking',
     target: { source: relationshipId, selector: { type: 'TextQuoteSelector', exact: node.name, prefix } },
     body: [{ type: 'SpecificResource', source: node['@id'], purpose: 'linking' }],
@@ -206,14 +206,14 @@ async function relationshipResource(
 async function relate(statementsPath: string): Promise<void> {
   const statements: Statement[] = JSON.parse(readFileSync(statementsPath, 'utf-8'));
 
-  const url = new URL(process.env.SEMIONT_API_URL ?? 'http://localhost:4000');
+  const url = new URL(process.env.XYNOLOG_API_URL ?? 'http://localhost:4000');
   const kb = httpKb({
-    id: 'semiont-relate', label: 'Semiont',
+    id: 'xynolog-relate', label: 'Xynolog',
     host: url.hostname, port: Number(url.port || 4000),
     protocol: url.protocol === 'https:' ? 'https' : 'http',
   });
   const kept = new MemorySignIn();
-  await SemiontSession.signInDevice({
+  await XynologSession.signInDevice({
     kb,
     kept,
     onCode: ({ verificationUri, verificationUriComplete, userCode }) => {
@@ -221,16 +221,16 @@ async function relate(statementsPath: string): Promise<void> {
       if (!verificationUriComplete) console.error(`Code: ${userCode}`);
     },
   });
-  const opened = await SemiontSession.fromKept({ kb, kept });
-  const semiont = opened.session.client;
+  const opened = await XynologSession.fromKept({ kb, kept });
+  const xynolog = opened.session.client;
 
   try {
     for (const s of statements) {
-      const a = await semiont.browse.resource(resourceId(s.a)).fresh();
-      const b = await semiont.browse.resource(resourceId(s.b)).fresh();
-      const relationship = await relationshipResource(semiont, s.type, a, b);
+      const a = await xynolog.browse.resource(resourceId(s.a)).fresh();
+      const b = await xynolog.browse.resource(resourceId(s.b)).fresh();
+      const relationship = await relationshipResource(xynolog, s.type, a, b);
 
-      await semiont.mark.annotation({
+      await xynolog.mark.annotation({
         motivation: 'linking',
         target: { source: resourceId(s.passage), selector: { type: 'TextQuoteSelector', exact: s.exact } },
         body: [
@@ -258,11 +258,11 @@ relate(file).catch((e) => {
 
 ## Guidance for the AI assistant
 
-- **Run after the nodes exist.** A relationship joins two resources. Run [`semiont-wiki`](../semiont-wiki/SKILL.md) first, so the passage's mentions are bound to them.
+- **Run after the nodes exist.** A relationship joins two resources. Run [`xynolog-wiki`](../xynolog-wiki/SKILL.md) first, so the passage's mentions are bound to them.
 - **You are the extractor.** Read the passage and the nodes it mentions, and write the statements. No job does it for you: a `linking` job takes no `instructions`, and one given them is refused.
 - **The vocabulary belongs to the corpus.** Kinship, patronage and antagonism suit literature and myth. Counterparty, lessor-lessee and employer-employee suit contracts. Judge-of-court and attorney-for-client suit case law. Declare the types with `frame.addEntityTypes`.
 - **Relationships are sparse.** A hundred passages might state twenty to fifty. If you are writing one for every pair of names in a paragraph, you are recording co-occurrence. Record what the text states.
 - **One Relationship resource for each pair and type.** Every passage that establishes it is bound to the same one, so the resource collects its own evidence.
-- **Edges feed aggregates.** [`semiont-aggregate`](../semiont-aggregate/SKILL.md) composes a family tree, a precedent graph or a party chart by walking them.
-- **Check results** with `await semiont.gather.referencedBy(relationshipId).fresh()` for the passages that establish a relationship, and `await semiont.browse.resources({ entityType: 'kinship' }).fresh()` for every relationship of a type.
-- **Errors.** Every SDK throw extends `SemiontError`: catch it and route on its `code`. See [Error Handling](../../Usage.md#error-handling).
+- **Edges feed aggregates.** [`xynolog-aggregate`](../xynolog-aggregate/SKILL.md) composes a family tree, a precedent graph or a party chart by walking them.
+- **Check results** with `await xynolog.gather.referencedBy(relationshipId).fresh()` for the passages that establish a relationship, and `await xynolog.browse.resources({ entityType: 'kinship' }).fresh()` for every relationship of a type.
+- **Errors.** Every SDK throw extends `XynologError`: catch it and route on its `code`. See [Error Handling](../../Usage.md#error-handling).

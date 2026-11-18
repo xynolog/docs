@@ -1,11 +1,11 @@
-# Semiont on Windows
+# Xynolog on Windows
 
 A knowledge-base stack on Windows is Linux containers under
 [Docker Desktop](https://docs.docker.com/desktop/setup/install/windows-install/), started by the
-[`semiont` launcher](../../../apps/launcher/README.md). The launcher runs in one of two places:
+[`xynolog` launcher](https://github.com/xynolog/cli/blob/main/README.md). The launcher runs in one of two places:
 
 - **inside WSL2**, as the Linux build — the same binary a Linux machine runs;
-- **on Windows itself**, as `semiont.exe`.
+- **on Windows itself**, as `xynolog.exe`.
 
 Either way the Browser opens from Windows at `http://localhost:3000`.
 
@@ -24,16 +24,16 @@ Either way the Browser opens from Windows at `http://localhost:3000`.
 2. **Install the launcher inside WSL.** With [Homebrew](https://brew.sh):
 
    ```bash
-   brew install the-ai-alliance/semiont/semiont
+   brew install xynolog/xynolog/xynolog
    ```
 
-   Or from the [GitHub Release](https://github.com/The-AI-Alliance/semiont/releases), with the
+   Or from the [GitHub Release](https://github.com/xynolog/cli/releases), with the
    [GitHub CLI](https://cli.github.com) — `amd64` here; `arm64` on an Arm machine:
 
    ```bash
-   gh release download --repo The-AI-Alliance/semiont --pattern 'semiont_*_linux_amd64.tar.gz'
-   tar -xzf semiont_*_linux_amd64.tar.gz semiont
-   sudo install semiont /usr/local/bin/semiont
+   gh release download --repo xynolog/cli --pattern 'xynolog_*_linux_amd64.tar.gz'
+   tar -xzf xynolog_*_linux_amd64.tar.gz xynolog
+   sudo install xynolog /usr/local/bin/xynolog
    ```
 
 3. **Clone the knowledge base inside WSL's own filesystem** — under your WSL home, not under
@@ -42,42 +42,42 @@ Either way the Browser opens from Windows at `http://localhost:3000`.
 
    ```bash
    cd ~
-   git clone https://github.com/The-AI-Alliance/gutenberg-kb.git
+   git clone https://github.com/xynoplex/gutenberg-kb.git
    cd gutenberg-kb
-   semiont start
+   xynolog start
    ```
 
 4. **Open the Browser from Windows** at `http://localhost:3000`, and enter `http://localhost:4000`
    as the knowledge base URL. WSL2 forwards `localhost` to Windows.
 
-5. **Sign in a terminal** with `semiont login`. It prints an address and a code; open the address
+5. **Sign in a terminal** with `xynolog login`. It prints an address and a code; open the address
    in your Windows browser.
 
-Everything else is as [Running knowledge bases on your computer](../LOCAL-SEMIONT.md) describes it: `semiont status`,
-`semiont logs`, `semiont stop`. The launcher's own files are where Linux keeps them, inside WSL:
-`~/.local/state/semiont` and `~/.local/share/semiont`.
+Everything else is as [Running knowledge bases on your computer](../LOCAL-XYNOLOG.md) describes it: `xynolog status`,
+`xynolog logs`, `xynolog stop`. The launcher's own files are where Linux keeps them, inside WSL:
+`~/.local/state/xynolog` and `~/.local/share/xynolog`.
 
 ## On Windows itself
 
-1. **Install the launcher.** Download `semiont_<version>_windows_amd64.zip` (or `_arm64`) from the
-   [GitHub Release](https://github.com/The-AI-Alliance/semiont/releases), unzip it, and put
-   `semiont.exe` in a directory on your `PATH`. From PowerShell, with the GitHub CLI:
+1. **Install the launcher.** Download `xynolog_<version>_windows_amd64.zip` (or `_arm64`) from the
+   [GitHub Release](https://github.com/xynolog/cli/releases), unzip it, and put
+   `xynolog.exe` in a directory on your `PATH`. From PowerShell, with the GitHub CLI:
 
    ```powershell
-   gh release download --repo The-AI-Alliance/semiont --pattern 'semiont_*_windows_amd64.zip'
-   Expand-Archive semiont_*_windows_amd64.zip -DestinationPath "$env:LOCALAPPDATA\Programs\semiont"
+   gh release download --repo xynolog/cli --pattern 'xynolog_*_windows_amd64.zip'
+   Expand-Archive xynolog_*_windows_amd64.zip -DestinationPath "$env:LOCALAPPDATA\Programs\xynolog"
    ```
 
-   Then add `%LOCALAPPDATA%\Programs\semiont` to your `PATH`. `semiont version` answers from a new
+   Then add `%LOCALAPPDATA%\Programs\xynolog` to your `PATH`. `xynolog version` answers from a new
    terminal.
 
 2. **Clone the knowledge base with its bytes as committed.** A knowledge base's events and
    resources are addressed by their content, so Git must not rewrite their line endings:
 
    ```powershell
-   git clone -c core.autocrlf=false https://github.com/The-AI-Alliance/gutenberg-kb.git
+   git clone -c core.autocrlf=false https://github.com/xynoplex/gutenberg-kb.git
    cd gutenberg-kb
-   semiont start
+   xynolog start
    ```
 
 3. **Open the Browser** at `http://localhost:3000`, and enter `http://localhost:4000` as the
@@ -87,17 +87,17 @@ Everything else is as [Running knowledge bases on your computer](../LOCAL-SEMION
 
 | What | Where |
 |---|---|
-| The stack record, the registry of knowledge bases, sign-ins (`tokens.json`) | `%LOCALAPPDATA%\semiont` |
-| Each knowledge base's stores and kept secrets | `%LOCALAPPDATA%\semiont\roots\<knowledge base>` |
-| The launcher's log | `%LOCALAPPDATA%\semiont\logs` |
-| Configs staged for a running stack | `%TEMP%\semiont-config.*` |
+| The stack record, the registry of knowledge bases, sign-ins (`tokens.json`) | `%LOCALAPPDATA%\xynolog` |
+| Each knowledge base's stores and kept secrets | `%LOCALAPPDATA%\xynolog\roots\<knowledge base>` |
+| The launcher's log | `%LOCALAPPDATA%\xynolog\logs` |
+| Configs staged for a running stack | `%TEMP%\xynolog-config.*` |
 
 Each knowledge base's directory under `roots`, its kept secrets, `tokens.json` and each staging
 directory carry an access list naming your account, the system and the administrators, and
 inherit nothing from the directory above them.
 
-`tokens.json` is the sign-in store every Semiont SDK reads: a program built on the SDK and run by
-the same Windows account uses the sign-in `semiont login` made.
+`tokens.json` is the sign-in store every Xynolog SDK reads: a program built on the SDK and run by
+the same Windows account uses the sign-in `xynolog login` made.
 
 ### What it needs on `PATH`
 

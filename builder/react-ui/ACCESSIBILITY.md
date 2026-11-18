@@ -1,6 +1,6 @@
 # React UI Accessibility Documentation
 
-`@semiont/react-ui` provides accessible React components following [WCAG 2.1 Level AA](https://www.w3.org/WAI/WCAG21/quickref/) guidelines.
+`@xynolog/react-ui` provides accessible React components following [WCAG 2.1 Level AA](https://www.w3.org/WAI/WCAG21/quickref/) guidelines.
 
 ## Table of Contents
 
@@ -16,7 +16,7 @@
 Implement [WCAG 2.4.1 Bypass Blocks](https://www.w3.org/WAI/WCAG21/Understanding/bypass-blocks.html):
 
 ```tsx
-import { SkipLinks, MainContent } from '@semiont/react-ui';
+import { SkipLinks, MainContent } from '@xynolog/react-ui';
 
 function Page() {
   return (
@@ -37,7 +37,7 @@ The host mounts `SkipLinks` once, ahead of its routes, and every page renders it
 Provides [WCAG 4.1.3 Status Messages](https://www.w3.org/WAI/WCAG21/Understanding/status-messages.html):
 
 ```tsx
-import { LiveRegionProvider } from '@semiont/react-ui';
+import { LiveRegionProvider } from '@xynolog/react-ui';
 
 <LiveRegionProvider>
   {children}
@@ -48,7 +48,7 @@ import { LiveRegionProvider } from '@semiont/react-ui';
 Language-aware settings with live announcements. A locale change is announced through `useLanguageChangeAnnouncements` and emitted as `settings:locale-changed`; the host passes what react-ui cannot know:
 
 ```tsx
-import { SettingsPanel, useHoverDelay, useTheme } from '@semiont/react-ui';
+import { SettingsPanel, useHoverDelay, useTheme } from '@xynolog/react-ui';
 
 function Settings({ version, onOpenKeyboardHelp }: { version: string; onOpenKeyboardHelp: () => void }) {
   const { theme } = useTheme();
@@ -59,7 +59,7 @@ function Settings({ version, onOpenKeyboardHelp }: { version: string; onOpenKeyb
       locale={locale}
       hoverDelayMs={hoverDelayMs}
       version={version}
-      sourceCodeUrl="https://github.com/The-AI-Alliance/semiont"
+      sourceCodeUrl="https://github.com/xynolog/images"
       onOpenKeyboardHelp={onOpenKeyboardHelp}
     />
   );
@@ -115,7 +115,7 @@ Components announce state changes per [WCAG 4.1.3](https://www.w3.org/WAI/WCAG21
 A component's accessibility tests are a `.a11y.test.tsx` file beside it, using [jest-axe](https://github.com/nickcolley/jest-axe). `vitest.setup.ts` registers the `toHaveNoViolations` matcher, and `src/types/jest-axe.d.ts` types the package. A component with copy of its own, as `SkipLinks` has, renders under a translation provider:
 
 ```tsx
-import { renderInEnglish } from '@semiont/react-ui/test-utils';
+import { renderInEnglish } from '@xynolog/react-ui/test-utils';
 import { axe, toHaveNoViolations } from 'jest-axe';
 
 expect.extend(toHaveNoViolations);
@@ -132,7 +132,7 @@ it('should have no WCAG violations', async () => {
 ```yaml
 # .github/workflows/ci.yml
 # react-ui's accessibility tests run inside its suite (the test-package job);
-# `npm run test:a11y --workspace=@semiont/react-ui` runs them alone, locally.
+# `npm run test:a11y --workspace=@xynolog/react-ui` runs them alone, locally.
 
 - name: Audit the signed-out pages
   run: |
@@ -166,9 +166,9 @@ Drag & drop per [ARIA Authoring Practices](https://www.w3.org/WAI/ARIA/apg/patte
 
 ### Language Support
 
-Content language per [WCAG 3.1.2](https://www.w3.org/WAI/WCAG21/Understanding/language-of-parts.html): the interface language belongs on the host's `<html lang>` (the Browser writes it, and `dir`, from its route's locale — see [its ACCESSIBILITY.md](../../../images/browser/docs/ACCESSIBILITY.md#language-and-direction)), and resource content, whose language may differ, carries its own. `ResourceViewerPage` marks its document body this way, and `ResourceComposePage` its editor:
+Content language per [WCAG 3.1.2](https://www.w3.org/WAI/WCAG21/Understanding/language-of-parts.html): the interface language belongs on the host's `<html lang>` (the Browser writes it, and `dir`, from its route's locale — see [its ACCESSIBILITY.md](https://github.com/xynolog/images/blob/main/browser/docs/ACCESSIBILITY.md#language-and-direction)), and resource content, whose language may differ, carries its own. `ResourceViewerPage` marks its document body this way, and `ResourceComposePage` its editor:
 ```tsx
-import { getLanguage } from '@semiont/core';
+import { getLanguage } from '@xynolog/core';
 
 <div lang={getLanguage(resource)}>{content}</div>
 ```

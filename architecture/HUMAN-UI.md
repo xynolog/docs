@@ -1,6 +1,6 @@
 # Human UI
 
-How human actors connect to the event bus. This page covers the Semiont Browser SPA, the state-unit split that organizes its code, and the multi-KB session model.
+How human actors connect to the event bus. This page covers the Xynolog Browser SPA, the state-unit split that organizes its code, and the multi-KB session model.
 
 For the actor categories that drive the UI (Reader, Analyst, Author), see [ACTOR-MODEL.md](ACTOR-MODEL.md). For the cross-process bus contract that the SPA uses (and that workers + smelter share), see [CONTAINER-TOPOLOGY.md](../operator/CONTAINER-TOPOLOGY.md). For the reactive KB actors the SPA's events drive, see [KNOWLEDGE-SYSTEM.md](KNOWLEDGE-SYSTEM.md).
 
@@ -37,7 +37,7 @@ graph TB
     class BUS1,BUS2,BUSN bus
 ```
 
-Human actors interact through the **Semiont Browser** — the `images/browser` single-page app (Vite + React), packaged as the `ghcr.io/the-ai-alliance/semiont-browser` container image. A user connects to one or more Knowledge Bases (each a separate gateway); DOM interactions become bus commands through the same `/bus/emit` + `/bus/subscribe` endpoints every other Semiont actor uses. Because it's a static SPA, it can equivalently be served from any file server or CDN — the container is the deployment-ready packaging for the "download and run" path.
+Human actors interact through the **Xynolog Browser** — the `images/browser` single-page app (Vite + React), packaged as the `ghcr.io/xynolog/xynolog-browser` container image. A user connects to one or more Knowledge Bases (each a separate gateway); DOM interactions become bus commands through the same `/bus/emit` + `/bus/subscribe` endpoints every other Xynolog actor uses. Because it's a static SPA, it can equivalently be served from any file server or CDN — the container is the deployment-ready packaging for the "download and run" path.
 
 For working in the Browser (getting it, signing in, annotating, shortcuts, accessibility), see **[../analyst/](../analyst/)**.
 
@@ -45,19 +45,19 @@ For working in the Browser (getting it, signing in, annotating, shortcuts, acces
 
 The SPA is internally a literal Model–View–StateUnit split:
 
-- **Model** — `@semiont/sdk` namespaces (yield, mark, bind and frame, which write; browse, match and gather, which read; beckon, which directs attention), typed RxJS Observables, per-key caches, and bus-driven invalidation.
+- **Model** — `@xynolog/sdk` namespaces (yield, mark, bind and frame, which write; browse, match and gather, which read; beckon, which directs attention), typed RxJS Observables, per-key caches, and bus-driven invalidation.
 - **StateUnit** — one factory per flow that holds state (`createMarkStateUnit`, `createGatherStateUnit`, `createMatchStateUnit`, `createYieldStateUnit`, `createBeckonStateUnit`) plus page-level composite state units; pure RxJS, framework-agnostic, unit-testable without a renderer.
-- **View** — React components in `@semiont/react-ui` and `images/browser`, reduced to three adapters (`useSessionStateUnit`, `useStateUnit`, `useObservable`) plus JSX. No component-owned fetching, caching, or subscription management.
+- **View** — React components in `@xynolog/react-ui` and `images/browser`, reduced to three adapters (`useSessionStateUnit`, `useStateUnit`, `useObservable`) plus JSX. No component-owned fetching, caching, or subscription management.
 
 The state unit layer is what lets the same SDK that drives the browser also drive a program with no renderer, such as a knowledge base's scripts, which consumes the same Model + StateUnit layer. See **[../../docs/builder/Usage.md](../builder/Usage.md)** for the SDK surface.
 
 ## Multi-KB sessions
 
-A Semiont Browser instance registers multiple knowledge bases — each a separate gateway with its own stored credentials, its own tabs, and its own resource state — but holds exactly **one live `SemiontSession` at a time: the active KB's**. Switching KBs disposes the current session (and with it the event-bus connection) before constructing the next; `SemiontBrowser.setActiveKb` documents the disposal contract. An inactive KB exists as persisted per-KB state only — its auth status (signed-out / expired / authenticated) is computed from its stored token without any session or connection existing. Per-KB authentication and the session lifecycle live in `SemiontSession` (defined in `@semiont/sdk`), the same abstraction a script built on the SDK uses.
+A Xynolog Browser instance registers multiple knowledge bases — each a separate gateway with its own stored credentials, its own tabs, and its own resource state — but holds exactly **one live `XynologSession` at a time: the active KB's**. Switching KBs disposes the current session (and with it the event-bus connection) before constructing the next; `XynologBrowser.setActiveKb` documents the disposal contract. An inactive KB exists as persisted per-KB state only — its auth status (signed-out / expired / authenticated) is computed from its stored token without any session or connection existing. Per-KB authentication and the session lifecycle live in `XynologSession` (defined in `@xynolog/sdk`), the same abstraction a script built on the SDK uses.
 
-Storage adapters thread the same `SemiontSession` through every host environment:
+Storage adapters thread the same `XynologSession` through every host environment:
 
-- **`WebBrowserStorage`** (`@semiont/react-ui`) — localStorage in the SPA, with cross-tab sync.
-- **`InMemorySessionStorage`** (`@semiont/sdk`) — for scripts and tests.
+- **`WebBrowserStorage`** (`@xynolog/react-ui`) — localStorage in the SPA, with cross-tab sync.
+- **`InMemorySessionStorage`** (`@xynolog/sdk`) — for scripts and tests.
 
-`SemiontClient` exposes namespace methods (e.g. `client.browse.resource(...)`, `client.mark.annotation(...)`) over the bus; the namespaces are the consumer surface, and `client.bus` and `client.transport` are the advanced one beneath it ([REACTIVE-MODEL § Two paths to the bus](../builder/REACTIVE-MODEL.md#two-paths-to-the-bus)). The full session lifecycle — sign-in, refresh, expiry, cross-tab sync — is documented in [SemiontSession's source](../../packages/typescript/sdk/src/session/semiont-session.ts) and the [long-running session skill](../builder/skills/semiont-session/SKILL.md).
+`XynologClient` exposes namespace methods (e.g. `client.browse.resource(...)`, `client.mark.annotation(...)`) over the bus; the namespaces are the consumer surface, and `client.bus` and `client.transport` are the advanced one beneath it ([REACTIVE-MODEL § Two paths to the bus](../builder/REACTIVE-MODEL.md#two-paths-to-the-bus)). The full session lifecycle — sign-in, refresh, expiry, cross-tab sync — is documented in [XynologSession's source](https://github.com/xynolog/sdk/blob/main/typescript/sdk/src/session/xynolog-session.ts) and the [long-running session skill](../builder/skills/xynolog-session/SKILL.md).

@@ -4,7 +4,7 @@ A stack can be observed three ways, each switched on separately:
 
 1. **Traces.** Every service and the Browser can export OpenTelemetry spans. A service exports nothing until it is given an OTLP endpoint; the launcher gives every service one.
 2. **Metrics and log correlation.** Counters, histograms and gauges go to the same endpoint, and every structured log line carries the `trace_id` and `span_id` of the span it was written in.
-3. **The `busLog` timeline.** With `SEMIONT_BUS_LOG=1`, a process writes one line per bus event, in a format made for `grep`. It is a developer's tool: see [Bus logging](../../../images/e2e/docs/bus-logging.md).
+3. **The `busLog` timeline.** With `XYNOLOG_BUS_LOG=1`, a process writes one line per bus event, in a format made for `grep`. It is a developer's tool: see [Bus logging](https://github.com/xynolog/images/blob/main/e2e/docs/bus-logging.md).
 
 All three share the W3C `trace_id`: a `busLog` line written inside a span carries `trace=`, the id's first eight hex digits.
 
@@ -14,13 +14,13 @@ The transport contract is the single instrumentation layer. Every bus
 emit, content put/get, and worker job
 becomes a span. Trace context propagates over HTTP `traceparent`
 headers and, on a frame relayed over SSE, the payload field the bus
-registry names (`trace` in [`protocol/specs/src/bus/registry.json`](../../../protocol/specs/src/bus/registry.json)).
+registry names (`trace` in [`protocol/specs/src/bus/registry.json`](https://github.com/xynolog/protocol/blob/main/specs/src/bus/registry.json)).
 
 The spans are in the tables below, by who exports them. What the Rust services, the
 Worker service, the Weaver, the Smelter and the Librarian export is specified, with kinds and attributes, in
-[`protocol/specs/src/service-telemetry/telemetry.json`](../../../protocol/specs/src/service-telemetry/telemetry.json),
+[`protocol/specs/src/service-telemetry/telemetry.json`](https://github.com/xynolog/protocol/blob/main/specs/src/service-telemetry/telemetry.json),
 and what an SDK's transports export, in any language, in
-[`protocol/specs/src/sdk-telemetry/telemetry.json`](../../../protocol/specs/src/sdk-telemetry/telemetry.json),
+[`protocol/specs/src/sdk-telemetry/telemetry.json`](https://github.com/xynolog/protocol/blob/main/specs/src/sdk-telemetry/telemetry.json),
 which also has the count of emits a client sends. Each service's conformance suite holds it
 to its rows in both directions, and the SDK suite holds each SDK to the SDK table.
 
@@ -67,10 +67,10 @@ The Worker service:
 
 | Span                   | Kind     | Attributes                                              | When    | What it is                                    |
 |------------------------|----------|---------------------------------------------------------|---------|-----------------------------------------------|
-| `job:{jobType}`        | consumer | `job.type` (`mark`/`yield`), `job.motivation` on a `mark` job, `job.id`, `resource.id`, `semiont.kb` | traffic | A job a worker held, from the claim that handed it over to its conclusion |
-| `detection:prepare`    | internal | `resource.id`, `media.type`, `semiont.kb` | traffic | A `mark` job's reading of its resource: the description's media type, and the text read by it |
-| `inference:structured` | internal | `inference.provider` (`anthropic`/`google`/`llamacpp`/`ollama`/`openai`/`together`/`vllm`), `inference.model`, `inference.max_tokens`, `semiont.kb` | traffic | One generation a worker asked of its provider for an array of objects, from the request to its answer or its time bound |
-| `inference:text`       | internal | `inference.provider` (`anthropic`/`google`/`llamacpp`/`ollama`/`openai`/`together`/`vllm`), `inference.model`, `inference.max_tokens`, `semiont.kb` | traffic | One generation a worker asked of its provider for text, from the request to its answer or its time bound |
+| `job:{jobType}`        | consumer | `job.type` (`mark`/`yield`), `job.motivation` on a `mark` job, `job.id`, `resource.id`, `xynolog.kb` | traffic | A job a worker held, from the claim that handed it over to its conclusion |
+| `detection:prepare`    | internal | `resource.id`, `media.type`, `xynolog.kb` | traffic | A `mark` job's reading of its resource: the description's media type, and the text read by it |
+| `inference:structured` | internal | `inference.provider` (`anthropic`/`google`/`llamacpp`/`ollama`/`openai`/`together`/`vllm`), `inference.model`, `inference.max_tokens`, `xynolog.kb` | traffic | One generation a worker asked of its provider for an array of objects, from the request to its answer or its time bound |
+| `inference:text`       | internal | `inference.provider` (`anthropic`/`google`/`llamacpp`/`ollama`/`openai`/`together`/`vllm`), `inference.model`, `inference.max_tokens`, `xynolog.kb` | traffic | One generation a worker asked of its provider for text, from the request to its answer or its time bound |
 
 The `archivist.*` spans are the third hop on the byte path. The gateway's `content.{put,get}.server` span makes a network call to the archivist, and without a span of its own, a slow archivist would read as a slow gateway.
 
@@ -101,17 +101,17 @@ job:yield                                       [the Worker service]
 
 The standard OpenTelemetry variables, set in each service's environment. The launcher sets the endpoint for every service it starts; on your own platform, set it in each container's environment.
 The Rust services — the gateway, the dispatcher and the Archivist — read the ones their
-environment table lists ([`variables.json`](../../../protocol/specs/src/service-environment/variables.json))
+environment table lists ([`variables.json`](https://github.com/xynolog/protocol/blob/main/specs/src/service-environment/variables.json))
 and configure their SDK from them. The Worker service reads the ones
-[WORKER-SERVICE.md](../../../protocol/contract/WORKER-SERVICE.md#environment) lists, the Weaver the ones
-[WEAVER.md](../../../protocol/contract/WEAVER.md#environment) lists, the Smelter the ones
-[SMELTER.md](../../../protocol/contract/SMELTER.md#environment) lists, and the Librarian the ones
-[LIBRARIAN.md](../../../protocol/contract/LIBRARIAN.md#environment) lists. Every service reads these four:
+[WORKER-SERVICE.md](https://github.com/xynolog/protocol/blob/main/contract/WORKER-SERVICE.md#environment) lists, the Weaver the ones
+[WEAVER.md](https://github.com/xynolog/protocol/blob/main/contract/WEAVER.md#environment) lists, the Smelter the ones
+[SMELTER.md](https://github.com/xynolog/protocol/blob/main/contract/SMELTER.md#environment) lists, and the Librarian the ones
+[LIBRARIAN.md](https://github.com/xynolog/protocol/blob/main/contract/LIBRARIAN.md#environment) lists. Every service reads these four:
 
 | Variable                          | Default                                | Purpose                            |
 |-----------------------------------|----------------------------------------|------------------------------------|
 | `OTEL_EXPORTER_OTLP_ENDPOINT`     | (none — nothing is exported)           | OTLP HTTP collector URL            |
-| `OTEL_SERVICE_NAME`               | `semiont-<service>`, such as `semiont-gateway` | Service identity            |
+| `OTEL_SERVICE_NAME`               | `xynolog-<service>`, such as `xynolog-gateway` | Service identity            |
 | `OTEL_CONSOLE_EXPORTER`           | `false`                                | Set `true` to print to the service's output (dev only) |
 | `OTEL_SDK_DISABLED`               | `false`                                | Set `true` to export nothing, whatever else is set |
 
@@ -127,7 +127,7 @@ Without a collector, `OTEL_CONSOLE_EXPORTER=true` prints spans and metrics to th
 An application built on the Rust SDK installs its own OpenTelemetry (a tracer
 provider, a meter provider and the W3C propagator, registered as the
 process's) and the transport reports to it:
-[`semiont-telemetry`](../../../packages/rust/telemetry/README.md) says how.
+[`xynolog-telemetry`](https://github.com/xynolog/sdk/blob/main/rust/telemetry/README.md) says how.
 With none installed, nothing is recorded and no trace context is sent.
 
 ### Browser (SPA)
@@ -143,7 +143,7 @@ SDK — no spans emitted, no overhead.
 
 ## Recommended targets
 
-Semiont stores no telemetry; you choose where it goes. The launcher chooses for a stack it runs: an OpenTelemetry Collector takes in everything, Jaeger stores the traces and Prometheus the metrics.
+Xynolog stores no telemetry; you choose where it goes. The launcher chooses for a stack it runs: an OpenTelemetry Collector takes in everything, Jaeger stores the traces and Prometheus the metrics.
 
 | Deployment              | Recommended target                                                                              |
 |-------------------------|-------------------------------------------------------------------------------------------------|
@@ -152,14 +152,14 @@ Semiont stores no telemetry; you choose where it goes. The launcher chooses for 
 | Self-hosted             | Jaeger (Cassandra/ES-backed) or Grafana Tempo (S3-backed, pairs with Loki).                      |
 | A cloud's own tracing   | Through that cloud's OpenTelemetry Collector distribution, which translates OTLP to its format.  |
 | SaaS APM                | Honeycomb / Datadog / New Relic / Lightstep all accept OTLP — set endpoint + auth header.        |
-| Several backends, or scrubbing | Run the standard `otelcol` between Semiont and the backends.                              |
+| Several backends, or scrubbing | Run the standard `otelcol` between Xynolog and the backends.                              |
 
 ## With the launcher
 
-The [`semiont` launcher](../../../apps/launcher/README.md) sets all of it up by default:
+The [`xynolog` launcher](https://github.com/xynolog/cli/blob/main/README.md) sets all of it up by default:
 
 ```bash
-semiont start
+xynolog start
 # traces:  http://localhost:16686   (Jaeger)
 # metrics: http://localhost:9090    (Prometheus)
 ```
@@ -175,8 +175,8 @@ Jaeger of your own on `:4318`: that port is the collector's.
 
 The three are shared, not one knowledge base's: every knowledge base started here
 exports to the one collector, a start keeps them running when they are as it would start
-them, and `semiont stop` stops them with the last knowledge base.
-`semiont stop --service collector|traces|metrics` stops one alone.
+them, and `xynolog stop` stops them with the last knowledge base.
+`xynolog stop --service collector|traces|metrics` stops one alone.
 
 ### Verifying spans are flowing
 
@@ -185,26 +185,26 @@ them, and `semiont stop` stops them with the last knowledge base.
 curl -s http://localhost:16686/api/services | jq -r '.data[]'
 
 # Operations on a service
-curl -s http://localhost:16686/api/services/semiont-gateway/operations | jq -r '.data[]'
+curl -s http://localhost:16686/api/services/xynolog-gateway/operations | jq -r '.data[]'
 
 # Cross-service traces (most useful for debugging propagation)
-curl -s 'http://localhost:16686/api/traces?service=semiont-gateway&limit=200&lookback=10m' \
+curl -s 'http://localhost:16686/api/traces?service=xynolog-gateway&limit=200&lookback=10m' \
   | jq -r '.data[] | select(([.processes[].serviceName] | unique | length) > 1) | "\(.traceID) services=\([.processes[].serviceName] | unique | join(","))"'
 
 # Metrics landing in Prometheus (via the collector's readout)
 curl -s 'http://localhost:9090/api/v1/label/__name__/values' | jq -r '.data[]' | head
 ```
 
-If Jaeger only knows about itself (`jaeger-all-in-one`), no Semiont
+If Jaeger only knows about itself (`jaeger-all-in-one`), no Xynolog
 process has exported spans. Most likely causes:
 
 1. `OTEL_EXPORTER_OTLP_ENDPOINT` is set but unreachable — verify with
-   `container exec semiont-<kb>-gateway wget -qO- http://...:4318` from
+   `container exec xynolog-<kb>-gateway wget -qO- http://...:4318` from
    inside the gateway container (`<kb>` is the knowledge base's did:web
    domain made safe for a name: [the launcher's names](../services/OVERVIEW.md#the-launchers-names)).
 2. `OTEL_SDK_DISABLED=true` is set on the process, or neither
    `OTEL_EXPORTER_OTLP_ENDPOINT` nor `OTEL_CONSOLE_EXPORTER=true` is: check
-   with `container exec semiont-<kb>-gateway env | grep OTEL_`.
+   with `container exec xynolog-<kb>-gateway env | grep OTEL_`.
 
 If services appear but every trace is single-service (no cross-service
 propagation), a service between them exports nothing: one that installs
@@ -214,26 +214,26 @@ variables as above.
 ### Which knowledge base
 
 Every service that serves one knowledge base exports under a resource naming it:
-`semiont.kb`, the knowledge base's DID (`did:web:<site.domain>`). The worker serves
-several, so its resource names none. It carries `semiont.kb` instead on each span and
+`xynolog.kb`, the knowledge base's DID (`did:web:<site.domain>`). The worker serves
+several, so its resource names none. It carries `xynolog.kb` instead on each span and
 data point of its own rows, naming the knowledge base whose job the work was. What it
 shares with other services names none: the process's own metrics, and what a
-provider's driver counts of a generation (`semiont.inference.*`), since one engine
+provider's driver counts of a generation (`xynolog.inference.*`), since one engine
 can serve several knowledge bases. In Jaeger the DID is a tag of each service's
 process, and of each of the worker's spans of a job; the collector writes it on
-every metric it hands Prometheus as the label `semiont_kb`:
+every metric it hands Prometheus as the label `xynolog_kb`:
 
 ```bash
 # Traces of one knowledge base
-curl -sG http://localhost:16686/api/traces --data-urlencode service=semiont-gateway \
-  --data-urlencode 'tags={"semiont.kb":"did:web:example.org"}' --data-urlencode lookback=10m \
+curl -sG http://localhost:16686/api/traces --data-urlencode service=xynolog-gateway \
+  --data-urlencode 'tags={"xynolog.kb":"did:web:example.org"}' --data-urlencode lookback=10m \
   | jq -r '.data[].traceID'
 
 # The knowledge bases Prometheus holds metrics of
-curl -sG http://localhost:9090/api/v1/label/semiont_kb/values | jq -r '.data[]'
+curl -sG http://localhost:9090/api/v1/label/xynolog_kb/values | jq -r '.data[]'
 ```
 
-`semiont status` reads only its own knowledge base's metrics out of the collector,
+`xynolog status` reads only its own knowledge base's metrics out of the collector,
 the jobs the worker concluded there among them.
 
 ## Two invariants
@@ -248,23 +248,23 @@ the jobs the worker concluded there among them.
 
 ## Relationship to the structured logger and `busLog`
 
-- **Structured logger** (the Rust services', in `packages/rust/observability/src/logging.rs`;
+- **Structured logger** (the Rust services', in images' `packages/rust/observability/src/logging.rs`;
   the Python services', in
-  `packages/python/service/src/semiont_service/log.py`) — JSON-line,
+  images' `shared/python/service/src/xynolog_service/log.py`) — JSON-line,
   level-filtered, always on. Logs semantic events (validation failed,
   user authenticated). Goes to log aggregator. Every line is auto-
   tagged with the active span's `trace_id` / `span_id` when one
   exists — operators can jump from a log line in CloudWatch / Loki /
   Datadog to the trace in Tempo / Jaeger / X-Ray.
-- **`busLog`** — grep-text, opt-in via `SEMIONT_BUS_LOG=1` (a service process) or
-  `window.__SEMIONT_BUS_LOG__ = true` (browser). One line per
+- **`busLog`** — grep-text, opt-in via `XYNOLOG_BUS_LOG=1` (a service process) or
+  `window.__XYNOLOG_BUS_LOG__ = true` (browser). One line per
   cross-process bus event. Targets developer terminal / stderr / e2e
   fixture capture. A line written inside a span carries `trace=`, the
   first 8 hex of the W3C trace-id, so a `busLog` timeline collates with
   traces in the APM UI. A line shows the frame's payload, less the value
   of a member whose name is one a credential goes by (`token`, `password`,
   `apiKey` and the rest of a
-  [short list](../../../protocol/specs/src/bus/log-cases.json)), which is written
+  [short list](https://github.com/xynolog/protocol/blob/main/specs/src/bus/log-cases.json)), which is written
   as `[withheld]`.
 - **OTel spans + metrics** (this doc) — distributed tracing and
   metrics over OTLP. Targets a collector + APM gateway.
@@ -281,20 +281,20 @@ its own process.
 
 | Metric                       | Type             | Attributes                                              | Where                                         |
 |------------------------------|------------------|---------------------------------------------------------|-----------------------------------------------|
-| `semiont.bus.sent`           | counter          | `bus.channel`, and `bus.scope` on a scoped emit         | Every SDK transport's emit: an emit a client sent |
-| `semiont.inference.calls`    | counter          | `inference.provider`, `inference.model`, `inference.outcome` | The Worker service and the Librarian — each request of a model, by how it ended |
-| `semiont.inference.tokens`   | counter          | `inference.provider`, `inference.model`, `inference.direction` (`input`/`output`) | The Worker service and the Librarian — the tokens a provider reported, where it reports any |
-| `semiont.inference.duration` | histogram        | `inference.provider`, `inference.model`, `inference.outcome` | The Worker service and the Librarian — how long each request of a model took, in ms |
-| `semiont.process.start_time` | gauge            | (none)                                                  | Every service — Unix seconds at which the process started; a change means it restarted |
-| `semiont.process.restarts`   | gauge            | (none)                                                  | Every supervised service — times the in-container supervisor restarted the process, read back from the supervisor's event log. The series exists only when the run set `SEMIONT_SUPERVISE` (the stacks the launcher runs); absent, not `0`, everywhere else |
-| `semiont.process.abnormal_exit` | counter       | `reason` (`unhandledRejection`/`uncaughtException`)     | Every service — a fatal error, counted just before the process exits |
-| `semiont.runtime.event_loop.lag` | gauge        | `lag.stat` (`mean`/`p99`/`max`)                     | Every service — event-loop delay over the last export interval, in ms: time the process could serve nothing |
-| `semiont.runtime.heap`       | gauge            | `heap.stat` (`used`/`total`/`limit`/`rss`)              | Every service — process memory in bytes |
+| `xynolog.bus.sent`           | counter          | `bus.channel`, and `bus.scope` on a scoped emit         | Every SDK transport's emit: an emit a client sent |
+| `xynolog.inference.calls`    | counter          | `inference.provider`, `inference.model`, `inference.outcome` | The Worker service and the Librarian — each request of a model, by how it ended |
+| `xynolog.inference.tokens`   | counter          | `inference.provider`, `inference.model`, `inference.direction` (`input`/`output`) | The Worker service and the Librarian — the tokens a provider reported, where it reports any |
+| `xynolog.inference.duration` | histogram        | `inference.provider`, `inference.model`, `inference.outcome` | The Worker service and the Librarian — how long each request of a model took, in ms |
+| `xynolog.process.start_time` | gauge            | (none)                                                  | Every service — Unix seconds at which the process started; a change means it restarted |
+| `xynolog.process.restarts`   | gauge            | (none)                                                  | Every supervised service — times the in-container supervisor restarted the process, read back from the supervisor's event log. The series exists only when the run set `XYNOLOG_SUPERVISE` (the stacks the launcher runs); absent, not `0`, everywhere else |
+| `xynolog.process.abnormal_exit` | counter       | `reason` (`unhandledRejection`/`uncaughtException`)     | Every service — a fatal error, counted just before the process exits |
+| `xynolog.runtime.event_loop.lag` | gauge        | `lag.stat` (`mean`/`p99`/`max`)                     | Every service — event-loop delay over the last export interval, in ms: time the process could serve nothing |
+| `xynolog.runtime.heap`       | gauge            | `heap.stat` (`used`/`total`/`limit`/`rss`)              | Every service — process memory in bytes |
 
 The gateway, the dispatcher and the Archivist are Rust and export their own metrics,
 specified with their instruments, attributes and attribute values in
-[`protocol/specs/src/service-telemetry/telemetry.json`](../../../protocol/specs/src/service-telemetry/telemetry.json):
-the `semiont.process.*` and `semiont.runtime.*` instruments of the rows above, and the rows
+[`protocol/specs/src/service-telemetry/telemetry.json`](https://github.com/xynolog/protocol/blob/main/specs/src/service-telemetry/telemetry.json):
+the `xynolog.process.*` and `xynolog.runtime.*` instruments of the rows above, and the rows
 below. **When** is that table's word for when a series is there: `export`, whenever the
 service exports at all; `traffic`, from the first thing of its kind the service has to count.
 
@@ -302,75 +302,75 @@ The gateway:
 
 | Metric                       | Type             | Attributes                                              | When    | What it is                                    |
 |------------------------------|------------------|---------------------------------------------------------|---------|-----------------------------------------------|
-| `semiont.bus.emit`           | counter          | `bus.channel`, and `bus.scope` on an emit in a resource scope | traffic | Emits the gateway accepted |
-| `semiont.bus.reply.suppressed` | counter        | `bus.channel`                                           | traffic | Correlated replies withheld from a subscriber that did not ask for them |
-| `semiont.bus.resume_gap`     | counter          | `bus.resume_gap.reason`                                 | traffic | Resumes answered with a gap, by the gap's reason |
-| `semiont.bus.unanswerable`   | counter          | `bus.channel`                                           | traffic | Requests no participant could answer. Only a plane that can count subscribers counts them: the `in-process` signal plane |
-| `semiont.sse.subscribers`    | up-down counter  | (none)                                                  | traffic | Open bus streams |
-| `semiont.gateway.refused`    | counter          | `refused.reason` (`streams`/`emit-rate`/`unanswered-requests`/`capacity`/`connections`) | traffic | Requests a limit refused — a principal's streams or emit bucket, a client's unanswered requests, the process's queued bytes — and connections closed at its connection cap |
-| `semiont.gateway.unauthenticated` | counter     | `unauthenticated.reason` (`missing_token`/`invalid_token`/`invalid_media_token`) | traffic | Requests answered 401, by why: no bearer token, a bearer token refused, a media token refused |
-| `semiont.bus.correlation.size` | gauge          | `correlation.kind` (`claims`/`claims_max`)              | export  | Outstanding request claims, and the cap on them |
+| `xynolog.bus.emit`           | counter          | `bus.channel`, and `bus.scope` on an emit in a resource scope | traffic | Emits the gateway accepted |
+| `xynolog.bus.reply.suppressed` | counter        | `bus.channel`                                           | traffic | Correlated replies withheld from a subscriber that did not ask for them |
+| `xynolog.bus.resume_gap`     | counter          | `bus.resume_gap.reason`                                 | traffic | Resumes answered with a gap, by the gap's reason |
+| `xynolog.bus.unanswerable`   | counter          | `bus.channel`                                           | traffic | Requests no participant could answer. Only a plane that can count subscribers counts them: the `in-process` signal plane |
+| `xynolog.sse.subscribers`    | up-down counter  | (none)                                                  | traffic | Open bus streams |
+| `xynolog.gateway.refused`    | counter          | `refused.reason` (`streams`/`emit-rate`/`unanswered-requests`/`capacity`/`connections`) | traffic | Requests a limit refused — a principal's streams or emit bucket, a client's unanswered requests, the process's queued bytes — and connections closed at its connection cap |
+| `xynolog.gateway.unauthenticated` | counter     | `unauthenticated.reason` (`missing_token`/`invalid_token`/`invalid_media_token`) | traffic | Requests answered 401, by why: no bearer token, a bearer token refused, a media token refused |
+| `xynolog.bus.correlation.size` | gauge          | `correlation.kind` (`claims`/`claims_max`)              | export  | Outstanding request claims, and the cap on them |
 
-The emits a client sent are a count of their own, `semiont.bus.sent`, a row of
-[`protocol/specs/src/sdk-telemetry/telemetry.json`](../../../protocol/specs/src/sdk-telemetry/telemetry.json);
-`semiont.bus.emit` is the gateway's count of the emits it accepted.
+The emits a client sent are a count of their own, `xynolog.bus.sent`, a row of
+[`protocol/specs/src/sdk-telemetry/telemetry.json`](https://github.com/xynolog/protocol/blob/main/specs/src/sdk-telemetry/telemetry.json);
+`xynolog.bus.emit` is the gateway's count of the emits it accepted.
 
 The dispatcher:
 
 | Metric                       | Type             | Attributes                                              | When    | What it is                                    |
 |------------------------------|------------------|---------------------------------------------------------|---------|-----------------------------------------------|
-| `semiont.job.queue.size`     | gauge            | `job.status` (`pending`/`running`/`complete`/`failed`/`cancelled`) | export | The jobs in the queue, by status |
+| `xynolog.job.queue.size`     | gauge            | `job.status` (`pending`/`running`/`complete`/`failed`/`cancelled`) | export | The jobs in the queue, by status |
 
 The Archivist:
 
 | Metric                       | Type             | Attributes                                              | When    | What it is                                    |
 |------------------------------|------------------|---------------------------------------------------------|---------|-----------------------------------------------|
-| `semiont.archivist.fact_pump.depth` | gauge     | (none)                                                  | export  | Events appended to the record and not yet published on the bus. Zero at rest; a rising floor means publishing is behind its transport |
-| `semiont.git.duration`       | histogram        | `git.command` (`add`/`rm`/`rev-parse`)                  | traffic | How long each git command the staging driver ran took, in milliseconds, the failing ones too |
-| `semiont.git.staging.failures` | counter        | `reason` (`index-lock`/`other`)                         | traffic | Staging degradations: changes recorded and not staged, by why |
+| `xynolog.archivist.fact_pump.depth` | gauge     | (none)                                                  | export  | Events appended to the record and not yet published on the bus. Zero at rest; a rising floor means publishing is behind its transport |
+| `xynolog.git.duration`       | histogram        | `git.command` (`add`/`rm`/`rev-parse`)                  | traffic | How long each git command the staging driver ran took, in milliseconds, the failing ones too |
+| `xynolog.git.staging.failures` | counter        | `reason` (`index-lock`/`other`)                         | traffic | Staging degradations: changes recorded and not staged, by why |
 
 The Worker service is Python and exports its own too, specified in the same table: the
-`semiont.process.*` and `semiont.runtime.*` instruments of the rows above, the three
-`semiont.inference.*` rows for the generations it asks of its providers, and these:
+`xynolog.process.*` and `xynolog.runtime.*` instruments of the rows above, the three
+`xynolog.inference.*` rows for the generations it asks of its providers, and these:
 
 | Metric                       | Type             | Attributes                                              | When    | What it is                                    |
 |------------------------------|------------------|---------------------------------------------------------|---------|-----------------------------------------------|
-| `semiont.job.outcome`        | counter          | `job.type` (`mark` / `yield`), `job.motivation` on a `mark` job, `job.outcome` (`completed` / `failed` / `cancelled`), `semiont.kb` | traffic | Every job a worker held, by how it ended |
-| `semiont.job.duration`       | histogram        | `job.type`, `job.motivation` on a `mark` job, `job.outcome`, `semiont.kb` | traffic | How long a worker held each job, in ms    |
-| `semiont.detection.calls`    | counter          | `detection.label`, `detection.outcome` (`success`/`truncated`/`collapsed`/`timeout`/`error`), `detection.depth`, `detection.reroll`, `semiont.kb` | traffic | Worker detection — one row per model call, failed attempts included |
-| `semiont.detection.call.duration` | histogram   | `detection.label`, `detection.outcome`, `detection.depth`, `detection.reroll`, `semiont.kb` | traffic | Worker detection per-call wall time |
-| `semiont.detection.call.items` | histogram      | `detection.label`, `detection.outcome`, `detection.depth`, `detection.reroll`, `semiont.kb` | traffic | Annotations returned per call — against input size, this is yield |
-| `semiont.detection.call.tokens` | histogram     | `detection.label`, `detection.outcome`, `detection.depth`, `detection.reroll`, `detection.direction` (`input`/`output`), `semiont.kb` | traffic | Provider-reported tokens per detection call; kept separate from `semiont.inference.tokens` because that series carries no subdivision depth |
-| `semiont.detection.anchors`  | counter          | `detection.label`, `anchor.method` (`unique-match`/`context-recovered`/`first-of-many`/`fuzzy-match`), `semiont.kb` | traffic | Every annotation anchoring — the degraded-method **rate** is the precision signal, so clean outcomes are counted too |
+| `xynolog.job.outcome`        | counter          | `job.type` (`mark` / `yield`), `job.motivation` on a `mark` job, `job.outcome` (`completed` / `failed` / `cancelled`), `xynolog.kb` | traffic | Every job a worker held, by how it ended |
+| `xynolog.job.duration`       | histogram        | `job.type`, `job.motivation` on a `mark` job, `job.outcome`, `xynolog.kb` | traffic | How long a worker held each job, in ms    |
+| `xynolog.detection.calls`    | counter          | `detection.label`, `detection.outcome` (`success`/`truncated`/`collapsed`/`timeout`/`error`), `detection.depth`, `detection.reroll`, `xynolog.kb` | traffic | Worker detection — one row per model call, failed attempts included |
+| `xynolog.detection.call.duration` | histogram   | `detection.label`, `detection.outcome`, `detection.depth`, `detection.reroll`, `xynolog.kb` | traffic | Worker detection per-call wall time |
+| `xynolog.detection.call.items` | histogram      | `detection.label`, `detection.outcome`, `detection.depth`, `detection.reroll`, `xynolog.kb` | traffic | Annotations returned per call — against input size, this is yield |
+| `xynolog.detection.call.tokens` | histogram     | `detection.label`, `detection.outcome`, `detection.depth`, `detection.reroll`, `detection.direction` (`input`/`output`), `xynolog.kb` | traffic | Provider-reported tokens per detection call; kept separate from `xynolog.inference.tokens` because that series carries no subdivision depth |
+| `xynolog.detection.anchors`  | counter          | `detection.label`, `anchor.method` (`unique-match`/`context-recovered`/`first-of-many`/`fuzzy-match`), `xynolog.kb` | traffic | Every annotation anchoring — the degraded-method **rate** is the precision signal, so clean outcomes are counted too |
 
-Of its memory (`semiont.runtime.heap`) the Worker service reports `total`, `limit` and `rss`,
+Of its memory (`xynolog.runtime.heap`) the Worker service reports `total`, `limit` and `rss`,
 and no `used`: Python keeps no count of how much of its heap is in use. Its `limit` is the
-container's own memory limit. It counts a `semiont.process.abnormal_exit` for a failure
+container's own memory limit. It counts a `xynolog.process.abnormal_exit` for a failure
 nothing caught once it had started, as `uncaughtException`.
 
-The Weaver is Python too. It exports the `semiont.process.*` and `semiont.runtime.*`
+The Weaver is Python too. It exports the `xynolog.process.*` and `xynolog.runtime.*`
 instruments as the Worker service does, with the same three readings of its memory, and no
 metric of its own. How many events it could not apply and how its two boot passes ended are
 what its health says.
 
-The Smelter is Python too. It exports the `semiont.process.*` and `semiont.runtime.*`
+The Smelter is Python too. It exports the `xynolog.process.*` and `xynolog.runtime.*`
 instruments as the Worker service does, with the same three readings of its memory, and this:
 
 | Metric                       | Type             | Attributes                                              | When    | What it is                                    |
 |------------------------------|------------------|---------------------------------------------------------|---------|-----------------------------------------------|
-| `semiont.vector.index.size`  | gauge            | (none)                                                  | export  | Points the vector index holds, of resources and of annotations together. The Smelter counts them once in each export interval; while the index does not answer the count, the series has no point |
+| `xynolog.vector.index.size`  | gauge            | (none)                                                  | export  | Points the vector index holds, of resources and of annotations together. The Smelter counts them once in each export interval; while the index does not answer the count, the series has no point |
 
 The rest is what its health says, of itself alone: the state of its stream of the record and
 how many times that stream has dropped, how many events it has applied, could not apply and
 has waiting, how its reconcile ended, and what its index is made by.
 
-The Librarian is Python too. It exports the `semiont.process.*` and `semiont.runtime.*`
+The Librarian is Python too. It exports the `xynolog.process.*` and `xynolog.runtime.*`
 instruments as the Worker service does, with the same three readings of its memory, the three
-`semiont.inference.*` rows for the requests it makes of its two models, and this:
+`xynolog.inference.*` rows for the requests it makes of its two models, and this:
 
 | Metric                       | Type             | Attributes                                              | When    | What it is                                    |
 |------------------------------|------------------|---------------------------------------------------------|---------|-----------------------------------------------|
-| `semiont.gather.degraded`    | counter          | `projection` (`graph`/`vectors`/`suggestions`/`summary`/`relationship`) | traffic | A gather that went without something: `graph`, the graph did not come to hold the resource and the gather failed; `vectors`, the vector index failed or did not settle in time and the context carries no similar passages; and three for what a model failed to give: `suggestions`, the summary and suggestions of a resource; `summary`, the summary of the resource an annotation links to; `relationship`, the relationship sentence. A rising `graph` or `vectors` rate means the Weaver or the Smelter is not keeping up, or the vector index is failing; a rising rate of the other three means the Gatherer's model is |
+| `xynolog.gather.degraded`    | counter          | `projection` (`graph`/`vectors`/`suggestions`/`summary`/`relationship`) | traffic | A gather that went without something: `graph`, the graph did not come to hold the resource and the gather failed; `vectors`, the vector index failed or did not settle in time and the context carries no similar passages; and three for what a model failed to give: `suggestions`, the summary and suggestions of a resource; `summary`, the summary of the resource an annotation links to; `relationship`, the relationship sentence. A rising `graph` or `vectors` rate means the Weaver or the Smelter is not keeping up, or the vector index is failing; a rising rate of the other three means the Gatherer's model is |
 
 No metric and no span says how long the Librarian took to answer a search or a gather.
 
@@ -400,12 +400,12 @@ When no SDK is initialized, or no span is active, neither field is added.
 
 ## Limitations
 
-- **Calls out to models and stores are not traced.** A call to Anthropic, Ollama, Neo4j or Qdrant has no span of its own. Inference is metered, by call, token and duration, in the `semiont.inference.*` metrics.
+- **Calls out to models and stores are not traced.** A call to Anthropic, Ollama, Neo4j or Qdrant has no span of its own. Inference is metered, by call, token and duration, in the `xynolog.inference.*` metrics.
 - **The Browser's spans name the operation, not the URL.** Its transport calls are traced as `bus.emit:mark:create` and the like; the underlying `fetch` is not instrumented separately.
 
 ## Related documentation
 
-- [Bus logging](../../../images/e2e/docs/bus-logging.md) — `busLog` format,
+- [Bus logging](https://github.com/xynolog/images/blob/main/e2e/docs/bus-logging.md) — `busLog` format,
   enable flags, e2e capture API.
 - [Architecture](../../architecture/ACTOR-MODEL.md) — actor topology and event-bus
   design that the trace and metric attributes describe.

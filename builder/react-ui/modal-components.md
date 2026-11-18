@@ -1,6 +1,6 @@
 # Modal Components
 
-This document describes the modal components available in @semiont/react-ui.
+This document describes the modal components available in @xynolog/react-ui.
 
 ## Overview
 
@@ -31,7 +31,7 @@ The props are the component's own — `ComponentProps<typeof SearchModal>`:
 #### Usage Example
 
 ```tsx
-import { SearchModal } from '@semiont/react-ui';
+import { SearchModal } from '@xynolog/react-ui';
 
 function GlobalSearch() {
   const [isOpen, setIsOpen] = useState(false);
@@ -75,15 +75,15 @@ Modal components use BEM-style CSS classes:
 
 ```css
 /* SearchModal */
-.semiont-search-modal
-.semiont-search-modal__backdrop
-.semiont-search-modal__panel
-.semiont-search-modal__input-container
-.semiont-search-modal__input
-.semiont-search-modal__results
-.semiont-search-modal__result
-.semiont-search-modal__result--selected
-.semiont-search-modal__empty
+.xynolog-search-modal
+.xynolog-search-modal__backdrop
+.xynolog-search-modal__panel
+.xynolog-search-modal__input-container
+.xynolog-search-modal__input
+.xynolog-search-modal__results
+.xynolog-search-modal__result
+.xynolog-search-modal__result--selected
+.xynolog-search-modal__empty
 ```
 
 ## Keyboard Shortcuts
@@ -109,7 +109,7 @@ Modal components use BEM-style CSS classes:
 `createSearchPipeline`):
 
 ```tsx
-import { SearchModal, useSemiont } from '@semiont/react-ui';
+import { SearchModal, useXynolog } from '@xynolog/react-ui';
 
 // The modal uses the SDK's Observable surface internally:
 // client.match.resources(search, { limit }) — debounced via RxJS. The fetch
@@ -122,11 +122,11 @@ import { SearchModal, useSemiont } from '@semiont/react-ui';
 
 ### Vite with React Router
 
-The Semiont Browser's own wrapper is `GlobalSearchModal`
+The Xynolog Browser's own wrapper is `GlobalSearchModal`
 (`images/browser/src/components/modals/GlobalSearchModal.tsx`).
 
 ```tsx
-import { SearchModal } from '@semiont/react-ui';
+import { SearchModal } from '@xynolog/react-ui';
 import { useNavigate } from 'react-router';
 
 export function ViteSearchModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {

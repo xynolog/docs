@@ -1,6 +1,6 @@
 # Build with the OCaml SDK
 
-Start with the [OCaml SDK README](../../packages/ocaml/sdk/README.md) to build and install the library. The examples use `Semiont.Client` from an Eio application.
+Start with the [OCaml SDK README](https://github.com/xynolog/sdk/blob/main/ocaml/sdk/README.md) to build and install the library. The examples use `Xynolog.Client` from an Eio application.
 
 ## Connect and manage lifetimes
 
@@ -12,7 +12,7 @@ For a script, use device sign-in or a saved launcher credential. For an interact
 
 Parse a resource identifier with `Identifiers.Resource_id.of_string`. Pass the identifier and your client to `Client.Browse.resource`. Read with `Client.fresh` or subscribe with `Client.observe`. The observation returns a release function. Call it when the view closes.
 
-See the [compiled builder example](../../packages/ocaml/sdk/examples/builder.ml) for a live resource observation and a delegated marking request. The example uses the existing client and returns the observation or job release function to the caller.
+See the [compiled builder example](https://github.com/xynolog/sdk/blob/main/ocaml/sdk/examples/builder.ml) for a live resource observation and a delegated marking request. The example uses the existing client and returns the observation or job release function to the caller.
 
 ## Delegate and follow a job
 

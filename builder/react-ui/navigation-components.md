@@ -1,6 +1,6 @@
 # Navigation Components
 
-The sidebar and menu navigation in `@semiont/react-ui`. None of these components imports a router
+The sidebar and menu navigation in `@xynolog/react-ui`. None of these components imports a router
 or an icon library: the host passes its `Link` (see [ROUTING.md](ROUTING.md)) and its icons as
 props, and the components report what the user did as events on the bus.
 
@@ -15,11 +15,11 @@ props, and the components report what the user did as events on the bus.
 ## CollapsibleResourceNavigation
 
 Props: `CollapsibleResourceNavigationProps`. The resources are the session's open resources
-(`OpenResource` from `@semiont/sdk`); `getResourceHref` turns a resource id into its path, which
+(`OpenResource` from `@xynolog/sdk`); `getResourceHref` turns a resource id into its path, which
 is usually `routes.resourceDetail`.
 
 ```tsx
-import { CollapsibleResourceNavigation } from '@semiont/react-ui';
+import { CollapsibleResourceNavigation } from '@xynolog/react-ui';
 import { Bars3Icon, ChevronLeftIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 
 <CollapsibleResourceNavigation
@@ -43,7 +43,7 @@ not stay on a resource that is no longer open.
 `navigationMenu`, when given, renders in a dropdown under the header and receives a function that
 closes it.
 
-The Semiont Browser's use is `images/browser/src/components/knowledge/KnowledgeNavigation.tsx`.
+The Xynolog Browser's use is `images/browser/src/components/knowledge/KnowledgeNavigation.tsx`.
 
 ## SimpleNavigation
 
@@ -51,7 +51,7 @@ Props: `SimpleNavigationProps`, with items of type `SimpleNavigationItem`. A tit
 items, and the same `Link`, `isCollapsed`, `icons` and dropdown (`dropdownContent`) as above. The
 collapse control emits `shell:sidebar-toggle`.
 
-The Semiont Browser's use is `images/browser/src/components/moderation/ModerationNavigation.tsx`.
+The Xynolog Browser's use is `images/browser/src/components/moderation/ModerationNavigation.tsx`.
 
 ## NavigationMenu
 
@@ -69,4 +69,4 @@ browser follows it.
 
 Each component's classes are defined beside it: `CollapsibleResourceNavigation.css`,
 `SimpleNavigation.css`, `NavigationMenu.css` and `NavigationTabs.css` in
-`packages/typescript/react-ui/src/components/navigation/`.
+sdk's `typescript/react-ui/src/components/navigation/`.

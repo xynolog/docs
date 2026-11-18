@@ -1,15 +1,15 @@
-# Developer Guide — building with the Semiont SDK
+# Developer Guide — building with the Xynolog SDK
 
-Task-oriented recipes for building a real system on `@semiont/sdk`, in roughly the order
+Task-oriented recipes for building a real system on `@xynolog/sdk`, in roughly the order
 you'll need them. Each recipe is a short description of the capability followed by the
 lines of TypeScript that exercise it.
 
-The same namespaces and methods are available in [Rust](../../packages/rust/sdk/README.md),
-[Python](../../packages/python/sdk/README.md), [Go](../../packages/go/sdk/README.md),
-[Kotlin and Java](../../packages/kotlin/sdk/README.md), [C#](../../packages/csharp/sdk/README.md),
-and [Swift](../../packages/swift/sdk/README.md). Each SDK's README has examples in its own language.
+The same namespaces and methods are available in [Rust](https://github.com/xynolog/sdk/blob/main/rust/sdk/README.md),
+[Python](https://github.com/xynolog/sdk/blob/main/python/sdk/README.md), [Go](https://github.com/xynolog/sdk/blob/main/go/README.md),
+[Kotlin and Java](https://github.com/xynolog/sdk/blob/main/kotlin/sdk/README.md), [C#](https://github.com/xynolog/sdk/blob/main/csharp/sdk/README.md),
+and [Swift](https://github.com/xynolog/sdk/blob/main/swift/sdk/README.md). Each SDK's README has examples in its own language.
 
-The [Haskell SDK](../../packages/haskell/sdk/README.md) follows the same contract
+The [Haskell SDK](https://github.com/xynolog/sdk/blob/main/haskell/sdk/README.md) follows the same contract
 with `IO`, STM and scoped streams. Its README covers local Cabal setup, sign-in,
 delegation, live queries, state units, workers and a registry.
 
@@ -28,25 +28,25 @@ For OCaml installation, sign-in, and live queries, see the [OCaml builder guide]
 
 ## 1. Connect — and stay connected
 
-For anything longer than a one-shot script, use **`SemiontSession`**: it refreshes the
+For anything longer than a one-shot script, use **`XynologSession`**: it refreshes the
 bearer token in the background, so long-running work doesn't die at the token TTL (a raw
-`SemiontClient` does). A script keeps its sign-in in a `SignInKept` — a `MemorySignIn` for
+`XynologClient` does). A script keeps its sign-in in a `SignInKept` — a `MemorySignIn` for
 the life of the process, `keptIn(storage, kb.id)` over a `SessionStorage`, or an entry of the
-`SignInStore` that `semiont login` keeps; a browser app's is kept in the `SemiontBrowser`'s
+`SignInStore` that `xynolog login` keeps; a browser app's is kept in the `XynologBrowser`'s
 storage. A script's session over its kept sign-in comes with the client it was built with
 (an `OpenedSession`), and `dispose()` on it ends both when done.
 
 ```typescript
-import { MemorySignIn, SemiontSession, httpKb } from '@semiont/sdk';
+import { MemorySignIn, XynologSession, httpKb } from '@xynolog/sdk';
 
 const kb = httpKb({ id: 'my-app', label: 'My KB', host: 'localhost', port: 4000, protocol: 'http' });
 const kept = new MemorySignIn();
-await SemiontSession.signInDevice({
+await XynologSession.signInDevice({
   kb,
   kept,
   onCode: ({ verificationUri, userCode }) => console.log(`Open ${verificationUri} and enter ${userCode}`),
 });
-const opened = await SemiontSession.fromKept({ kb, kept });
+const opened = await XynologSession.fromKept({ kb, kept });
 const { session } = opened;
 
 // … use session.client.{browse,gather,yield,mark,bind,match,frame,beckon} …
@@ -55,25 +55,25 @@ opened.dispose();   // the client it was built with, then the session
 ```
 
 Sign-in happens at the knowledge base's identity provider, never at the gateway:
-`SemiontSession.signInDevice(...)` for a script (the device grant — it prints a URL, the person
+`XynologSession.signInDevice(...)` for a script (the device grant — it prints a URL, the person
 approves in any browser, and the sign-in is kept where the script says) and
-`SemiontBrowser.beginSignIn` / `completeSignIn` for a browser app (authorization code with
+`XynologBrowser.beginSignIn` / `completeSignIn` for a browser app (authorization code with
 PKCE). Each gives a session that refreshes at the issuer: a script's, built by
-`SemiontSession.fromKept(...)`, comes with the client it was built with, to end together, and a
-browser app's is the `SemiontBrowser`'s to end. `signOut(kept)` revokes a script's sign-in at
+`XynologSession.fromKept(...)`, comes with the client it was built with, to end together, and a
+browser app's is the `XynologBrowser`'s to end. `signOut(kept)` revokes a script's sign-in at
 the issuer and forgets it.
-`SemiontClient` has no sign-in of its own: a bare token lives as long as the issuer says —
+`XynologClient` has no sign-in of its own: a bare token lives as long as the issuer says —
 minutes — with nothing to renew it. Already hold an access and refresh pair? Keep it in a
-`MemorySignIn` and open it with `SemiontSession.fromKept(...)`. A bare JWT? The `fromHttp(...)`
+`MemorySignIn` and open it with `XynologSession.fromKept(...)`. A bare JWT? The `fromHttp(...)`
 variants.
 → [Usage § Setup](./Usage.md#setup).
 
 **Discover local KBs (launcher-managed).** Before there's a session at all: on a machine
-running the Semiont launcher, the Browser's origin serves a live view of every KB the
+running the Xynolog launcher, the Browser's origin serves a live view of every KB the
 launcher manages. `subscribeDiscovery` polls it and emits diffs — no Host/Port typing:
 
 ```typescript
-import { httpDiscovery, subscribeDiscovery } from '@semiont/sdk';
+import { httpDiscovery, subscribeDiscovery } from '@xynolog/sdk';
 
 const sub = subscribeDiscovery(httpDiscovery()).subscribe(({ state, added, removed }) => {
   if (state.kind === 'absent') showManualEntryOnly(state.reason);  // no launcher detected
@@ -141,7 +141,7 @@ one bounded retry) — a lost or failing load surfaces in-band, never as `pendin
 and the stream itself never errors or terminates. Recovery is built in: a NEW subscription
 to the failed key (e.g. a component remount) clears the marker and starts a fresh attempt
 chain. A query that already holds a value never fails — stale-beats-error, the prior value
-stays visible through a failed refetch. → [CACHE-SEMANTICS.md](../../protocol/contract/CACHE-SEMANTICS.md) (B14–B15).
+stays visible through a failed refetch. → [CACHE-SEMANTICS.md](https://github.com/xynolog/protocol/blob/main/contract/CACHE-SEMANTICS.md) (B14–B15).
 
 **Read an annotation with the SDK's readers.** An annotation's `target` is a resource's id
 or an object, its selector is one selector or a list, and its `body` is absent, one item or
@@ -152,7 +152,7 @@ script checks none of them itself.
 import {
   getAnnotationExactText, getBodySource, getEntityTypes, getTargetSource,
   isResolvedReference, isStubReference,
-} from '@semiont/sdk';
+} from '@xynolog/sdk';
 
 const annotations = await session.client.browse.annotations(rId).fresh();
 for (const ann of annotations) {
@@ -175,10 +175,10 @@ for (const ann of annotations) {
 | What kind it is | `isHighlight`, `isReference`, `isAssessment`, `isComment`, `isTag` |
 | What it says | `getEntityTypes`, `getCommentText`, `getTagCategory`, `getTagSchemaId` |
 
-The other SDKs have the same readers (Rust's `semiont::annotations`, Python's `semiont.annotations`,
-the Go package `annotations`, Kotlin's `semiont.annotations`, C#'s `Semiont.Annotations`,
-Swift's `Semiont` module and Haskell's `Semiont.Annotations`), and one
-table, [`reader-cases.json`](../../protocol/specs/src/annotations/reader-cases.json), holds them all to
+The other SDKs have the same readers (Rust's `xynolog::annotations`, Python's `xynolog.annotations`,
+the Go package `annotations`, Kotlin's `xynolog.annotations`, C#'s `Xynolog.Annotations`,
+Swift's `Xynolog` module and Haskell's `Xynolog.Annotations`), and one
+table, [`reader-cases.json`](https://github.com/xynolog/protocol/blob/main/specs/src/annotations/reader-cases.json), holds them all to
 the same answer for the same annotation.
 
 Live subscriptions are how you get real-time updates: **freshness follows observation** —
@@ -222,7 +222,7 @@ const { resourceId } = await session.client.yield.resource({
 The params state the `motivation` and what that motivation takes: `'linking'` extracts
 entity references (the connections later retrieval reads as graph context), `'tagging'` applies
 a tag schema, plus `'highlighting'`/`'assessing'`/`'commenting'`. Each motivation takes its own
-params and no others — [the Mark flow](../../protocol/contract/flows/MARK.md#delegation) has the table. It's a long-running job —
+params and no others — [the Mark flow](https://github.com/xynolog/protocol/blob/main/contract/flows/MARK.md#delegation) has the table. It's a long-running job —
 `.run()` for progress. Each snapshot carries a `message` CODE with typed params rather than
 a sentence — the client owns the wording, so a browser localizes it and a CLI renders English
 from the same value. `detecting-entities` names the entity type being worked on, and the last,
@@ -264,7 +264,7 @@ job will be done with: `browse.engines()` returns the KB's engines as `EngineWit
 each entry an `engine`, a provider and a model, the jobs the KB's Inference document has it
 used for, as `jobs` (a list of `JobFilter`, the partial job descriptions a claim names), and
 its `limits` once the service holding its key reports them (all importable from
-`@semiont/core`). An engine is not a principal: a job is done by whichever worker claims it,
+`@xynolog/core`). An engine is not a principal: a job is done by whichever worker claims it,
 under its own account, and every annotation software creates carries a `generator` naming
 that worker's DID and the engine it used. A person who claims a job uses no engine. It's a
 KB-wide live query like `entityTypes()`: cached for the client's lifetime and refreshed after
@@ -272,7 +272,7 @@ a connection gap (changing the engines means restarting the stack, which always 
 one). Match a job to its engine and you know the model *before* the work runs:
 
 ```typescript
-import type { EngineWithLimits, JobFilter } from '@semiont/core';
+import type { EngineWithLimits, JobFilter } from '@xynolog/core';
 
 const engines: EngineWithLimits[] = await session.client.browse.engines().fresh();
 const linking = (f: JobFilter) => f.jobType === 'mark' && f.params.motivation === 'linking';
@@ -282,7 +282,7 @@ const linker = engines.find((e) => e.jobs?.some(linking));
 // engines only the librarian's actors ask (retrieval/search).
 ```
 
-(In React, feed any live query to `useObservable` from `@semiont/react-ui` — e.g.
+(In React, feed any live query to `useObservable` from `@xynolog/react-ui` — e.g.
 `useObservable(useMemo(() => session.client.browse.engines(), [session]))` — and the engines
 update in place.)
 
@@ -365,7 +365,7 @@ from `gather.annotation` — no extra ids to pass; the focus carries them.)
 branded — pass it straight to other methods.
 
 ```typescript
-import { reconcile } from '@semiont/sdk';
+import { reconcile } from '@xynolog/sdk';
 
 // passage anchor — position for speed, quote for robustness. `reconcile` finds
 // the words in the text and answers a span of the text's own: its offsets, which
@@ -404,7 +404,7 @@ To add a reference body to an *existing* annotation, use `bind.body(resourceId, 
 passage by quoting it, and may misquote it. `reconcile` is what finds the words in the text.
 The other two build a whole annotation, with an id derived from what the annotation is, so
 that building it again gives the same id. That is what a worker commits for a job it holds:
-see the [worker skill](skills/semiont-worker/SKILL.md).
+see the [worker skill](skills/xynolog-worker/SKILL.md).
 
 | To do | Builder |
 |---|---|
@@ -416,11 +416,11 @@ A span that is not the text's is refused: `annotationOfSpan` throws a `SpanRefus
 whose `code` names the refusal. `reconcile` is one way to find a model's words, with its own
 tolerance for a misquote; a span found another way is built the same.
 
-The other SDKs have the same three (Rust's `semiont::annotations`, Python's `semiont.annotations`,
-the Go package `annotations`, Kotlin's `semiont.annotations`, C#'s `Semiont.Annotations`,
-Swift's `Semiont` module and Haskell's `Semiont.Annotations`), and two
-tables, [`reconcile-cases.json`](../../protocol/specs/src/annotations/reconcile-cases.json) and
-[`builder-cases.json`](../../protocol/specs/src/annotations/builder-cases.json), hold them all to
+The other SDKs have the same three (Rust's `xynolog::annotations`, Python's `xynolog.annotations`,
+the Go package `annotations`, Kotlin's `xynolog.annotations`, C#'s `Xynolog.Annotations`,
+Swift's `Xynolog` module and Haskell's `Xynolog.Annotations`), and two
+tables, [`reconcile-cases.json`](https://github.com/xynolog/protocol/blob/main/specs/src/annotations/reconcile-cases.json) and
+[`builder-cases.json`](https://github.com/xynolog/protocol/blob/main/specs/src/annotations/builder-cases.json), hold them all to
 the same answer.
 
 ## 10. Find link candidates (semantic search)
@@ -471,7 +471,7 @@ passes, the SDK asks for the job to be cancelled and the call rejects as
 to choose your own:
 
 ```typescript
-import { GenerationStallError } from '@semiont/sdk';
+import { GenerationStallError } from '@xynolog/sdk';
 
 try {
   await session.client.yield.delegate(params, 90_000);
@@ -483,17 +483,17 @@ try {
 
 ## 13. Handle errors
 
-Everything thrown through the SDK extends `SemiontError` with a discriminated `code`. Catch
+Everything thrown through the SDK extends `XynologError` with a discriminated `code`. Catch
 broadly and route on `code`; reach for `BusRequestError` for bus-specific cases.
 
 ```typescript
-import { SemiontError, BusRequestError } from '@semiont/sdk';
+import { XynologError, BusRequestError } from '@xynolog/sdk';
 
 try {
   await session.client.mark.annotation(input);
 } catch (e) {
   if (e instanceof BusRequestError && e.code === 'bus.timeout') retry();
-  else if (e instanceof SemiontError && e.code === 'unauthorized') reauthenticate();
+  else if (e instanceof XynologError && e.code === 'unauthorized') reauthenticate();
   else throw e;
 }
 ```
@@ -522,13 +522,13 @@ Disposal is terminal, in both directions:
   silently doing nothing. That throw is a lifecycle bug in the caller made visible: keep
   UI handlers and timers from outliving the session they capture.
 
-## Render a resource in the browser — the embeddable viewer (`@semiont/react-ui`)
+## Render a resource in the browser — the embeddable viewer (`@xynolog/react-ui`)
 
 Everything above is transport- and UI-agnostic SDK. When the host *is* a browser app,
-`@semiont/react-ui` ships a **bring-your-own-session** `ResourceViewer`: it renders a
+`@xynolog/react-ui` ships a **bring-your-own-session** `ResourceViewer`: it renders a
 resource's content plus its annotation overlay (highlights, references, comments, tags) for
-any media type, and routes reference clicks back to your own navigation. No `SemiontProvider`,
-no cache or translation context — it consumes the same `SemiontSession` you built in recipe 1.
+any media type, and routes reference clicks back to your own navigation. No `XynologProvider`,
+no cache or translation context — it consumes the same `XynologSession` you built in recipe 1.
 
 Two hooks load from that session's client (both take the bare `session.client`, not a
 provider): `useResourceLoader` for the resource and its grouped annotations, and
@@ -539,12 +539,12 @@ viewer stays agnostic about how bytes arrive.
 
 ```tsx
 import { useState, useEffect } from 'react';
-import { ResourceViewer, useResourceLoader, useMediaToken } from '@semiont/react-ui';
-import { resourceId, type SemiontSession } from '@semiont/sdk';
-import { capabilitiesOf, decodeWithCharset, getPrimaryMediaType } from '@semiont/core';
+import { ResourceViewer, useResourceLoader, useMediaToken } from '@xynolog/react-ui';
+import { resourceId, type XynologSession } from '@xynolog/sdk';
+import { capabilitiesOf, decodeWithCharset, getPrimaryMediaType } from '@xynolog/core';
 
 function ResourcePane({ session, id, onOpenResource }: {
-  session: SemiontSession;
+  session: XynologSession;
   id: string;
   onOpenResource: (resourceId: string) => void;   // host-owned nav for a followed reference
 }) {
@@ -589,7 +589,7 @@ reference navigations flow as `mark:*` / `browse:*` / `panel:open` events on `se
 so an edit made elsewhere updates the open document live, with no refetch (recipe 11). Pass
 `onOpenPanel` if your shell has side panels; omit it for a bare view. For annotate mode, the
 overridable browse-renderer registry, and the batteries-included provider-based variant
-(`ResourceViewerPage`), see `@semiont/react-ui`.
+(`ResourceViewerPage`), see `@xynolog/react-ui`.
 
 **Mounting many viewers on one session** (a chat log where every message is a resource, a
 split-pane comparison) works on this same seam: in annotate mode each viewer emits its
@@ -615,17 +615,17 @@ Sessions built through `createHttpSessionFactory` persist their read caches thro
 same `SessionStorage` adapter the session layer already uses — so a reloaded client
 renders **last-seen data immediately** and reconciles in the background instead of
 cold-starting every request. In the browser this is on by default (the react-ui
-`SemiontProvider` supplies `WebBrowserStorage`); a desktop or Node host gets it by
+`XynologProvider` supplies `WebBrowserStorage`); a desktop or Node host gets it by
 supplying its own `SessionStorage` — no other wiring.
 
 What persists, per KB and per person (`<p>` is `personKey(did)` of the did the
 gateway answers for the token, recorded on the stored sign-in once it answers):
 - Five browse caches — the queries `refresh.json` marks `persisted`: `resource`,
   `annotations`, `annotation`, `entityTypes`, `tagSchemas` — under
-  `semiont.cache.<kbId>.<p>.<name>`. Lists, event histories, and the engines
+  `xynolog.cache.<kbId>.<p>.<name>`. Lists, event histories, and the engines
   deliberately stay in-memory.
 - The last **persisted** SSE event id PER SCOPE (a record under
-  `semiont.lastEventId.<kbId>.<p>`), written only alongside cache-document flushes
+  `xynolog.lastEventId.<kbId>.<p>`), written only alongside cache-document flushes
   so the bookmark can never claim more than the caches contain. Ephemeral
   (`e-*`) ids are never saved: they carry no replay meaning.
 
@@ -640,7 +640,7 @@ not name its person, here or in another tab, discards what it has not written an
 writes nothing more. A client you assemble yourself, with a cache persistence you
 make, writes unchecked. What two programs sharing one storage can still race on,
 and what other code in the same program can, is in
-[CACHE-SEMANTICS.md](../../protocol/contract/CACHE-SEMANTICS.md) (B17, item 6).
+[CACHE-SEMANTICS.md](https://github.com/xynolog/protocol/blob/main/contract/CACHE-SEMANTICS.md) (B17, item 6).
 
 How reconciliation works — there is no reconcile code path, only the existing
 contract: rehydrated entries serve immediately (plus one background
@@ -655,27 +655,27 @@ debounced with a flush on dispose, and stored documents are version-gated
 Constructing a client directly (no factory)? Opt in explicitly:
 
 ```ts
-import { SemiontClient, HttpTransport, HttpContentTransport, baseUrl as brandBaseUrl, personKey } from '@semiont/sdk';
-import { BRIDGED_CHANNELS } from '@semiont/core';
+import { XynologClient, HttpTransport, HttpContentTransport, baseUrl as brandBaseUrl, personKey } from '@xynolog/sdk';
+import { BRIDGED_CHANNELS } from '@xynolog/core';
 
 const raw = new HttpTransport({ baseUrl: brandBaseUrl('http://localhost:4000'), channels: BRIDGED_CHANNELS, token$ });
-const client = new SemiontClient(raw, new HttpContentTransport(raw), raw, {
+const client = new XynologClient(raw, new HttpContentTransport(raw), raw, {
   cachePersistence: { storage, kbId, personKey: personKey(did) },
 });
 ```
 
-Full behavioral contract: [CACHE-SEMANTICS.md](../../protocol/contract/CACHE-SEMANTICS.md) **B17**.
+Full behavioral contract: [CACHE-SEMANTICS.md](https://github.com/xynolog/protocol/blob/main/contract/CACHE-SEMANTICS.md) **B17**.
 
 ---
 
-## Testing your consumer — `@semiont/sdk/testing`
+## Testing your consumer — `@xynolog/sdk/testing`
 
 Test consumer behavior against the **real SDK pathway**, not a hand-rolled mock of it.
-The SDK ships a contract double: a real `SemiontClient` (real caches, real
+The SDK ships a contract double: a real `XynologClient` (real caches, real
 `Bus.request`, real namespaces) over a scriptable transport.
 
 ```ts
-import { createTestClient, refuseUnscriptedOperation } from '@semiont/sdk/testing';
+import { createTestClient, refuseUnscriptedOperation } from '@xynolog/sdk/testing';
 
 const { client, transport } = createTestClient({
   transport: {
@@ -691,11 +691,11 @@ transport.state$.next('connecting');            // hold the attach gate
 
 `queueReply` takes the `response`. A reply that names what it answers for beside
 it, as a gathered context names its resource, takes that from the request, as a
-gateway's does. `fail` reports a `SemiontError` on the transport's `errors$`, as a
+gateway's does. `fail` reports a `XynologError` on the transport's `errors$`, as a
 transport reports a request the gateway refused, so a session over it says the
 failure on its own errors.
 
-For state-unit factories — which take a `SemiontSession` — `createTestSession()`
+For state-unit factories — which take a `XynologSession` — `createTestSession()`
 returns a real session over the same transport (`{ session, client, transport,
 storage, token$ }`).
 
@@ -743,6 +743,6 @@ after that.
 - **[Usage.md](./Usage.md)** — the per-namespace reference: every method, every option.
 - **[REACTIVE-MODEL.md](./REACTIVE-MODEL.md)** — return shapes, await-vs-subscribe, the bus.
 - **[STATE-UNITS.md](./STATE-UNITS.md)** — the state-unit pattern for reactive UIs.
-- **[@semiont/react-ui](../../packages/typescript/react-ui/README.md)** — React components for browser UIs, including the embeddable `ResourceViewer` shown above.
-- **[CACHE-SEMANTICS.md](../../protocol/contract/CACHE-SEMANTICS.md)** — the read-through cache contract behind `browse.*`.
-- **[`protocol/contract/`](../../protocol/contract/README.md)** — the contract: the eight verbs, the bus, and what every SDK is held to.
+- **[@xynolog/react-ui](https://github.com/xynolog/sdk/blob/main/typescript/react-ui/README.md)** — React components for browser UIs, including the embeddable `ResourceViewer` shown above.
+- **[CACHE-SEMANTICS.md](https://github.com/xynolog/protocol/blob/main/contract/CACHE-SEMANTICS.md)** — the read-through cache contract behind `browse.*`.
+- **[`protocol/contract/`](https://github.com/xynolog/protocol/blob/main/contract/README.md)** — the contract: the eight verbs, the bus, and what every SDK is held to.

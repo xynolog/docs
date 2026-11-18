@@ -1,6 +1,6 @@
 # Media Types and the Flow
 
-Every resource in Semiont travels the same path: **yield → smelt → weave →
+Every resource in Xynolog travels the same path: **yield → smelt → weave →
 annotate**. What differs between a Markdown note and a scanned PDF is not the
 path but what each stage is *able to do* — and that is declared in one place, as
 data, not scattered through the code that consumes it.
@@ -11,12 +11,12 @@ the only type that exercises every axis at its hardest setting.
 
 ## The declaration
 
-[`protocol/specs/src/media-types/registry.json`](../../protocol/specs/src/media-types/registry.json)
+[`protocol/specs/src/media-types/registry.json`](https://github.com/xynolog/protocol/blob/main/specs/src/media-types/registry.json)
 holds one row per supported type. Every SDK generates its table from it:
-TypeScript's is `MEDIA_TYPES` in `packages/typescript/core/src/media-types.ts`, Rust's is
-`semiont::media_types`, Python's is `MEDIA_TYPES` in
-`semiont.media_types_table`, and Go's is `mediatypes.Rows` in
-`packages/go/sdk/mediatypes`, which the launcher reads to name an upload's
+TypeScript's is `MEDIA_TYPES` in sdk's `typescript/core/src/media-types.ts`, Rust's is
+`xynolog::media_types`, Python's is `MEDIA_TYPES` in
+`xynolog.media_types_table`, and Go's is `mediatypes.Rows` in
+sdk's `go/mediatypes`, which the launcher reads to name an upload's
 format from its file extension. TypeScript's and Rust's tables carry every
 column. Python's carries a type's extension, its `textSource`, and whether it
 is `authorable` and `generatable`; Go's carries the extension alone. A row, as
@@ -42,7 +42,7 @@ build. That is why behavior can be described by reading one table.
 
 The rules read from the table that more than one SDK applies (the format a
 clone takes, the name content is stored under) are stated as cases in
-[`protocol/specs/src/media-types/cases.json`](../../protocol/specs/src/media-types/cases.json),
+[`protocol/specs/src/media-types/cases.json`](https://github.com/xynolog/protocol/blob/main/specs/src/media-types/cases.json),
 and each SDK runs them.
 
 | Media type | `render` | `anchoring` | `textSource` |
@@ -105,16 +105,16 @@ textual — and everything else is `none`. The Rust, Python, Go and Kotlin SDKs
 read the column from their own generated tables and answer the same, a registry
 miss included (`text_source_of` in Rust's and Python's `media_types`,
 `TextSourceOf` in Go's `mediatypes`, `textSourceOf` within Kotlin's
-`semiont.mediatypes`); the case table `protocol/specs/src/media-types/cases.json` holds
+`xynolog.mediatypes`); the case table `protocol/specs/src/media-types/cases.json` holds
 the five to one answer.
 
 - **`decode`** — charset-aware passthrough. The text *is* the bytes. Free.
   What text the bytes are is protocol:
-  [the text of a resource](../../protocol/contract/W3C-SELECTORS.md#the-text-of-a-resource)
+  [the text of a resource](https://github.com/xynolog/protocol/blob/main/contract/W3C-SELECTORS.md#the-text-of-a-resource)
   states it, as a browser reads a content type and the bytes behind it, and
   two tables every reader runs hold it
-  ([`decode-cases.json`](../../protocol/specs/src/text/decode-cases.json) and
-  [`encoding-cases.json`](../../protocol/specs/src/text/encoding-cases.json)). An offset
+  ([`decode-cases.json`](https://github.com/xynolog/protocol/blob/main/specs/src/text/decode-cases.json) and
+  [`encoding-cases.json`](https://github.com/xynolog/protocol/blob/main/specs/src/text/encoding-cases.json)). An offset
   is counted in that text, so a reader that made another text of the same
   bytes would put its annotations somewhere else.
 - **`pdf-text-layer`** — parse the content stream, and where a page has no
@@ -132,8 +132,8 @@ work:
 | who may do it | anyone holding bytes | the Smelter alone — it needs the store |
 
 So they are separate surfaces, and a call site cannot mistake one for the other:
-decoding is every SDK's (`decodeRepresentation` in `@semiont/core`); deriving is
-the Smelter's alone ([images/smelter](../../images/smelter/), `extraction.py`), and
+decoding is every SDK's (`decodeRepresentation` in `@xynolog/core`); deriving is
+the Smelter's alone ([images/smelter](https://github.com/xynolog/images/tree/main/smelter), `extraction.py`), and
 it stores what it derives.
 
 **Whether a type's text comes with places on a page is derived from this field**,
@@ -158,7 +158,7 @@ media-type table of exactly the kind this registry exists to prevent.
 
 ## Authored PDFs: geometry chosen, not recovered
 
-`application/pdf` is the one type Semiont both **reads** and **writes**, and the
+`application/pdf` is the one type Xynolog both **reads** and **writes**, and the
 two directions differ in a way worth stating, because the axes above describe
 the reading direction only.
 
@@ -226,9 +226,9 @@ exists because of one of those three declarations.
    recognition pass for the lifetime of those bytes.
 6. **It lands in the anchored-text store, at `{ab}/{cd}/{checksum}.json`**,
    filed by the arithmetic the event log files a resource's events by
-   ([`shard-cases.json`](../../protocol/specs/src/archivist/shard-cases.json)). The store
+   ([`shard-cases.json`](https://github.com/xynolog/protocol/blob/main/specs/src/archivist/shard-cases.json)). The store
    is a directory the deployment supplies, kept per knowledge base, so it
-   survives a restart and `semiont clean --store anchored-text` can reclaim it.
+   survives a restart and `xynolog clean --store anchored-text` can reclaim it.
 7. **Smelter chunks, embeds, and writes vectors.**
 8. **It emits `smelt:settled { resourceId, contentChecksum, outcome }`** —
    `indexed` or `skipped`. The vector stamp is written *before* this fires, so
@@ -238,7 +238,7 @@ There is exactly one writer of that artifact: the Smelter.
 
 ### The artifact's shape
 
-Both directions over a PDF use one type, `AnchoredText` in `@semiont/core`:
+Both directions over a PDF use one type, `AnchoredText` in `@xynolog/core`:
 
 ```ts
 interface AnchoredText { text: string; items: PdfTextItem[] }
@@ -335,7 +335,7 @@ is held and has nothing under the shape.
     **fails loudly on partial completion**. That matters because a silently
     incomplete rebuild presents as a missing quote, which is also what a document
     with genuinely no text looks like.
-17. **`semiont clean --store anchored-text`** reclaims the tree. Everything in it
+17. **`xynolog clean --store anchored-text`** reclaims the tree. Everything in it
     is reproducible from bytes, so deleting costs recomputation and never data.
 
 ## What the other media types skip
@@ -464,6 +464,6 @@ decide each axis knowingly:
 ## Related
 
 - **[ANCHORING.md](ANCHORING.md)** — the anchoring pipeline in depth.
-- **[../../protocol/contract/W3C-SELECTORS.md](../../protocol/contract/W3C-SELECTORS.md)** — the selector types, and which apply to which anchoring model.
-- **[../../protocol/contract/ARCHIVIST.md](../../protocol/contract/ARCHIVIST.md)** — the wait step 8 relies on: a read of anchored text waits for the Smelter to settle.
-- **[../../protocol/contract/TRANSPORT-CONTRACT.md](../../protocol/contract/TRANSPORT-CONTRACT.md)** — where the artifact crosses a process boundary.
+- **[../../protocol/contract/W3C-SELECTORS.md](https://github.com/xynolog/protocol/blob/main/contract/W3C-SELECTORS.md)** — the selector types, and which apply to which anchoring model.
+- **[../../protocol/contract/ARCHIVIST.md](https://github.com/xynolog/protocol/blob/main/contract/ARCHIVIST.md)** — the wait step 8 relies on: a read of anchored text waits for the Smelter to settle.
+- **[../../protocol/contract/TRANSPORT-CONTRACT.md](https://github.com/xynolog/protocol/blob/main/contract/TRANSPORT-CONTRACT.md)** — where the artifact crosses a process boundary.

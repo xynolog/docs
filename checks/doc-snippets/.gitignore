@@ -1,2 +1,6 @@
 # The snippets extracted from the docs, compiled here
 /.generated/
+# What CI installs and checks out for the check
+/node_modules/
+/package-lock.json
+/.xynolog-sdk/

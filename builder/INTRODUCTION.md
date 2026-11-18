@@ -1,4 +1,4 @@
-# Introduction: Semiont for builders
+# Introduction: Xynolog for builders
 
 This is the orientation chapter — read it before any other doc in this
 directory. It installs the mental model and the map, then points you at the
@@ -6,16 +6,16 @@ directory. It installs the mental model and the map, then points you at the
 web apps for a living; it does not assume you've built AI apps, or that
 "annotation" and "knowledge graph" mean anything to you yet.
 
-## What Semiont is
+## What Xynolog is
 
-Semiont is a knowledge base: a server that holds documents *and everything
+Xynolog is a knowledge base: a server that holds documents *and everything
 anyone has noticed about them* — where "anyone" includes both the humans on a
 project and the AI agents working alongside them. Highlights, comments,
 cross-references, AI-proposed links, generated answers: all first-class data,
 all live, all shared between every connected client.
 
 The problem it exists to solve: AI that answers from your documents is easy to
-demo and hard to trust. Semiont's answer is structural — every generated claim
+demo and hard to trust. Xynolog's answer is structural — every generated claim
 is grounded in material the system can point back to, and the pointing is a
 thing you can click. Not "sources: [1] [2]" at the bottom of a blob of text;
 each claim anchored to the exact passage that supports it, as data your app can
@@ -26,7 +26,7 @@ render, traverse, and audit.
 ### One wire, not many endpoints
 
 A typical web app calls a REST endpoint per action and re-fetches to learn what
-changed. A Semiont client opens one persistent connection to an **event bus**.
+changed. A Xynolog client opens one persistent connection to an **event bus**.
 Requests are messages with correlated replies; changes — yours, another user's,
 an AI job's — arrive as events on the same wire. This is the idea to *unlearn
 around*: everything that looks unusual downstream (live data without polling,
@@ -39,7 +39,7 @@ text — think of a GitHub PR review comment promoted to first-class data. It ha
 a standard shape: a *target* (which document, which character range, the quoted
 text), a *motivation* (`commenting`, `highlighting`, `linking`, …), and a
 *body* (for a link, a pointer to another document). The shape follows the W3C
-Web Annotation model, so it isn't a Semiont invention you have to trust.
+Web Annotation model, so it isn't a Xynolog invention you have to trust.
 
 Once spans in one document link to other documents, your pile of files is a
 **graph**. That's all "knowledge graph" means here: documents are nodes,
@@ -61,13 +61,13 @@ context, not as invisible retrieval you have to hope got it right.
 ```
 your app            (product logic, routing, composition)
    │
-framework binding   @semiont/react-ui — React components + hooks
+framework binding   @xynolog/react-ui — React components + hooks
    │
-language SDK        @semiont/sdk (TypeScript) · semiont (Rust)
+language SDK        @xynolog/sdk (TypeScript) · xynolog (Rust)
    │
 the contract        bus protocol, annotation model, job lifecycle
    │
-Semiont gateway
+Xynolog gateway
 ```
 
 Three claims about this picture, in decreasing order of how often people
@@ -75,20 +75,20 @@ believe them at first:
 
 1. **The contract is the product.** The bus protocol, the annotation model, and
    the job lifecycle are specified independently of any language (see
-   [`protocol/contract/`](../../protocol/contract/)). Everything above that line is
+   [`protocol/contract/`](https://github.com/xynolog/protocol/tree/main/contract)). Everything above that line is
    a projection of the contract.
 
-2. **Language SDKs are peers.** This book uses `@semiont/sdk` — the
+2. **Language SDKs are peers.** This book uses `@xynolog/sdk` — the
    TypeScript/npm SDK — as its vehicle. The Rust SDK
-   ([`semiont`](../../packages/rust/sdk/README.md), with
-   [`semiont-http-transport`](../../packages/rust/http-transport/README.md)) has the
+   ([`xynolog`](https://github.com/xynolog/sdk/blob/main/rust/sdk/README.md), with
+   [`xynolog-http-transport`](https://github.com/xynolog/sdk/blob/main/rust/http-transport/README.md)) has the
    same client, cache, state units and sessions, and is held to the same
    shared case tables and conformance suite; its README maps each shape in
    this book to its Rust form. The Python SDK
-   ([`semiont`](../../packages/python/sdk/README.md)) has the same client,
+   ([`xynolog`](https://github.com/xynolog/sdk/blob/main/python/sdk/README.md)) has the same client,
    cache, state units and sessions on asyncio, typed for `mypy` and `pyright`,
    and is held to the same tables and the same suite. The Go SDK
-   ([`go/sdk`](../../packages/go/sdk/README.md)), the module the `semiont`
+   ([`go/sdk`](https://github.com/xynolog/sdk/blob/main/go/README.md)), the module the `xynolog`
    launcher is built on, has the same client, cache, state units and
    sessions, with a context on every call that waits and an iterator for
    every sequence, and is held to the same tables and the same suite. The
@@ -97,7 +97,7 @@ believe them at first:
    pseudocode with a working implementation.
 
 3. **Framework bindings sit above the SDK, not inside it.**
-   [`@semiont/react-ui`](../../packages/typescript/react-ui/) is the one binding.
+   [`@xynolog/react-ui`](https://github.com/xynolog/sdk/tree/main/typescript/react-ui) is the one binding.
    But the SDK is deliberately framework-free — plain classes and observables,
    no React anywhere — so a Vue or Svelte binding is a seam awaiting an author,
    not a rearchitecture.
@@ -110,7 +110,7 @@ it.
 The SDK's own shape, in one sentence: you open a **session** (sign-in and token
 refresh handled for you) and get a **client** whose namespaces are **the eight
 verbs of the protocol** — four that write, three that read, and one that directs
-attention, as in [`protocol/contract/flows/`](../../protocol/contract/flows/README.md):
+attention, as in [`protocol/contract/flows/`](https://github.com/xynolog/protocol/blob/main/contract/flows/README.md):
 
 | | Verb | What it does |
 |---|---|---|
@@ -136,7 +136,7 @@ promise. Subscribe to it — in React, via react-ui's `useObservable` — and yo
 get a `CacheState`:
 
 ```tsx
-import { useObservable } from '@semiont/react-ui';
+import { useObservable } from '@xynolog/react-ui';
 
 const state = useObservable(session.client.browse.resources());
 // state: { status: 'pending' }
@@ -160,7 +160,7 @@ The one escape hatch is `.fresh()`: an explicit one-shot fetch for "I want the
 latest, right now." The division of labor is deliberate — a cache read and a
 gateway request are different types, so "which one am I doing?" is impossible
 to get wrong. The full behavioral contract, numbered and test-cited, is
-[CACHE-SEMANTICS](../../protocol/contract/CACHE-SEMANTICS.md); the design rationale is
+[CACHE-SEMANTICS](https://github.com/xynolog/protocol/blob/main/contract/CACHE-SEMANTICS.md); the design rationale is
 [REACTIVE-MODEL](./REACTIVE-MODEL.md).
 
 ## A chat turn in one page
@@ -169,11 +169,11 @@ The heart of a document-grounded chat app, abridged from a real one. Watch the
 verbs compose:
 
 ```ts
-import { MemorySignIn, SemiontSession } from '@semiont/sdk';
+import { MemorySignIn, XynologSession } from '@xynolog/sdk';
 
 const kept = new MemorySignIn();
-await SemiontSession.signInDevice({ kb, kept, onCode });
-const opened = await SemiontSession.fromKept({ kb, kept });
+await XynologSession.signInDevice({ kb, kept, onCode });
+const opened = await XynologSession.fromKept({ kb, kept });
 const { client } = opened.session;
 
 // 1. Persist the question as a document in its own right.
@@ -223,13 +223,13 @@ every method's options are in [Usage](./Usage.md).
 
 ## Testing is part of the contract
 
-The SDK ships its own test double, and it's not a mock: `@semiont/sdk/testing`
+The SDK ships its own test double, and it's not a mock: `@xynolog/sdk/testing`
 gives you a **real** client and session over a scriptable fake transport.
 Script the replies; drive your code; then assert what your app *actually sent*
 off the transport's request log:
 
 ```ts
-import { createTestSession, refuseUnscriptedOperation } from '@semiont/sdk/testing';
+import { createTestSession, refuseUnscriptedOperation } from '@xynolog/sdk/testing';
 
 const { session, transport } = createTestSession({
   transport: { makeResponse: (op) => (op === 'job:create' ? { jobId: 'job-1' } : refuseUnscriptedOperation(op)) },
@@ -251,7 +251,7 @@ DEVELOPER-GUIDE's testing section.
 
 A fair question to ask before adopting anything. What a coding agent
 can produce quickly is a demo that *gestures* at the shape — a documents
-table, a comments field, a websocket. Semiont's actual shape is another
+table, a comments field, a websocket. Xynolog's actual shape is another
 matter. The protocol registry alone defines some two hundred bus channels and
 more than forty correlated request/reply operations; the wire carries more than
 two hundred and fifty schemas; around them sit a launcher that runs the fleet in containers
@@ -273,12 +273,12 @@ inventing one. Nearly every clause of those contracts answers a
 subtle bug or a hard design call. A scaffolded lookalike meets them
 one production incident at a time.
 
-That's the trade Semiont offers a team building a custom AI or knowledge
+That's the trade Xynolog offers a team building a custom AI or knowledge
 application: the plumbing — transport, caching, live collaboration, grounding,
 job lifecycle — arrives designed, contracted, and tested, which is months you
 don't spend before your product exists. And the decisions that make your
 product *yours* stay open: your domain model, your UX, your framework above
-the SDK, which verbs your app leans on and how. Semiont is deliberately
+the SDK, which verbs your app leans on and how. Xynolog is deliberately
 unopinionated exactly where product teams need to differ.
 
 To be fair about the easy case: if all you need is one user asking questions
@@ -297,7 +297,7 @@ For some teams, that trajectory isn't optional. In work where every claim
 must trace to its source — regulated filings, evidence-backed research, legal
 and policy analysis — grounding isn't a feature, it's the job, and today it's
 enforced by process: review passes, citation checks, humans auditing humans.
-Semiont's bet is that the discipline belongs in the substrate. When
+Xynolog's bet is that the discipline belongs in the substrate. When
 provenance is recorded by construction, the oversight that's heroic today
 becomes ordinary review.
 
@@ -306,7 +306,7 @@ good raw material *for* AI coding tools. Typed verb namespaces, discriminated-un
 behavioral contracts, and a real test double are precisely the context a
 coding agent needs to write correct consumer code — and honest tests — on the
 first pass. Point your agent at these docs and build fast. The short version:
-vibe-code your app on Semiont; don't vibe-code your own Semiont.
+vibe-code your app on Xynolog; don't vibe-code your own Xynolog.
 
 ## What you need, and where to go next
 
@@ -319,8 +319,8 @@ Where to go by goal:
 - **Understand why the API is shaped this way** —
   [REACTIVE-MODEL](./REACTIVE-MODEL.md), then
   [STATE-UNITS](./STATE-UNITS.md).
-- **Depend on exact behavior** — [CACHE-SEMANTICS](../../protocol/contract/CACHE-SEMANTICS.md) and
-  the wire-level contracts in [`protocol/contract/`](../../protocol/contract/).
+- **Depend on exact behavior** — [CACHE-SEMANTICS](https://github.com/xynolog/protocol/blob/main/contract/CACHE-SEMANTICS.md) and
+  the wire-level contracts in [`protocol/contract/`](https://github.com/xynolog/protocol/tree/main/contract).
 - **Not a React shop? Not a TypeScript shop?** The concepts here and in the
   explanation docs are yours as-is; treat the binding- and language-specific
   material as a worked example of a pattern your stack will repeat.

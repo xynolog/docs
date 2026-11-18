@@ -1,6 +1,6 @@
 # Reactive Model
 
-The Semiont SDKs are for collaborative **knowledge work** — humans and AI agents working as peers on a shared corpus across one or many machines. That collaboration shapes their design: live queries, progress streams, and cross-participant attention signals are all first-class, not data-API afterthoughts.
+The Xynolog SDKs are for collaborative **knowledge work** — humans and AI agents working as peers on a shared corpus across one or many machines. That collaboration shapes their design: live queries, progress streams, and cross-participant attention signals are all first-class, not data-API afterthoughts.
 
 So a client's methods do not all return the same kind of thing. Some are asked once and answered once. Others have values over time. Every SDK sorts its methods into the same nine shapes, and differs only in how its language says "later": Promises and RxJS Observables in TypeScript; futures, streams and `watch` receivers in Rust; coroutines, async iterators and `async with` in Python; iterators and contexts in Go; `suspend` functions and `Flow`s in Kotlin, futures and publishers where Java calls the Kotlin client, tasks and async enumerables in C#, async functions and `AsyncSequence`s in Swift, and `IO` actions, STM reads and scoped `streaming` readers in Haskell. This doc states the shapes first, then each language's form of them.
 
@@ -14,18 +14,18 @@ Each SDK makes the same choice: the form that can be read over time is the primi
 
 ## The nine shapes
 
-Every namespace method returns exactly one of these. Which one is the method's row in [`protocol/specs/src/client/surface.json`](../../protocol/specs/src/client/surface.json), the table every SDK is held to: `lint:client-surface` fails a method whose signature is not its row's.
+Every namespace method returns exactly one of these. Which one is the method's row in [`protocol/specs/src/client/surface.json`](https://github.com/xynolog/protocol/blob/main/specs/src/client/surface.json), the table every SDK is held to: `lint:client-surface` fails a method whose signature is not its row's.
 
 | Shape | What it is | TypeScript | Rust | Python | Go | Kotlin | C# | Swift | Haskell |
 |---|---|---|---|---|---|---|---|---|---|
-| `promise` | Asked once, answered once: the value, or a failure with a code. | `Promise<T>` | `async fn … -> Result<T, SemiontError>` | `async def … -> T`, raising a `SemiontError` | a method given a `context.Context`, returning `(T, error)` | `suspend fun … : T`, throwing a `SemiontError`; for Java, its twin returning a `CompletableFuture<T>` | `Task<T>` or `Task` | `async throws -> T`, throwing an error with a code, such as `BusRequestError` | `IO value`, throwing an exception with a code, such as `BusRequestError` |
+| `promise` | Asked once, answered once: the value, or a failure with a code. | `Promise<T>` | `async fn … -> Result<T, XynologError>` | `async def … -> T`, raising a `XynologError` | a method given a `context.Context`, returning `(T, error)` | `suspend fun … : T`, throwing a `XynologError`; for Java, its twin returning a `CompletableFuture<T>` | `Task<T>` or `Task` | `async throws -> T`, throwing an error with a code, such as `BusRequestError` | `IO value`, throwing an exception with a code, such as `BusRequestError` |
 | `stream` | A long-running operation: what it reports as it goes, then its final value. | `StreamObservable<T>` | `Running<T>` | `Running[T]` | `*Running[T]` | `Running<T>` | `Running<T>` | `Running<T>` | `Running report result` |
 | `delegation` | A job another party does: the job's events as it goes, the queue's naming of it the first of them and its completion the last. The completion is its verb's. | `DelegationObservable<C>` | `Delegation<C>` | `Delegation[C]` | `*Delegation[C]` | `Delegation<C>` | `Delegation<C>` | `Delegation<C>` | `Running (JobEvent completion) completion` |
 | `upload` | An upload in flight: its progress, then the id of the resource created. | `UploadObservable` | `Upload` | `Upload` | `*Upload` | `Upload` | `Upload` | `Upload` | `Running UploadEvent ResourceId` |
 | `cache` | A live query. Building it touches nothing; its one-shot read asks the service now. | `CacheObservable<T>` | `Cached<T>` | `Cached[T]` | `*Cached[T]` | `Cached<T>` | `Cached<T>` | `Cached<T>` | `Query value` |
 | `claims` | A worker's claims: each job it comes to hold, one at a time, from the first claim on. A held job starts, reports and settles itself. | `ClaimsObservable` | `Claims` | `Claims` | `*Claims` | `Claims` | `Claims` | `Claims` | `Claims` |
 | `signal` | Fire-and-forget. Nothing is returned and nothing is awaited. | a method returning `void` | a plain `fn` | a plain `def` returning `None` | a method with no result | a plain `fun` returning `Unit` | a method returning `void` | a plain `func` returning nothing, which may `throw` | an `STM ()` action; `resourceViewed` is `IO ()` |
-| `count` | A drive at the other participants: how many the gateway reached, or no count when it kept none. | `Promise<number \| undefined>` | `async fn … -> Result<Option<u64>, SemiontError>` | `async def … -> int \| None` | `(subscribers int, counted bool, err error)` | `suspend fun … : Long?` | `Task<int?>` | `async throws -> Int?` | `IO (Maybe Integer)` |
+| `count` | A drive at the other participants: how many the gateway reached, or no count when it kept none. | `Promise<number \| undefined>` | `async fn … -> Result<Option<u64>, XynologError>` | `async def … -> int \| None` | `(subscribers int, counted bool, err error)` | `suspend fun … : Long?` | `Task<int?>` | `async throws -> Int?` | `IO (Maybe Integer)` |
 | `events` | The events of one channel of the client's own bus, from now on, each told its reader in its place when its payload is not the channel's. | a property named `<method>$`, an `Observable` of each event's payload or its `FrameRefusal` | `Typed<C, BusFrames>`, each `Result<Delivered<C>, StreamError>` | `Typed[P]`, each a `Heard[P]`: `Delivered[P] \| FrameRefusal` | `iter.Seq2[Delivered[P], error]`, given a context | `Typed<P>`, a `Flow` of `Heard<P>`: `Delivered<P>` or `FrameRefusal` | `IAsyncEnumerable<Heard<P>>`, each a `Heard<P>.Delivered` or a `Heard<P>.Refused` holding its `FrameRefusal` | `Typed<P>`, an `AsyncSequence` of `Heard<P>`: `.delivered(Delivered<P>)` or `.refused(FrameRefusal)` | a scoped `Stream` of `Heard p`: `Heard (Delivered p)` or `Refused FrameRefusal` |
 
 Three rules hold in every SDK:
@@ -38,7 +38,7 @@ Three rules hold in every SDK:
 
 The SDK uses RxJS as its substrate (because the collaboration model needs reactive primitives) but exposes a Promise-shaped surface for the cases that don't need the reactive view (because the consumer who just wants a value shouldn't have to learn RxJS first). This doc explains how that works, why it works, and where RxJS is still visible by design.
 
-The choice for `@semiont/sdk` is to use Observable as the primitive — multicast, pipeable, native to live queries and cross-actor coordination — and to layer Promise-shaped sugar on top so callers who only want the final answer can `await` and move on.
+The choice for `@xynolog/sdk` is to use Observable as the primitive — multicast, pipeable, native to live queries and cross-actor coordination — and to layer Promise-shaped sugar on top so callers who only want the final answer can `await` and move on.
 
 The result: a script that just wants to read a resource never imports anything from `rxjs`. A browser app rendering a loading state subscribes to the same call. An AI agent observing what its human partner just hovered uses `.subscribe(...)` on the same shape. A data pipeline that needs to filter and map composes with operators. Four idiomatic shapes on the same return values.
 
@@ -58,12 +58,12 @@ Observable is the right primitive for all of these. Promise has no "second value
 
 A consumer that doesn't care about progress shouldn't have to learn RxJS to use the SDK.
 
-Two Observable subclasses live in [`packages/typescript/sdk/src/awaitable.ts`](../../packages/typescript/sdk/src/awaitable.ts). Both extend `Observable<T>`, but of the two only **StreamObservable** is thenable — `CacheObservable` has an explicit `.fresh()` instead:
+Two Observable subclasses live in [sdk's `typescript/sdk/src/awaitable.ts`](https://github.com/xynolog/sdk/blob/main/typescript/sdk/src/awaitable.ts). Both extend `Observable<T>`, but of the two only **StreamObservable** is thenable — `CacheObservable` has an explicit `.fresh()` instead:
 
 ```ts
 import { Observable, lastValueFrom, firstValueFrom } from 'rxjs';
 import { filter } from 'rxjs/operators';
-import type { CacheState } from '@semiont/sdk';
+import type { CacheState } from '@xynolog/sdk';
 
 export class StreamObservable<T> extends Observable<T> implements PromiseLike<T> {
   then<R1 = T, R2 = never>(
@@ -136,46 +136,46 @@ The discipline is enforceable. A namespace method's return type must be one of:
 - `void`
 - `Promise<number | undefined>` (wire drives only)
 
-Plain `Observable<T>` does not appear on the public verb-namespace surface. (It still appears on lifecycle / escape-hatch surfaces — `client.transport.state$`, `client.transport.errors$`, `client.bus.on(channel)` — see "Plain Observables" below.) The rule is enforced: every namespace method is a row of [`protocol/specs/src/client/surface.json`](../../protocol/specs/src/client/surface.json) with the shape of what it returns, `lint:client-surface` fails a method whose signature is not its row's, and every SDK is held to the same table. The table names two more shapes than this list, because it covers every namespace: `job`'s four lifecycle streams are `events`, and `yield.resource`'s `UploadObservable` is its own row.
+Plain `Observable<T>` does not appear on the public verb-namespace surface. (It still appears on lifecycle / escape-hatch surfaces — `client.transport.state$`, `client.transport.errors$`, `client.bus.on(channel)` — see "Plain Observables" below.) The rule is enforced: every namespace method is a row of [`protocol/specs/src/client/surface.json`](https://github.com/xynolog/protocol/blob/main/specs/src/client/surface.json) with the shape of what it returns, `lint:client-surface` fails a method whose signature is not its row's, and every SDK is held to the same table. The table names two more shapes than this list, because it covers every namespace: `job`'s four lifecycle streams are `events`, and `yield.resource`'s `UploadObservable` is its own row.
 
 ### What this looks like at the call site
 
 ```ts
-import { MemorySignIn, SemiontSession, httpKb, isReady, readyValue } from '@semiont/sdk';
+import { MemorySignIn, XynologSession, httpKb, isReady, readyValue } from '@xynolog/sdk';
 
 const kb = httpKb({ id: 'demo', label: 'Demo', host: 'localhost', port: 4000, protocol: 'http' });
 const kept = new MemorySignIn();
-await SemiontSession.signInDevice({
+await XynologSession.signInDevice({
   kb,
   kept,
   onCode: ({ verificationUri, userCode }) => console.log(`Open ${verificationUri} and enter ${userCode}`),
 });
-const opened = await SemiontSession.fromKept({ kb, kept });
-const semiont = opened.session.client;
+const opened = await XynologSession.fromKept({ kb, kept });
+const xynolog = opened.session.client;
 
 // 1. Just want a value once? Streams await; live queries spell it .fresh().
-const result   = await semiont.match.search(rId, refId, ctx);   // stream: awaitable
-const resource = await semiont.browse.resource(rId).fresh();    // live query: explicit fresh read
+const result   = await xynolog.match.search(rId, refId, ctx);   // stream: awaitable
+const resource = await xynolog.browse.resource(rId).fresh();    // live query: explicit fresh read
 
 // 2. Want to render a loading state or live updates? subscribe — states, not maybes.
-semiont.browse.resource(rId).subscribe((st) => {
+xynolog.browse.resource(rId).subscribe((st) => {
   if (st.status === 'pending') showSkeleton();
   else if (st.status === 'failed') showError(st.error);
   else render(st.value);
 });
 
 // 3. Want progress events from a delegated job? subscribe.
-semiont.mark.delegate(rId, { motivation: 'linking', entityTypes }).subscribe((event) => {
+xynolog.mark.delegate(rId, { motivation: 'linking', entityTypes }).subscribe((event) => {
   if (event.kind === 'progress') updateProgress(event);
   else if (event.kind === 'complete') celebrate();
 });
 
 // 4. Want to compose with operators? pipe (unwrap states with the shipped helpers).
 import { map, filter } from 'rxjs/operators';
-import { firstValueFrom } from '@semiont/sdk';
+import { firstValueFrom } from '@xynolog/sdk';
 
 const names = await firstValueFrom(
-  semiont.browse.resources()
+  xynolog.browse.resources()
     .pipe(filter(isReady))
     .pipe(map((st) => st.value.resources.map((r) => r.name)))
 );
@@ -190,7 +190,7 @@ Four idiomatic shapes. The script-author who's never heard of RxJS uses the firs
 When you want **both** progress *and* the terminal result from a single execution, use **`.run(onNext)`**: it subscribes once, delivers every emission to `onNext`, and resolves the terminal value.
 
 ```ts
-const done = await semiont.mark.delegate(rId, { motivation: 'linking', entityTypes }).run((event) => {
+const done = await xynolog.mark.delegate(rId, { motivation: 'linking', entityTypes }).run((event) => {
   if (event.kind === 'progress') updateProgress(event);   // every progress emission
 });                                                        // resolves the job's completion
 ```
@@ -199,7 +199,7 @@ const done = await semiont.mark.delegate(rId, { motivation: 'linking', entityTyp
 
 ### Method-by-method assignment
 
-The authority for this list is [`protocol/specs/src/client/surface.json`](../../protocol/specs/src/client/surface.json), which names every method's shape and which every SDK is held to.
+The authority for this list is [`protocol/specs/src/client/surface.json`](https://github.com/xynolog/protocol/blob/main/specs/src/client/surface.json), which names every method's shape and which every SDK is held to.
 
 **`StreamObservable<T>`** (bounded; `then` resolves on completion):
 
@@ -248,7 +248,7 @@ These are the guided-tour moves: they drive *other* participants' viewers, and t
 **Plain `Observable<T>` / `BehaviorSubject<T>`** (no thenable wrapper, by design — observed continuously, not awaited):
 
 - `client.transport.state$` — connection-state machine
-- `client.transport.errors$` — transport-level error stream. Each emission is a `SemiontError` subclass (HTTP emits `APIError`); the `code` field uses the neutral `TransportErrorCode` vocabulary so consumers route on `'unauthorized'` / `'forbidden'` / etc. without knowing the wire kind. Its first reader is also given the latest `ERRORS_KEPT_FOR_FIRST_READER_COUNT` failures met before it read, in order.
+- `client.transport.errors$` — transport-level error stream. Each emission is a `XynologError` subclass (HTTP emits `APIError`); the `code` field uses the neutral `TransportErrorCode` vocabulary so consumers route on `'unauthorized'` / `'forbidden'` / etc. without knowing the wire kind. Its first reader is also given the latest `ERRORS_KEPT_FOR_FIRST_READER_COUNT` failures met before it read, in order.
 - `session.token$` — current access token
 - `session.user$` — current authenticated user
 - `session.streamState$` — connection state at session scope
@@ -276,7 +276,7 @@ This is the right path **when a namespace method exists** for what you want. It 
 #### 2. A channel by name: `client.bus` and `client.wire`
 
 ```ts
-import { FrameRefusal } from '@semiont/sdk';
+import { FrameRefusal } from '@xynolog/sdk';
 
 const created = client.bus.on('yield:created').subscribe((event) => {
   if (event instanceof FrameRefusal) return; // a payload that is not the channel's
@@ -296,7 +296,7 @@ The channel-by-name path. Reach for it when:
 - You need RxJS operator composition on a channel stream (`.pipe(filter(...), map(...), shareReplay())`).
 - A new operation isn't yet wrapped by a namespace method, and you're prototyping.
 
-It's typed against `EventMap` from `@semiont/core`, so the channel name and payload type stay aligned. A frame the wire refused, or whose payload has a fault as its channel's, is not dropped: its reader is given, in its place, a `FrameRefusal` naming the channel, the frame's first fault and the payload as it came. The fault is `member`, the way to the member it is at from the frame (`payload.` and the way within the payload, `payload` for the payload itself, or a member of the frame's own such as `correlationId`), and `reason`: `'lacks'` for a member the frame does not carry or holds null where it may not, `'malformed'` for one its schema does not allow (of another kind, a value it does not list, a form or a size it does not allow) or one a closed object does not name. On `client.bus` the refusal stands where the payload would, and a reader tells it apart with `instanceof FrameRefusal`; `client.wire.frames` gives each frame as a `Delivered` or a `FrameRefusal`, told apart by `status`. Every SDK's typed read tells its reader the same way and goes on to the frames after it.
+It's typed against `EventMap` from `@xynolog/core`, so the channel name and payload type stay aligned. A frame the wire refused, or whose payload has a fault as its channel's, is not dropped: its reader is given, in its place, a `FrameRefusal` naming the channel, the frame's first fault and the payload as it came. The fault is `member`, the way to the member it is at from the frame (`payload.` and the way within the payload, `payload` for the payload itself, or a member of the frame's own such as `correlationId`), and `reason`: `'lacks'` for a member the frame does not carry or holds null where it may not, `'malformed'` for one its schema does not allow (of another kind, a value it does not list, a form or a size it does not allow) or one a closed object does not name. On `client.bus` the refusal stands where the payload would, and a reader tells it apart with `instanceof FrameRefusal`; `client.wire.frames` gives each frame as a `Delivered` or a `FrameRefusal`, told apart by `status`. Every SDK's typed read tells its reader the same way and goes on to the frames after it.
 
 **A channel of a resource's scope is read on the wire, for its resource.** `mark:added` and the other events of the record (`RESOURCE_SCOPED_CHANNELS`) reach only a connection that holds their resource's scope. `client.wire.frames(channel, resourceId)` holds that scope for as long as it is read, and gives that resource's frames and no other's. Read with no resource, such a channel does not compile, and is refused when called; so is any other channel read for a resource.
 
@@ -310,7 +310,7 @@ const added = client.wire
 // later: added.unsubscribe();
 ```
 
-Each frame comes with its envelope, who emitted it (`userId`, as the gateway stamped it) and the trace it was sent under. Rust, Python, Go, Kotlin, Swift and Haskell read such a channel the same way. In Rust it is `client.wire().frames_of::<MarkAdded>(&resource)`, where `client.wire().frames::<MarkAdded>()` does not compile. In Python it is `client.wire.frames(MARK_ADDED, resource)`, and a type checker refuses `client.wire.frames(MARK_ADDED)`. In Go it is `semiont.FramesOf(ctx, wire, bus.MarkAdded, resource)`, where `semiont.Frames(ctx, wire, bus.MarkAdded)` does not compile. In Kotlin it is `client.wire.frames(Channels.MARK_ADDED, resource)`, where `client.wire.frames(Channels.MARK_ADDED)` does not compile. In Swift it is `client.wire.frames(Channels.markAdded, resource: resource)`, where `client.wire.frames(Channels.markAdded)` does not compile. In Haskell it is `Bus.frames (Client.wire client) Channels.MarkAdded (InScope resource)`, where `NoScope` in place of `InScope resource` does not compile.
+Each frame comes with its envelope, who emitted it (`userId`, as the gateway stamped it) and the trace it was sent under. Rust, Python, Go, Kotlin, Swift and Haskell read such a channel the same way. In Rust it is `client.wire().frames_of::<MarkAdded>(&resource)`, where `client.wire().frames::<MarkAdded>()` does not compile. In Python it is `client.wire.frames(MARK_ADDED, resource)`, and a type checker refuses `client.wire.frames(MARK_ADDED)`. In Go it is `xynolog.FramesOf(ctx, wire, bus.MarkAdded, resource)`, where `xynolog.Frames(ctx, wire, bus.MarkAdded)` does not compile. In Kotlin it is `client.wire.frames(Channels.MARK_ADDED, resource)`, where `client.wire.frames(Channels.MARK_ADDED)` does not compile. In Swift it is `client.wire.frames(Channels.markAdded, resource: resource)`, where `client.wire.frames(Channels.markAdded)` does not compile. In Haskell it is `Bus.frames (Client.wire client) Channels.MarkAdded (InScope resource)`, where `NoScope` in place of `InScope resource` does not compile.
 
 `on(channel)` is the payload view. When you need the **envelope** — the `correlationId` that pairs a reply with its request, or the `scope` a frame was emitted into — read `frames(channel)` instead. `on` is derived from `frames`, so the two cannot disagree:
 
@@ -324,14 +324,14 @@ If you find yourself reaching for `client.wire.emit` from application code repea
 
 ### Bridging back to RxJS
 
-`@semiont/sdk` re-exports `firstValueFrom` and `lastValueFrom` from RxJS. They're not load-bearing for the typical call site — streams are directly awaitable and live queries have `.fresh()` — but they save an import line for the operator-composition case:
+`@xynolog/sdk` re-exports `firstValueFrom` and `lastValueFrom` from RxJS. They're not load-bearing for the typical call site — streams are directly awaitable and live queries have `.fresh()` — but they save an import line for the operator-composition case:
 
 ```ts
-import { lastValueFrom } from '@semiont/sdk';
+import { lastValueFrom } from '@xynolog/sdk';
 import { filter } from 'rxjs/operators';
 
 const result = await lastValueFrom(
-  semiont.match.search(rId, refId, ctx)
+  xynolog.match.search(rId, refId, ctx)
     .pipe(filter((e) => e.response.length > 0))
 );
 ```
@@ -353,14 +353,14 @@ that observes the bus from an effect has to survive that:
 ### Why this design
 
 1. **Live queries are genuinely reactive.** Browse reads represent "the current value of this resource, which changes when bus events fire." Promise can't express that. Observable can.
-2. **The `Cache<K,V>` primitive is a real architectural building block.** Multicast, per-key dedup, stale-while-revalidate. The subclass approach lets us keep it without leaking it through the public surface. See [CACHE-SEMANTICS.md](../../protocol/contract/CACHE-SEMANTICS.md) for the cache's behavioral contract.
+2. **The `Cache<K,V>` primitive is a real architectural building block.** Multicast, per-key dedup, stale-while-revalidate. The subclass approach lets us keep it without leaking it through the public surface. See [CACHE-SEMANTICS.md](https://github.com/xynolog/protocol/blob/main/contract/CACHE-SEMANTICS.md) for the cache's behavioral contract.
 3. **Lifecycle state is BehaviorSubject-shaped.** `token$`, `user$`, `state$` are state over time with synchronous snapshots. Native primitive.
 4. **Sugar costs ~50 lines.** Four small subclasses; `then` (streams/delegations/uploads) per the JS thenable spec, `.fresh()` (live queries) as an explicit method. No alternative shape (Promise-only API, dual-API per method, AsyncIterable conversion) is cheaper or cleaner.
 5. **No information loss.** A Promise-typed return would force a choice between progress and final value for streaming methods. The subclass surface lets the consumer pick — `await`/`.fresh()` for a value, `subscribe` for progress or live state, both can compose.
 6. **Composes correctly with RxJS.** `.subscribe(...)` works. `.pipe(...)` works (and falls back to plain Observable, which is the right behavior because pipe is composition). No fight with idiomatic RxJS.
 7. **Pattern has precedent.** Apollo's `ObservableQuery`, zen-observable's awaitable subclass. Known shape; just not the stock-RxJS default.
 
-The integrator writing a simple script doesn't know `@semiont/sdk` uses RxJS until they reach for `.subscribe(...)` to render progress, and even then they don't have to import from `rxjs/operators` until they reach for `.pipe(...)`. The reactive primitive is preserved as a load-bearing architectural choice; the user-facing surface looks Promise-shaped.
+The integrator writing a simple script doesn't know `@xynolog/sdk` uses RxJS until they reach for `.subscribe(...)` to render progress, and even then they don't have to import from `rxjs/operators` until they reach for `.pipe(...)`. The reactive primitive is preserved as a load-bearing architectural choice; the user-facing surface looks Promise-shaped.
 
 ## In Rust
 
@@ -374,7 +374,7 @@ The Rust client has the same nine shapes, with no reactive library under them.
 - **Events** come as a `Stream`. A reader that falls behind is told how far (`Lagged`) and reads on.
 - **Composition** uses `futures::StreamExt` or `tokio-stream`. The crate brings no operator library.
 
-The Rust README has [the table that maps each TypeScript shape to its Rust form](../../packages/rust/sdk/README.md#from-the-typescript-sdk), and [how each shape is used](../../packages/rust/sdk/README.md#what-a-method-returns).
+The Rust README has [the table that maps each TypeScript shape to its Rust form](https://github.com/xynolog/sdk/blob/main/rust/sdk/README.md#from-the-typescript-sdk), and [how each shape is used](https://github.com/xynolog/sdk/blob/main/rust/sdk/README.md#what-a-method-returns).
 
 ## In Python
 
@@ -388,7 +388,7 @@ The Python client has the same nine shapes, on asyncio, with no reactive library
 - **Events** are an async iterator with a queue per reader, so a reader that falls behind loses nothing.
 - **Composition** is the language's own: `async for`, `asyncio.TaskGroup`, `asyncio.timeout`. The package brings no operator library.
 
-The Python README shows [each shape at the call site](../../packages/python/sdk/README.md#the-client), and [a watched query](../../packages/python/sdk/README.md#live-queries).
+The Python README shows [each shape at the call site](https://github.com/xynolog/sdk/blob/main/python/sdk/README.md#the-client), and [a watched query](https://github.com/xynolog/sdk/blob/main/python/sdk/README.md#live-queries).
 
 ## In Go
 
@@ -398,11 +398,11 @@ The Go client has the same nine shapes, with no reactive library under them. Wha
 - **A delegated job** is a `*Delegation[C]`: `Wait(ctx)` for the job's completion, or range over `Events(ctx)` for each of the job's events (`JobCreated`, `JobProgressed`, `JobAttemptFailed`, `JobRefused`, `JobCompleted[C]`), read with a type switch, the completion last. A `JobRefused` is a frame of a job's progress, completion or failure that was refused: it names no job and is no word of it. `C` is the completion of the job's verb: `api.MarkJobCompleteCommand` from `Mark.Delegate`, `api.YieldJobCompleteCommand` from `Yield.Delegate`.
 - **A live query** is a `*Cached[T]`: range over `States(ctx)` for its state as it changes, which holds its resource's scope meanwhile; `Fresh(ctx)` is one read. It is not read by building it. A state is `Pending`, `Ready[T]` or `Failed`, read with a type switch.
 - **A worker's claims** are a `*Claims`: range over `All()` for each job the worker comes to hold, or a claim it was refused, given as the error. A held job settles once, by `Complete`, `Fail` or `Cancel`. `Close` stops claiming, and fails a job still held.
-- **State** that TypeScript reads from a `BehaviorSubject` is a `semiont.Watched[T]`: `Value()` now, and `Changes(ctx)` each value after it. A reader that falls behind is given the latest.
+- **State** that TypeScript reads from a `BehaviorSubject` is a `xynolog.Watched[T]`: `Value()` now, and `Changes(ctx)` each value after it. A reader that falls behind is given the latest.
 - **Events** are iterators with a queue per reader, so a reader that falls behind loses nothing. Each reader takes a context, and ends when it is done.
 - **Composition** is the language's own: `for` over an iterator, goroutines, and `context` for deadlines and cancelling. The module brings no operator library.
 
-The Go README shows [each shape at the call site](../../packages/go/sdk/README.md#the-client), and [a watched query](../../packages/go/sdk/README.md#live-queries).
+The Go README shows [each shape at the call site](https://github.com/xynolog/sdk/blob/main/go/README.md#the-client), and [a watched query](https://github.com/xynolog/sdk/blob/main/go/README.md#live-queries).
 
 ## In Kotlin
 
@@ -416,7 +416,7 @@ The Kotlin client has the same nine shapes, on coroutines, with no reactive libr
 - **Events** are a `Flow` with a queue per reader, so a reader that falls behind loses nothing. Closing one stops its listening.
 - **Composition** is `kotlinx.coroutines`': `Flow`'s operators, structured concurrency, and `withTimeout` for deadlines. The SDK brings no operator library of its own.
 
-The Kotlin README shows [a delegation followed in both languages](../../packages/kotlin/sdk/README.md#gathering-then-delegating), and [a watched query](../../packages/kotlin/sdk/README.md#watching-live).
+The Kotlin README shows [a delegation followed in both languages](https://github.com/xynolog/sdk/blob/main/kotlin/sdk/README.md#gathering-then-delegating), and [a watched query](https://github.com/xynolog/sdk/blob/main/kotlin/sdk/README.md#watching-live).
 
 ## In C#
 
@@ -434,19 +434,19 @@ enumerator ends. Use `FreshAsync` for a one-shot read. The closed
 exhaustive. For a worker, await `Claims.NextAsync` for the next job and await
 `StopAsync` before disposing the client.
 
-The [.NET SDK README](../../packages/csharp/sdk/README.md) has runnable
+The [.NET SDK README](https://github.com/xynolog/sdk/blob/main/csharp/sdk/README.md) has runnable
 examples of following a delegation, running a worker, and watching a live
 query.
 
 ## In Swift
 
-The [Swift SDK](../../packages/swift/sdk/README.md) uses async functions and `AsyncSequence`s. A one-shot method is `async throws`, and a signal is a plain `func`. `Running<T>` and `Delegation<C>` are consumed once: `for try await` gives each report and then the final value, `completed()` gives only the final value, and a second consumer gets `MultipleConsumers`. `dispose()` cancels the work. A delegation reads as `JobEvent<C>` values. An `Upload` reads as `UploadProgress` values, and its `completed()` gives the `CreateResourceResponse`.
+The [Swift SDK](https://github.com/xynolog/sdk/blob/main/swift/sdk/README.md) uses async functions and `AsyncSequence`s. A one-shot method is `async throws`, and a signal is a plain `func`. `Running<T>` and `Delegation<C>` are consumed once: `for try await` gives each report and then the final value, `completed()` gives only the final value, and a second consumer gets `MultipleConsumers`. `dispose()` cancels the work. A delegation reads as `JobEvent<C>` values. An `Upload` reads as `UploadProgress` values, and its `completed()` gives the `CreateResourceResponse`.
 
 A live query is a `Cached<T>`: reading it gives each `CacheState`, and `fresh()` asks the service now. A worker's `Claims` reads as each `HeldJob` it comes to hold. A channel of the bus reads as a `Typed<P>` of `Heard<P>` values.
 
 ## In Haskell
 
-The [Haskell SDK](../../packages/haskell/sdk/README.md) uses native effects.
+The [Haskell SDK](https://github.com/xynolog/sdk/blob/main/haskell/sdk/README.md) uses native effects.
 Its `Running report result` handle starts work when consumed once:
 `await` returns the final result, while `withReports` gives a
 `Stream (Of report) IO result` from `streaming`. Leaving the report scope cancels
@@ -466,13 +466,13 @@ cache updates.
 
 - [Usage.md](./Usage.md) — per-namespace tour with concrete examples
 - [STATE-UNITS.md](./STATE-UNITS.md) — the foundational stateful-unit pattern (a surface consumers read but cannot write, and a dispose lifecycle); the substrate behind every flow state machine, worker adapter, and view-shaped state machine in the codebase
-- [CACHE-SEMANTICS.md](../../protocol/contract/CACHE-SEMANTICS.md) — the `Cache<K,V>` primitive's behavioral contract behind `CacheObservable`
-- [`packages/typescript/sdk/src/awaitable.ts`](../../packages/typescript/sdk/src/awaitable.ts) — the awaitable Observable subclasses' implementation
-- [protocol/contract/EVENT-BUS.md](../../protocol/contract/EVENT-BUS.md) — channel naming, scoping, correlation; the protocol layer the SDK wraps
-- [protocol/contract/CHANNELS.md](../../protocol/contract/CHANNELS.md) — channel inventory: persisted events, ephemeral signals, correlation responses, resource broadcasts
-- [protocol/contract/TRANSPORT-CONTRACT.md](../../protocol/contract/TRANSPORT-CONTRACT.md) — the `ITransport` behavioral guarantees underlying every namespace method, including `errors$`
-- [The Rust SDK's README](../../packages/rust/sdk/README.md) — the Rust form of each shape
-- [The Python SDK's README](../../packages/python/sdk/README.md) — the Python form of each shape
-- [The Go SDK's README](../../packages/go/sdk/README.md) — the Go form of each shape
-- [The Kotlin SDK's README](../../packages/kotlin/sdk/README.md) — the Kotlin and Java forms of each shape
-- The Swift SDK shows [live queries](../../packages/swift/sdk/README.md#live-queries) and [delegated work](../../packages/swift/sdk/README.md#a-first-program) using async functions and sequences.
+- [CACHE-SEMANTICS.md](https://github.com/xynolog/protocol/blob/main/contract/CACHE-SEMANTICS.md) — the `Cache<K,V>` primitive's behavioral contract behind `CacheObservable`
+- [sdk's `typescript/sdk/src/awaitable.ts`](https://github.com/xynolog/sdk/blob/main/typescript/sdk/src/awaitable.ts) — the awaitable Observable subclasses' implementation
+- [protocol/contract/EVENT-BUS.md](https://github.com/xynolog/protocol/blob/main/contract/EVENT-BUS.md) — channel naming, scoping, correlation; the protocol layer the SDK wraps
+- [protocol/contract/CHANNELS.md](https://github.com/xynolog/protocol/blob/main/contract/CHANNELS.md) — channel inventory: persisted events, ephemeral signals, correlation responses, resource broadcasts
+- [protocol/contract/TRANSPORT-CONTRACT.md](https://github.com/xynolog/protocol/blob/main/contract/TRANSPORT-CONTRACT.md) — the `ITransport` behavioral guarantees underlying every namespace method, including `errors$`
+- [The Rust SDK's README](https://github.com/xynolog/sdk/blob/main/rust/sdk/README.md) — the Rust form of each shape
+- [The Python SDK's README](https://github.com/xynolog/sdk/blob/main/python/sdk/README.md) — the Python form of each shape
+- [The Go SDK's README](https://github.com/xynolog/sdk/blob/main/go/README.md) — the Go form of each shape
+- [The Kotlin SDK's README](https://github.com/xynolog/sdk/blob/main/kotlin/sdk/README.md) — the Kotlin and Java forms of each shape
+- The Swift SDK shows [live queries](https://github.com/xynolog/sdk/blob/main/swift/sdk/README.md#live-queries) and [delegated work](https://github.com/xynolog/sdk/blob/main/swift/sdk/README.md#a-first-program) using async functions and sequences.

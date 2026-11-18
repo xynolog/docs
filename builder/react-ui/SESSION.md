@@ -4,11 +4,11 @@ The session layer is the per-KB authentication, token-refresh, event-bus,
 and HTTP client glue that sits between the React tree and the gateway.
 
 The file layout and the invariants the implementation keeps are in the
-package's [SESSION.md](../../../packages/typescript/react-ui/docs/SESSION.md).
+package's [SESSION.md](https://github.com/xynolog/sdk/blob/main/typescript/react-ui/docs/SESSION.md).
 
 ## Core classes
 
-### `SemiontClient`
+### `XynologClient`
 
 Owns its transport (`client.transport` — for HTTP, an `HttpTransport` over
 `ky` with one SSE connection) and its `EventBus` (`client.bus`, read-only).
@@ -30,17 +30,17 @@ Typed namespace methods are the way to say something on the bus —
 `client.mark.submit(input)`, `client.beckon.hover(id)` — and StateUnit
 factories take `client` and listen through `client.bus.on(...)`.
 
-### `SemiontSession`
+### `XynologSession`
 
 Per-KB lifetime object, and a state unit. Holds:
 
-- `client: SemiontClient` — public `readonly`; components say things through
+- `client: XynologClient` — public `readonly`; components say things through
   its typed namespace methods and listen through react-ui's event hooks
   (`useEventSubscription` and its kin), which read `client.bus`. The session
-  only uses its client: the `SemiontBrowser` that had both built closes the
+  only uses its client: the `XynologBrowser` that had both built closes the
   client, then ends the session.
 - `token$`, `user$` — observable auth state.
-- `errors$` — the session's errors: its own (a `SemiontSessionError`) and its
+- `errors$` — the session's errors: its own (a `XynologSessionError`) and its
   transport's, each said once.
 - `refresh(refused)` — renews the token the gateway refused (null when the
   request carried none). A token the session has already replaced is answered
@@ -57,7 +57,7 @@ The session is **not** a bus wrapper. It does not forward `emit`/`on` —
 that surface is on the client directly. Components hold the session, read
 `.client`, and call through.
 
-### `SemiontBrowser`
+### `XynologBrowser`
 
 App-level singleton. Owns:
 
@@ -93,8 +93,8 @@ with a distinct scope and lifetime:
 
 | Bus | Owner | Lifetime | Channels |
 |---|---|---|---|
-| Session bus | `SemiontClient` (`client.bus`, read-only) | Per-KB session (reborn every `signIn` / `setActiveKb`) | KB-content traffic: `browse:*` (reads), `mark:*`, `beckon:*`, `gather:*`, `match:*`, `bind:*`, `yield:*`, `job:*` |
-| Shell bus | `SemiontBrowser` (private) | App lifetime (survives sign-out / KB swap) | UI shell traffic: `panel:*`, `shell:*`, `tabs:*`, `nav:*`, `settings:*` |
+| Session bus | `XynologClient` (`client.bus`, read-only) | Per-KB session (reborn every `signIn` / `setActiveKb`) | KB-content traffic: `browse:*` (reads), `mark:*`, `beckon:*`, `gather:*`, `match:*`, `bind:*`, `yield:*`, `job:*` |
+| Shell bus | `XynologBrowser` (private) | App lifetime (survives sign-out / KB swap) | UI shell traffic: `panel:*`, `shell:*`, `tabs:*`, `nav:*`, `settings:*` |
 
 The browser exposes its bus as `emit` / `on` / `stream`; the client exposes
 `client.bus` (`emit` / `on`), and components listen on it through
@@ -108,16 +108,16 @@ or with zero KBs configured.
 to the wrong bus is a silent no-op — subscribers on the other bus
 never see it. `EventMap` is the single source of truth for which
 channel belongs where; if you can't tell from the name, check
-`packages/typescript/core/src/bus-protocol.ts`.
+sdk's `typescript/core/src/bus-protocol.ts`.
 
 Components pick based on the channel scope:
 
 ```tsx
-const semiont = useSemiont();                       // browser (shell bus)
-const session = useObservable(semiont.activeSession$);
+const xynolog = useXynolog();                       // browser (shell bus)
+const session = useObservable(xynolog.activeSession$);
 
 // Shell event — works regardless of session.
-semiont.emit('panel:toggle', { panel: 'settings' });
+xynolog.emit('panel:toggle', { panel: 'settings' });
 
 // KB-content event — requires an active session.
 session?.client.mark.request(resourceId, { type: 'TextPositionSelector', start: 0, end: 12 }, 'highlighting');
@@ -147,49 +147,49 @@ writes, and answers null where no other context writes.
 
 Implementations:
 
-- `InMemorySessionStorage` (in `@semiont/sdk`) — for scripts and tests; no
+- `InMemorySessionStorage` (in `@xynolog/sdk`) — for scripts and tests; no
   other context writes it.
-- `WebBrowserStorage` (in `@semiont/react-ui`) — wraps `localStorage`, read
+- `WebBrowserStorage` (in `@xynolog/react-ui`) — wraps `localStorage`, read
   and written in one synchronous step by `update`, and the `window`
   `storage` event for cross-tab sync.
 
 ## React surface
 
-### `<SemiontProvider>` + `useSemiont()`
+### `<XynologProvider>` + `useXynolog()`
 
 ```tsx
-import { SemiontProvider } from '@semiont/react-ui';
+import { XynologProvider } from '@xynolog/react-ui';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <SemiontProvider>
+    <XynologProvider>
       {children}
-    </SemiontProvider>
+    </XynologProvider>
   );
 }
 ```
 
-`SemiontProvider` defaults to the canonical web setup,
+`XynologProvider` defaults to the canonical web setup,
 `getBrowser({ storage: new WebBrowserStorage(), sessionFactory: createHttpSessionFactory() })`;
 its `storage` and `sessionFactory` props override either half. Tests inject a
-whole browser — a real `SemiontBrowser` over the SDK's in-memory doubles:
+whole browser — a real `XynologBrowser` over the SDK's in-memory doubles:
 
 ```tsx
-import { createTestSession, stubGateway } from '@semiont/sdk/testing';
+import { createTestSession, stubGateway } from '@xynolog/sdk/testing';
 
 const { session, storage } = createTestSession({ gateway: stubGateway() });
-const testBrowser = new SemiontBrowser({ storage, sessionFactory: () => session });
+const testBrowser = new XynologBrowser({ storage, sessionFactory: () => session });
 
-<SemiontProvider browser={testBrowser}>{children}</SemiontProvider>;
+<XynologProvider browser={testBrowser}>{children}</XynologProvider>;
 ```
 
 Inside components:
 
 ```tsx
-import { useSemiont, useObservable } from '@semiont/react-ui';
+import { useXynolog, useObservable } from '@xynolog/react-ui';
 
 function MyComponent() {
-  const browser = useSemiont();
+  const browser = useXynolog();
   const session = useObservable(browser.activeSession$);
   const user = useObservable(session?.user$);
 
@@ -204,7 +204,7 @@ Components say things through the client's typed namespace methods:
 
 ```tsx
 function MarkButton({ annotationId }: { annotationId: AnnotationId }) {
-  const session = useObservable(useSemiont().activeSession$);
+  const session = useObservable(useXynolog().activeSession$);
   return (
     <button onClick={() => session?.client.browse.click(annotationId)}>
       Click me
@@ -217,7 +217,7 @@ Components subscribe via `useEventSubscription` — a hook that handles
 stale-closure + cleanup correctly:
 
 ```tsx
-import { useEventSubscription } from '@semiont/react-ui';
+import { useEventSubscription } from '@xynolog/react-ui';
 
 declare function triggerSparkleAnimation(id: AnnotationId): void; // the host's own
 
@@ -241,11 +241,11 @@ Every state-unit factory takes exactly one bus-owner, matching the bus its
 channels live on:
 
 - **Session-scoped state units** (mark, beckon, gather, match, yield) take
-  `client: SemiontClient` and route through `client.bus.emit` /
+  `client: XynologClient` and route through `client.bus.emit` /
   `client.bus.on`. Their lifetime is tied to the session
   (`useSessionStateUnit`).
 - **Shell-scoped state units** (`ShellStateUnit` — toolbar panel state) take
-  `browser: SemiontBrowser` and route through
+  `browser: XynologBrowser` and route through
   `browser.emit` / `browser.stream`. Their lifetime is tied to the app.
 
 Why the split matters: `ShellStateUnit` must function on unauth pages
@@ -258,8 +258,8 @@ declare function readPanel(): ToolbarPanelType | null;
 declare function persistPanel(panel: ToolbarPanelType | null): void;
 
 export function useShellStateUnit(): ShellStateUnit {
-  const semiont = useSemiont();
-  return useStateUnit(() => createShellStateUnit(semiont, {
+  const xynolog = useXynolog();
+  return useStateUnit(() => createShellStateUnit(xynolog, {
     initialPanel: readPanel(),
     onPanelChange: persistPanel,
   }));
@@ -271,9 +271,9 @@ through the client or browser they are given.
 
 ### `useKBDiscovery` — launcher-published KBs
 
-The Semiont launcher publishes an export view of every KB it manages
+The Xynolog launcher publishes an export view of every KB it manages
 (knowledge bases running here, and codespace forwards) as a `DiscoveryDocument`, which the
-Browser image serves at `DISCOVERY_URL_PATH` (`@semiont/core`). The sdk
+Browser image serves at `DISCOVERY_URL_PATH` (`@xynolog/core`). The sdk
 owns every consumer-side semantic — validation via the core type guards,
 the `version` compatibility gate, the **typed absent-vs-managed
 distinction** (`absent` = "no launcher detected"; `managed` with an empty
@@ -285,7 +285,7 @@ diffing keyed `did ?? host:port` (`httpDiscovery` / `textDiscovery` /
 owns lifecycle, nothing else:
 
 ```tsx
-import { useKBDiscovery } from '@semiont/react-ui';
+import { useKBDiscovery } from '@xynolog/react-ui';
 
 const { state, kbs } = useKBDiscovery();          // same-origin httpDiscovery()
 // state: DiscoveryState | null (null before the first poll)
@@ -305,13 +305,13 @@ const { state, kbs } = useKBDiscovery();          // same-origin httpDiscovery()
 
 ## Non-React consumers
 
-Because session/browser live in `@semiont/sdk`, CLI and MCP can use them
+Because session/browser live in `@xynolog/sdk`, CLI and MCP can use them
 directly:
 
 ```ts
-import { SemiontBrowser, InMemorySessionStorage, createHttpSessionFactory } from '@semiont/sdk';
+import { XynologBrowser, InMemorySessionStorage, createHttpSessionFactory } from '@xynolog/sdk';
 
-const browser = new SemiontBrowser({
+const browser = new XynologBrowser({
   storage: new InMemorySessionStorage(),
   sessionFactory: createHttpSessionFactory(),
 });
@@ -325,15 +325,15 @@ wiring required.
 Tests use `InMemorySessionStorage` (or a simple subclass whose
 `subscribe()` simulates cross-context sync) to drive session state
 without depending on jsdom's `localStorage`. See
-`packages/typescript/sdk/src/session/__tests__/test-storage-helpers.ts` for
+sdk's `typescript/sdk/src/session/__tests__/test-storage-helpers.ts` for
 the test harness pattern.
 
-StateUnit factory tests drive a real `SemiontClient` from `createTestClient()`
-(`@semiont/sdk/testing`) — real caches, real `Bus.request`, real namespaces
+StateUnit factory tests drive a real `XynologClient` from `createTestClient()`
+(`@xynolog/sdk/testing`) — real caches, real `Bus.request`, real namespaces
 over a scriptable `FaultyTransport`:
 
 ```ts
-import { createTestClient } from '@semiont/sdk/testing';
+import { createTestClient } from '@xynolog/sdk/testing';
 
 const { client, transport } = createTestClient();
 const unit = createMarkStateUnit(client, resourceId);

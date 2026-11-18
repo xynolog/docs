@@ -1,4 +1,4 @@
-// Ambient vocabulary for the react-ui and Browser docs' code fences — the ui
+// Ambient vocabulary for the react-ui docs' code fences — the ui
 // suite's counterpart of prelude.ts, under the same review rule: a snippet edit
 // that adds boilerplate to satisfy the gate is wrong; extend this prelude.
 //
@@ -8,19 +8,19 @@
 import type { TestingLibraryMatchers } from '@testing-library/jest-dom/matchers';
 import type { ComponentProps, ComponentType, ReactNode } from 'react';
 import type {
-  SemiontSession as _SemiontSession,
-  SemiontClient as _SemiontClient,
+  XynologSession as _XynologSession,
+  XynologClient as _XynologClient,
   ResourceId as _ResourceId,
   AnnotationId as _AnnotationId,
   ResourceDescriptor as _ResourceDescriptor,
   Annotation as _Annotation,
   OpenResource as _OpenResource,
-} from '@semiont/sdk';
+} from '@xynolog/sdk';
 import type {
   AnnotationHistory as _AnnotationHistory,
   LinkComponentProps as _LinkComponentProps,
   RouteBuilder as _RouteBuilder,
-} from '@semiont/react-ui';
+} from '@xynolog/react-ui';
 
 type Translate = (key: string, params?: Record<string, unknown>) => string;
 
@@ -36,10 +36,10 @@ declare module 'vitest' {
 
 declare global {
   // ── the signed-in world ──────────────────────────────────────────────
-  const session: _SemiontSession;
-  /** A wired-up client — `semiont` in one-shot code, `client` on a session. */
-  const semiont: _SemiontClient;
-  const client: _SemiontClient;
+  const session: _XynologSession;
+  /** A wired-up client — `xynolog` in one-shot code, `client` on a session. */
+  const xynolog: _XynologClient;
+  const client: _XynologClient;
 
   // ── ids and domain values ────────────────────────────────────────────
   const resourceId: _ResourceId;

@@ -4,72 +4,72 @@ The container images this repository publishes, how they are tagged, and how to 
 
 ## Overview
 
-Eight images are published to GitHub Container Registry, as `ghcr.io/the-ai-alliance/<image>`, for `linux/amd64` and `linux/arm64`:
+Eight images are published to GitHub Container Registry, as `ghcr.io/xynolog/<image>`, for `linux/amd64` and `linux/arm64`:
 
-`semiont-gateway`, `semiont-dispatcher`, `semiont-archivist`, `semiont-librarian`, `semiont-worker`, `semiont-smelter`, `semiont-weaver` and `semiont-browser`.
+`xynolog-gateway`, `xynolog-dispatcher`, `xynolog-archivist`, `xynolog-librarian`, `xynolog-worker`, `xynolog-smelter`, `xynolog-weaver` and `xynolog-browser`.
 
-**Configuration is given at run time, never built in.** No image contains anything about a knowledge base, so one verified image serves every knowledge base, and a knowledge base's repository builds no image of its own. The launcher runs the image a knowledge base's documents name for each service, `ghcr.io/the-ai-alliance/semiont-<service>:latest` as `semiont init` writes them, and mounts each service's configuration into it. The Browser belongs to no knowledge base: it runs the image its own document names, `ghcr.io/the-ai-alliance/semiont-browser:latest` as the launcher writes it ([Configuration](CONFIGURATION.md#the-browser)).
+**Configuration is given at run time, never built in.** No image contains anything about a knowledge base, so one verified image serves every knowledge base, and a knowledge base's repository builds no image of its own. The launcher runs the image a knowledge base's documents name for each service, `ghcr.io/xynolog/xynolog-<service>:latest` as `xynolog init` writes them, and mounts each service's configuration into it. The Browser belongs to no knowledge base: it runs the image its own document names, `ghcr.io/xynolog/xynolog-browser:latest` as the launcher writes it ([Configuration](CONFIGURATION.md#the-browser)).
 
 ---
 
-## semiont-browser
+## xynolog-browser
 
-[![ghcr](https://img.shields.io/badge/ghcr-latest-blue)](https://github.com/The-AI-Alliance/semiont/pkgs/container/semiont-browser)
+[![ghcr](https://img.shields.io/badge/ghcr-latest-blue)](https://github.com/xynolog/images/pkgs/container/xynolog-browser)
 
-The Semiont Browser: a single-page app served by a small static-file server.
+The Xynolog Browser: a single-page app served by a small static-file server.
 
 **Pull image:**
 ```bash
-docker pull ghcr.io/the-ai-alliance/semiont-browser:latest
+docker pull ghcr.io/xynolog/xynolog-browser:latest
 ```
 
 **Environment variables:** `PORT` only (default `3000`). The container holds
 no knowledge-base configuration and mounts none: the app connects to knowledge
 bases from the person's web browser (see [HUMAN-UI.md](../../architecture/HUMAN-UI.md)).
 
-**Documentation:** [images/browser/README.md](../../../images/browser/README.md)
+**Documentation:** [images/browser/README.md](https://github.com/xynolog/images/blob/main/browser/README.md)
 
-**Source:** [images/browser/](../../../images/browser/)
+**Source:** [images/browser/](https://github.com/xynolog/images/tree/main/browser)
 
-**Dockerfile:** [images/browser/Dockerfile](../../../images/browser/Dockerfile)
+**Dockerfile:** [images/browser/Dockerfile](https://github.com/xynolog/images/blob/main/browser/Dockerfile)
 
-**Workflow:** [.github/workflows/publish-browser.yml](../../../.github/workflows/publish-browser.yml)
+**Workflow:** [.github/workflows/publish-browser.yml](https://github.com/xynolog/images/blob/main/.github/workflows/publish-browser.yml)
 
 ---
 
 ## The service images
 
-[![ghcr](https://img.shields.io/badge/ghcr-latest-blue)](https://github.com/orgs/The-AI-Alliance/packages?repo_name=semiont)
+[![ghcr](https://img.shields.io/badge/ghcr-latest-blue)](https://github.com/orgs/xynolog/packages?repo_name=images)
 
-One is Node: the Browser. It installs the published `@semiont/browser` npm package at the image's own version, so the image's version is always the npm version it carries. Its Dockerfile's `FROM` names its base.
+One is Node: the Browser. It installs the published `@xynolog/browser` npm package at the image's own version, so the image's version is always the npm version it carries. Its Dockerfile's `FROM` names its base.
 
 Three are Rust: the gateway, the dispatcher and the Archivist. Each image compiles its binary from the commit it is published from and ships it on `alpine`, with no source and no toolchain, and builds or fetches nothing when it starts. The Archivist's also carries `git`, which it stages a knowledge base's changes with.
 
-Four are Python: the worker, the weaver, the smelter and the librarian. Each image is built from the commit it is published from too: the service in `images/worker`, `images/weaver`, `images/smelter` or `images/librarian` and the Python packages of the repository it runs on, in an environment of exactly what its `uv.lock` pins, on the oldest Python those packages support. It carries no installer and no Node, and installs or fetches nothing when it starts. The weaver's carries every graph database's client. The librarian's carries every graph database's client and every model provider's library. The smelter's carries the `tesseract` program with its English data, which reads a scanned page, and PDFium, which reads a PDF. **The worker's carries every model provider's library**, so one image serves whichever provider a knowledge base names, of the seven the protocol lists. Building an image with one provider's library alone is one changed line: see [the worker's README](../../../images/worker/README.md#a-slimmer-image).
+Four are Python: the worker, the weaver, the smelter and the librarian. Each image is built from the commit it is published from too: the service in `images/worker`, `images/weaver`, `images/smelter` or `images/librarian` and the Python packages of the repository it runs on, in an environment of exactly what its `uv.lock` pins, on the oldest Python those packages support. It carries no installer and no Node, and installs or fetches nothing when it starts. The weaver's carries every graph database's client. The librarian's carries every graph database's client and every model provider's library. The smelter's carries the `tesseract` program with its English data, which reads a scanned page, and PDFium, which reads a PDF. **The worker's carries every model provider's library**, so one image serves whichever provider a knowledge base names, of the seven the protocol lists. Building an image with one provider's library alone is one changed line: see [the worker's README](https://github.com/xynolog/images/blob/main/worker/README.md#a-slimmer-image).
 
 | Image | Built from | Dockerfile |
 |---|---|---|
-| `semiont-gateway` | Rust, `images/gateway` | [images/gateway/Dockerfile](../../../images/gateway/Dockerfile) |
-| `semiont-dispatcher` | Rust, `images/dispatcher` | [images/dispatcher/Dockerfile](../../../images/dispatcher/Dockerfile) |
-| `semiont-archivist` | Rust, `images/archivist` | [images/archivist/Dockerfile](../../../images/archivist/Dockerfile) |
-| `semiont-librarian` | Python, `images/librarian` | [images/librarian/Dockerfile](../../../images/librarian/Dockerfile) |
-| `semiont-smelter` | Python, `images/smelter` | [images/smelter/Dockerfile](../../../images/smelter/Dockerfile) |
-| `semiont-weaver` | Python, `images/weaver` | [images/weaver/Dockerfile](../../../images/weaver/Dockerfile) |
-| `semiont-worker` | Python, `images/worker` | [images/worker/Dockerfile](../../../images/worker/Dockerfile) |
+| `xynolog-gateway` | Rust, `images/gateway` | [images/gateway/Dockerfile](https://github.com/xynolog/images/blob/main/gateway/Dockerfile) |
+| `xynolog-dispatcher` | Rust, `images/dispatcher` | [images/dispatcher/Dockerfile](https://github.com/xynolog/images/blob/main/dispatcher/Dockerfile) |
+| `xynolog-archivist` | Rust, `images/archivist` | [images/archivist/Dockerfile](https://github.com/xynolog/images/blob/main/archivist/Dockerfile) |
+| `xynolog-librarian` | Python, `images/librarian` | [images/librarian/Dockerfile](https://github.com/xynolog/images/blob/main/librarian/Dockerfile) |
+| `xynolog-smelter` | Python, `images/smelter` | [images/smelter/Dockerfile](https://github.com/xynolog/images/blob/main/smelter/Dockerfile) |
+| `xynolog-weaver` | Python, `images/weaver` | [images/weaver/Dockerfile](https://github.com/xynolog/images/blob/main/weaver/Dockerfile) |
+| `xynolog-worker` | Python, `images/worker` | [images/worker/Dockerfile](https://github.com/xynolog/images/blob/main/worker/Dockerfile) |
 
 Each one's port, configuration and dependencies are in [the service catalog](../services/OVERVIEW.md).
 
-The Browser has its own workflow, [publish-browser.yml](../../../.github/workflows/publish-browser.yml); the seven services share [publish-service-images.yml](../../../.github/workflows/publish-service-images.yml). How a release is published is in the contributor's [Release Process](../../contributor/RELEASE.md), and building all eight from a checkout is in [Local Development](../../contributor/LOCAL-DEVELOPMENT.md).
+The Browser has its own workflow, [publish-browser.yml](https://github.com/xynolog/images/blob/main/.github/workflows/publish-browser.yml); the seven services share [publish-service-images.yml](https://github.com/xynolog/images/blob/main/.github/workflows/publish-service-images.yml). How a release is published is in the contributor's [Release Process](../../contributor/RELEASE.md), and building all eight from a checkout is in [Local Development](../../contributor/LOCAL-DEVELOPMENT.md).
 
 ---
 
 ## Versioning
 
-Every image carries the same version, the one in [`version.json`](../../../version.json), and gets these tags:
+Every image carries the same version, the one in [`version.json`](https://github.com/xynolog/images/blob/main/version.json), and gets these tags:
 
 - **The version**, such as `<version>` for a release or `<version>-build.<n>` for a development build.
 - **The commit**: `sha-<commit>`, the short SHA the image was built from.
-- **`latest`**, moved to a release when it is promoted. It is what `semiont init` names in a new knowledge base's documents, and what the launcher names in the Browser's.
+- **`latest`**, moved to a release when it is promoted. It is what `xynolog init` names in a new knowledge base's documents, and what the launcher names in the Browser's.
 
 A tag can be moved; a digest cannot. To pin exactly what you verified, reference the image by digest.
 
@@ -98,9 +98,9 @@ passes only the findings `.github/trivyignore.yaml` lists, each with its
 reason and an expiry date. The service images pass a licence policy as
 well.
 
-### What `semiont start` checks
+### What `xynolog start` checks
 
-Before it tears down or runs anything, `semiont start` verifies each of Semiont's images that it is about to run: the services' images the knowledge base's documents name, and the Browser's.
+Before it tears down or runs anything, `xynolog start` verifies each of Xynolog's images that it is about to run: the services' images the knowledge base's documents name, and the Browser's.
 
 - It reads the image's digest from its registry, and the build provenance attested of that digest. GHCR keeps an image's attestations under the tag `sha256-<digest>`.
 - It checks the attestation's signature against Sigstore's public trusted root, which it reads through TUF and keeps under the launcher's data directory until the root's metadata expires.
@@ -115,35 +115,35 @@ An image tagged `:local` is built on this machine and never pulled, so no releas
 Requires the [GitHub CLI](https://cli.github.com/). No keys to
 manage — verification uses Sigstore's transparency log.
 
-The signer is the one `semiont start` requires: the image's publish
-workflow of `The-AI-Alliance/semiont`, at the release's tag.
+The signer is the one `xynolog start` requires: the image's publish
+workflow of `xynolog/images`, at the release's tag.
 
 ```bash
 # The Browser
 gh attestation verify \
-  oci://ghcr.io/the-ai-alliance/semiont-browser:VERSION \
-  --repo The-AI-Alliance/semiont \
-  --cert-identity https://github.com/The-AI-Alliance/semiont/.github/workflows/publish-browser.yml@refs/tags/vVERSION
+  oci://ghcr.io/xynolog/xynolog-browser:VERSION \
+  --repo xynolog/images \
+  --cert-identity https://github.com/xynolog/images/.github/workflows/publish-browser.yml@refs/tags/vVERSION
 
-# <image> is any of the seven services': semiont-gateway, semiont-archivist,
-# semiont-librarian, semiont-worker, semiont-smelter, semiont-weaver,
-# semiont-dispatcher
+# <image> is any of the seven services': xynolog-gateway, xynolog-archivist,
+# xynolog-librarian, xynolog-worker, xynolog-smelter, xynolog-weaver,
+# xynolog-dispatcher
 gh attestation verify \
-  oci://ghcr.io/the-ai-alliance/<image>:VERSION \
-  --repo The-AI-Alliance/semiont \
-  --cert-identity https://github.com/The-AI-Alliance/semiont/.github/workflows/publish-service-images.yml@refs/tags/vVERSION
+  oci://ghcr.io/xynolog/<image>:VERSION \
+  --repo xynolog/images \
+  --cert-identity https://github.com/xynolog/images/.github/workflows/publish-service-images.yml@refs/tags/vVERSION
 ```
 
 `--cert-identity` holds the signer to one workflow at one tag. `--owner`
 accepts any workflow of any repository in the organization, and
 `--signer-workflow` any workflow whose path begins with the one named, at
-any ref: both pass images `semiont start` refuses.
+any ref: both pass images `xynolog start` refuses.
 
 A successful verification confirms:
 
 1. The image digest you pulled matches the digest the workflow
    built and pushed.
-2. The image was built from `The-AI-Alliance/semiont` by its publish
+2. The image was built from `xynolog/images` by its publish
    workflow, run at the tag `vVERSION`, from the commit and with the
    inputs recorded in the attestation.
 3. The signing certificate was issued by Sigstore's Fulcio CA to
@@ -162,9 +162,9 @@ its own workflow, as above):
 
 ```bash
 gh attestation verify \
-  oci://ghcr.io/the-ai-alliance/<image>:VERSION \
-  --repo The-AI-Alliance/semiont \
-  --cert-identity https://github.com/The-AI-Alliance/semiont/.github/workflows/publish-service-images.yml@refs/tags/vVERSION \
+  oci://ghcr.io/xynolog/<image>:VERSION \
+  --repo xynolog/images \
+  --cert-identity https://github.com/xynolog/images/.github/workflows/publish-service-images.yml@refs/tags/vVERSION \
   --predicate-type https://spdx.dev/Document \
   --format json --jq '.[0].verificationResult.statement.predicate'
 ```
@@ -181,14 +181,12 @@ affected package.
 
 ## Registry Links
 
-- **Container images:** https://github.com/orgs/The-AI-Alliance/packages?repo_name=semiont
-- **GitHub Releases:** https://github.com/The-AI-Alliance/semiont/releases
+- **Container images:** https://github.com/orgs/xynolog/packages?repo_name=images
 
 ---
 
 ## Support
 
 For issues related to container images:
-- **Bug reports:** https://github.com/The-AI-Alliance/semiont/issues
+- **Bug reports:** https://github.com/xynolog/images/issues
 - **Security issues:** See [SECURITY.md](./SECURITY.md)
-- **General questions:** https://github.com/The-AI-Alliance/semiont/discussions

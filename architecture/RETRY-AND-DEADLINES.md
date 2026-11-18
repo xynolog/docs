@@ -15,7 +15,7 @@ The two are one contract: a retry that outlives its caller's deadline stops when
 fires, rather than being abandoned mid-flight.
 
 `retryWithBackoff` is each SDK's, spelled as its language spells it. The `retry` module of
-[`protocol/specs/src/client/surface.json`](../../protocol/specs/src/client/surface.json) says
+[`protocol/specs/src/client/surface.json`](https://github.com/xynolog/protocol/blob/main/specs/src/client/surface.json) says
 where each SDK keeps it, and which SDK has yet to.
 
 ## The policies
@@ -25,10 +25,10 @@ peers that answer differently.
 
 | policy | who waits | for what | budget |
 |---|---|---|---|
-| `STARTUP_FETCH_RETRY` | a TypeScript agent signing in (`agent-token.ts`, in `@semiont/http-transport`) | the issuer to grant its token, and the **gateway** to name it (`GET /api/users/me`) | 8 × 1s→8s ≈ 39s |
-| `emitRetry`, in [`protocol/specs/src/client/timing.json`](../../protocol/specs/src/client/timing.json) | every SDK, for each emit | the **gateway** to accept one `/bus/emit` | the one `timing.json` states, once per credential: a renewed credential starts a fresh one |
-| the catalog reader's, in `packages/python/service/src/semiont_service/catalog.py` | weaver, smelter | the **archivist** to subscribe | 17 × 1s→30s ≈ 361s |
-| `EMBEDDING_PROVIDER_RETRY`, in `packages/python/vectors/src/semiont_vectors/_retry.py` | librarian, smelter | the **embedding provider** to serve a model | 12 × 1s→15s ≈ 120s |
+| `STARTUP_FETCH_RETRY` | a TypeScript agent signing in (`agent-token.ts`, in `@xynolog/http-transport`) | the issuer to grant its token, and the **gateway** to name it (`GET /api/users/me`) | 8 × 1s→8s ≈ 39s |
+| `emitRetry`, in [`protocol/specs/src/client/timing.json`](https://github.com/xynolog/protocol/blob/main/specs/src/client/timing.json) | every SDK, for each emit | the **gateway** to accept one `/bus/emit` | the one `timing.json` states, once per credential: a renewed credential starts a fresh one |
+| the catalog reader's, in images' `shared/python/service/src/xynolog_service/catalog.py` | weaver, smelter | the **archivist** to subscribe | 17 × 1s→30s ≈ 361s |
+| `EMBEDDING_PROVIDER_RETRY`, in images' `shared/python/vectors/src/xynolog_vectors/_retry.py` | librarian, smelter | the **embedding provider** to serve a model | 12 × 1s→15s ≈ 120s |
 
 Budgets above are the delays alone. Each attempt is separately bounded — by
 `EMBED_ROUND_TRIP_SECONDS` (15s) for the provider, and by `timing.json`'s `emitTimeoutMs` for an
@@ -46,11 +46,11 @@ re-converges N peers on the same instant.
 `emitRetry`. A refused credential (a 401, or a 429 `refusal-rate`) is not retried: the SDK renews
 it once and sends the emit again with the renewed one, which starts a fresh `emitRetry` budget,
 its backoff begun again. So an emit spans at most two budgets, as
-[TRANSPORT-HTTP.md § Emitting](../../protocol/contract/TRANSPORT-HTTP.md#emitting) states, and the
+[TRANSPORT-HTTP.md § Emitting](https://github.com/xynolog/protocol/blob/main/contract/TRANSPORT-HTTP.md#emitting) states, and the
 SDK conformance suite holds every SDK to it. The emit a bus request makes is inside that
 request's deadline too: when the deadline falls due first, the attempt in flight is cancelled
 and no attempt is made after it
-([TRANSPORT-CONTRACT.md § Requests](../../protocol/contract/TRANSPORT-CONTRACT.md#requests)).
+([TRANSPORT-CONTRACT.md § Requests](https://github.com/xynolog/protocol/blob/main/contract/TRANSPORT-CONTRACT.md#requests)).
 
 **The budgets chain.** A projector waits on the archivist, whose own start can take minutes.
 The catalog reader's policy is sized by that, at about five and a half minutes in all, so that
@@ -65,10 +65,10 @@ a bus refusal both answer no for different reasons.
 | predicate | true for | lives in |
 |---|---|---|
 | an emit's, from the `boot` rule | what the rule accepts of a `POST`: no answer, a limit's refusal, or a status that says the gateway will recover | every SDK |
-| `_not_ready` | the model is not pulled, **or** the provider is not listening | `semiont_vectors` (`_dimensions.py`) |
+| `_not_ready` | the model is not pulled, **or** the provider is not listening | `xynolog_vectors` (`_dimensions.py`) |
 
 What counts as worth another attempt is the same in every language: the rules are
-[`protocol/specs/src/retry/cases.json`](../../protocol/specs/src/retry/cases.json), and each implementation runs
+[`protocol/specs/src/retry/cases.json`](https://github.com/xynolog/protocol/blob/main/specs/src/retry/cases.json), and each implementation runs
 them.
 
 `_not_ready` is the one composition, and it is deliberate: at boot both failures are the same
@@ -106,7 +106,7 @@ is not asked again; a read whose connection was not taken within its wait is not
 the Archivist cannot be reached and a second attempt would wait as long again; a read's answer
 begins within `connectSeconds` and `readSeconds` together of its first send, its retry included,
 and a read whose answer did not is not sent again; and an upload is never sent again: its body is
-streamed. How long the gateway waits is the Archivist's document's to say (its `x-semiont-limits`),
+streamed. How long the gateway waits is the Archivist's document's to say (its `x-xynolog-limits`),
 as it is for the Python services that read it ([the gateway's
 calls](../../images/gateway/docs/ARCHITECTURE.md#calls-to-the-archivist)), and those waits end
 inside a client's own deadline on its request, `httpRequestTimeoutMs`.
@@ -115,7 +115,7 @@ inside a client's own deadline on its request, `httpRequestTimeoutMs`.
 
 **Graph, vector store and embedding provider connects** take a deadline instead —
 one minute (`asyncio.timeout`) in the librarian's start, and the same minute in the weaver's and
-the smelter's ([SMELTER.md](../../protocol/contract/SMELTER.md#boot)). These are one-shot connects with no transient class worth naming, and an
+the smelter's ([SMELTER.md](https://github.com/xynolog/protocol/blob/main/contract/SMELTER.md#boot)). These are one-shot connects with no transient class worth naming, and an
 unbounded await leaves a container hung where a restart-on-exit policy can only rescue a process
 that exits.
 
@@ -130,7 +130,7 @@ borrows `STARTUP_FETCH_RETRY` — sized for *until the gateway starts listening*
 waiting for a model download and kills the services that embed on every first boot.
 `STARTUP_FETCH_RETRY` is the one hand-written policy in TypeScript's core. `emitRetry` is
 hand-written in no SDK: it is client timing, and every SDK takes it from
-[`protocol/specs/src/client/timing.json`](../../protocol/specs/src/client/timing.json).
+[`protocol/specs/src/client/timing.json`](https://github.com/xynolog/protocol/blob/main/specs/src/client/timing.json).
 
 ## See also
 

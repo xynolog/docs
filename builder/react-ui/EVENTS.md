@@ -1,16 +1,16 @@
 # Event-Driven Architecture
 
-Guide to the event buses in `@semiont/react-ui` — how they're scoped,
+Guide to the event buses in `@xynolog/react-ui` — how they're scoped,
 how to emit and subscribe, and how to debug wire-level problems.
 
-For the underlying class model (`SemiontBrowser`, `SemiontClient`,
-`SemiontSession`) see [SESSION.md](SESSION.md). For the canonical
-channel list, see `packages/typescript/core/src/bus-protocol.ts` —
+For the underlying class model (`XynologBrowser`, `XynologClient`,
+`XynologSession`) see [SESSION.md](SESSION.md). For the canonical
+channel list, see sdk's `typescript/core/src/bus-protocol.ts` —
 `EventMap` is the single source of truth.
 
 What only someone working on react-ui itself needs, the wire log in e2e tests
 and two gotchas in the implementation, is in the package's
-[EVENTS.md](../../../packages/typescript/react-ui/docs/EVENTS.md).
+[EVENTS.md](https://github.com/xynolog/sdk/blob/main/typescript/react-ui/docs/EVENTS.md).
 
 ## Two buses
 
@@ -18,15 +18,15 @@ The app has **two independent `EventBus` instances**:
 
 | Bus | Owner | Lifetime | Channels |
 |---|---|---|---|
-| **Session bus** | `SemiontClient` (`client.bus`) | One per KB session — reborn on every `signIn` / `setActiveKb` | KB-content traffic: `browse:*`, `mark:*`, `beckon:*`, `gather:*`, `match:*`, `bind:*`, `yield:*`, `job:*` |
-| **Shell bus** | `SemiontBrowser` (private) | App lifetime — survives sign-out, KB swap, and zero-KB state | UI shell traffic: `panel:*`, `shell:*`, `tabs:*`, `nav:*`, `settings:*` |
+| **Session bus** | `XynologClient` (`client.bus`) | One per KB session — reborn on every `signIn` / `setActiveKb` | KB-content traffic: `browse:*`, `mark:*`, `beckon:*`, `gather:*`, `match:*`, `bind:*`, `yield:*`, `job:*` |
+| **Shell bus** | `XynologBrowser` (private) | App lifetime — survives sign-out, KB swap, and zero-KB state | UI shell traffic: `panel:*`, `shell:*`, `tabs:*`, `nav:*`, `settings:*` |
 
 The split exists because the shell must keep working when there is
 no active session: sidebar toggles, panel switches, tab reorders,
 settings changes, and in-app nav clicks all fire with or without a
 signed-in user.
 
-The shell bus is reached through `SemiontBrowser`'s `.emit(channel, payload)`,
+The shell bus is reached through `XynologBrowser`'s `.emit(channel, payload)`,
 `.on(channel, handler)` and `.stream(channel)`; its `EventBus` is private.
 The session bus is reached through the client's typed namespace methods,
 with the event hooks below as the one generic subscription. Every channel lives on exactly **one** bus; emitting to
@@ -37,7 +37,7 @@ the wrong bus is a silent no-op.
 Use `useEventSubscription` — one channel at a time:
 
 ```tsx
-import { useEventSubscription, useResourceAnnotations } from '@semiont/react-ui';
+import { useEventSubscription, useResourceAnnotations } from '@xynolog/react-ui';
 
 function SparkleReactor() {
   const { triggerSparkleAnimation } = useResourceAnnotations();
@@ -69,8 +69,8 @@ are delivered on their resource's scope, so they are subscribed to for
 a resource, with `useResourceEventSubscriptions`:
 
 ```tsx
-import { useResourceEventSubscriptions, useResourceAnnotations } from '@semiont/react-ui';
-import type { ResourceId } from '@semiont/core';
+import { useResourceEventSubscriptions, useResourceAnnotations } from '@xynolog/react-ui';
+import type { ResourceId } from '@xynolog/core';
 
 function AnnotationReactor({ resourceId }: { resourceId: ResourceId }) {
   const { triggerSparkleAnimation } = useResourceAnnotations();
@@ -92,11 +92,11 @@ Pick the bus that owns the channel:
 
 ```tsx
 function Toolbar() {
-  const semiont = useSemiont();
+  const xynolog = useXynolog();
 
   // Shell channel — works regardless of session.
   return (
-    <button onClick={() => semiont.emit('panel:toggle', { panel: 'settings' })}>
+    <button onClick={() => xynolog.emit('panel:toggle', { panel: 'settings' })}>
       Settings
     </button>
   );
@@ -106,7 +106,7 @@ function MarkButton({ resourceId, selector }: {
   resourceId: ResourceId;
   selector: EventMap['mark:requested']['selector'];
 }) {
-  const session = useObservable(useSemiont().activeSession$);
+  const session = useObservable(useXynolog().activeSession$);
   if (!session) return null;
 
   // Session channel — requires an active session. A typed namespace method
@@ -120,7 +120,7 @@ function MarkButton({ resourceId, selector }: {
 ```
 
 If you can't tell which bus to target from the channel name, look
-it up in `packages/typescript/core/src/bus-protocol.ts`. Don't guess — a
+it up in sdk's `typescript/core/src/bus-protocol.ts`. Don't guess — a
 mis-routed emit silently vanishes and the bug shows up as "the UI
 stopped reacting" with no error in the console.
 
@@ -152,7 +152,7 @@ result channel and a failure channel (`browse:resource-requested` → `browse:re
 the frame's **envelope**, not the payload.
 
 Nothing in a component writes that loop. `Bus.request(operation, payload)` in
-`@semiont/core` (`packages/typescript/core/src/bus.ts`), which a client hands out as `client.wire`, sends the request, waits for the frame
+`@xynolog/core` (sdk's `typescript/core/src/bus.ts`), which a client hands out as `client.wire`, sends the request, waits for the frame
 carrying its `correlationId`, and resolves with the reply or rejects with a `BusRequestError`.
 The SDK's namespace methods call it:
 
@@ -180,7 +180,7 @@ the wire:
 **Enable in a browser:**
 
 ```js
-window.__SEMIONT_BUS_LOG__ = true
+window.__XYNOLOG_BUS_LOG__ = true
 ```
 
 Clears on refresh. Zero-cost when off (one truthy check per emit).
@@ -196,7 +196,7 @@ regresses, even if the UI eventually converges.
 
 ### State machines driven by events
 
-Most VMs in `packages/typescript/sdk/src/state/flows/` follow the
+Most VMs in sdk's `typescript/sdk/src/state/flows/` follow the
 same shape: listen for `*-requested`/`*-ok`/`*-failed` triples on
 the session client, project the state machine into BehaviorSubjects,
 and expose them as `vm.state$`. Components read via
@@ -217,7 +217,7 @@ queries (`client.browse.*(rId)`) re-emit and any
 ```tsx
 // No manual query-client invalidation — just observe the live query.
 const state = useObservable(client.browse.annotations(rId)); // CacheState<Annotation[]>
-const annotations = state && readyValue(state); // readyValue from @semiont/sdk
+const annotations = state && readyValue(state); // readyValue from @xynolog/sdk
 ```
 
 The bridge between gateway-broadcast events and resource-scoped

@@ -1,0 +1,3 @@
+# The SDK bundle CI builds and downloads, and the SDK it builds it from
+/.local/
+/.xynolog-sdk/

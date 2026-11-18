@@ -8,39 +8,39 @@ You'll need a container runtime — [Apple Container](https://github.com/apple/c
 
 ## 1. Install
 
-The `semiont` launcher is a single static binary — no npm, no Node.js:
+The `xynolog` launcher is a single static binary — no npm, no Node.js:
 
 ```bash
-brew install the-ai-alliance/semiont/semiont
+brew install xynolog/xynolog/xynolog
 ```
 
-Homebrew serves macOS and Linux. On Windows, the [GitHub Release](https://github.com/The-AI-Alliance/semiont/releases) carries a zip holding `semiont.exe` — see [Semiont on Windows](../operator/platforms/WINDOWS.md).
+Homebrew serves macOS and Linux. On Windows, the [GitHub Release](https://github.com/xynolog/cli/releases) carries a zip holding `xynolog.exe` — see [Xynolog on Windows](../operator/platforms/WINDOWS.md).
 
 ## 2. Configure Settings
 
 Name your vault. By default the secrets the launcher generates for a knowledge base are plain files, which are not secure and are for development only. To keep every new knowledge base's in 1Password, set that before creating one:
 
 ```bash
-semiont settings secret-store --default op://YourVaultName
+xynolog settings secret-store --default op://YourVaultName
 ```
 
 Then register your [Anthropic](https://www.anthropic.com/) key once, as a pointer into that vault — only the pointer is stored, read fresh on every start and passed to the containers, written nowhere:
 
 ```bash
-semiont settings secret set ANTHROPIC_API_KEY op://YourVaultName/Anthropic/credential
+xynolog settings secret set ANTHROPIC_API_KEY op://YourVaultName/Anthropic/credential
 ```
 
 A local model needs no secret: [Ollama](https://ollama.com/) runs a small one on your own machine, selected in the next step, and no content leaves your machine.
 
-`semiont settings` lists every setting the launcher keeps, with its value and where it came from.
+`xynolog settings` lists every setting the launcher keeps, with its value and where it came from.
 
 ## 3. Create a knowledge base
 
-`semiont init` creates a KB in place, writing its project file and the documents that describe its stack, each validated before it is written:
+`xynolog init` creates a KB in place, writing its project file and the documents that describe its stack, each validated before it is written:
 
 ```bash
 mkdir my-kb && cd my-kb
-semiont init --yes --domain example.com:my-kb --inference anthropic
+xynolog init --yes --domain example.com:my-kb --inference anthropic
 ```
 
 **Change `--domain`** — it is the KB's permanent identity, stamped into the committed event log, and has no default. Use `--inference ollama` instead if you chose the local model above.
@@ -51,37 +51,35 @@ To start from a knowledge base that already has content instead, clone one of th
 
 ## 4. Start it
 
-One command starts the whole stack and ensures the Semiont browser is running at **http://localhost:3000**:
+One command starts the whole stack and ensures the Xynolog browser is running at **http://localhost:3000**:
 
 ```bash
-semiont start
+xynolog start
 ```
 
-`semiont status` reports each service's state and health, `semiont logs` follows it, `semiont stop` tears it down, and `semiont start --help` lists the options.
+`xynolog status` reports each service's state and health, `xynolog logs` follows it, `xynolog stop` tears it down, and `xynolog start --help` lists the options.
 
 ## 5. Create a user
 
-A fresh stack has no users. The account is created at the knowledge base's identity provider, which is what Semiont trusts to authenticate people:
+A fresh stack has no users. The account is created at the knowledge base's identity provider, which is what Xynolog trusts to authenticate people:
 
 ```bash
-semiont useradd --email admin@example.com   # prompts for the password
+xynolog useradd --email admin@example.com   # prompts for the password
 ```
 
 ## 6. Sign in
 
-Open **http://localhost:3000**. The Semiont browser's Knowledge Bases panel discovers launcher-managed stacks automatically — pick yours and sign in with the email and password you just created. Sign-in happens at the identity provider, not at Semiont, so you'll be handed to its page and back, and it asks for your name on first use.
-
-![Connect to knowledge base](../../website/assets/images/connect-kb.png)
+Open **http://localhost:3000**. The Xynolog browser's Knowledge Bases panel discovers launcher-managed stacks automatically — pick yours and sign in with the email and password you just created. Sign-in happens at the identity provider, not at Xynolog, so you'll be handed to its page and back, and it asks for your name on first use.
 
 Sign the launcher in as well — it holds a session of its own, which the next step needs:
 
 ```bash
-semiont login          # approve in a browser; only tokens come back
+xynolog login          # approve in a browser; only tokens come back
 ```
 
-No password reaches the launcher, and the session renews itself; `semiont logout` ends it. It is the CLI's own session — an SDK app signs in separately.
+No password reaches the launcher, and the session renews itself; `xynolog logout` ends it. It is the CLI's own session — an SDK app signs in separately.
 
-For local-network access notes, supply-chain verification, and the native [desktop app](https://github.com/The-AI-Alliance/semiont/releases) alternative, see the **[analyst docs](../analyst/README.md)**.
+For local-network access notes, supply-chain verification, and the native [desktop app](https://github.com/xynolog/desktop/releases) alternative, see the **[analyst docs](../analyst/README.md)**.
 
 ## 7. Ingest content
 
@@ -90,19 +88,17 @@ Pull down a well-known paper and upload it with the session from step 6. The sto
 ```bash
 mkdir -p papers
 curl -L -o papers/attention-is-all-you-need.pdf https://arxiv.org/pdf/1706.03762
-semiont yield --upload papers/attention-is-all-you-need.pdf
+xynolog yield --upload papers/attention-is-all-you-need.pdf
 ```
 
 ## 8. Annotate
-
-![The Semiont browser: a document with its references highlighted, and a panel of assessments beside it](../../website/assets/images/semiont-2026-03-10.png)
 
 Open the document you just ingested and start marking it up — highlight a passage, tag an entity, link a claim to the source that supports it. You are not doing it alone: AI agents reach the same document over the same bus, proposing references and entity types for you to accept, refine, or throw out. Every annotation records who made it, human or agent, and the two are the same kind of participant here.
 
 The CLI asks for the same work. This has the stack detect references to concepts, given the resource id that step 7 printed:
 
 ```bash
-semiont mark --delegate <resourceId> --motivation linking --entity-type Concept
+xynolog mark --delegate <resourceId> --motivation linking --entity-type Concept
 ```
 
 ## 9. Work in it from an AI application
@@ -110,15 +106,15 @@ semiont mark --delegate <resourceId> --motivation linking --entity-type Concept
 To work in the knowledge base from Claude or any other MCP client, register the launcher's MCP server with it. The server acts through the sign-in from step 6:
 
 ```bash
-claude mcp add semiont -- semiont mcp
+claude mcp add xynolog -- xynolog mcp
 ```
 
 **[Connecting an AI application](AI-APPLICATIONS.md)** has the rest: other clients, a codespace's knowledge base, and what the tools do.
 
 ## Next
 
-Everything you just did travelled over one event bus, spoken as [eight verbs](../../protocol/contract/flows/README.md): `semiont yield` and `semiont mark` were two of them. The launcher speaks all eight (`semiont browse --help`, and so on), and so does your code, through the SDK.
+Everything you just did travelled over one event bus, spoken as [eight verbs](https://github.com/xynolog/protocol/blob/main/contract/flows/README.md): `xynolog yield` and `xynolog mark` were two of them. The launcher speaks all eight (`xynolog browse --help`, and so on), and so does your code, through the SDK.
 
-- **[Building with the Semiont SDK](README.md)**: the same verbs from TypeScript, Rust, Python, Go, Kotlin, Java, C#, Swift or Haskell
+- **[Building with the Xynolog SDK](README.md)**: the same verbs from TypeScript, Rust, Python, Go, Kotlin, Java, C#, Swift or Haskell
 - **[Working in the Browser](../analyst/FEATURES.md)**: what you can do with the document you just opened
-- **[Running knowledge bases on your computer](../operator/LOCAL-SEMIONT.md)**: what this page leaves out about the stack you just started
+- **[Running knowledge bases on your computer](../operator/LOCAL-XYNOLOG.md)**: what this page leaves out about the stack you just started

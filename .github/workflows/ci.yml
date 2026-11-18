@@ -28,13 +28,110 @@ jobs:
     permissions:
       issues: write
 
+  # The SDK's TypeScript packages, from the bundle of sdk.lock's commit, built
+  # once per commit and checked against it and its Protocol submodule.
+  sdk:
+    name: SDK bundle from the pinned SDK commit
+    runs-on: ubuntu-latest
+    env:
+      SDK_LANGUAGES: typescript
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: Read the SDK pin
+        id: pin
+        run: python3 -c 'import json; print("commit=" + json.load(open("sdk.lock"))["commit"])' >> "$GITHUB_OUTPUT"
+
+      - name: Check out the pinned SDK
+        uses: actions/checkout@v7.0.1
+        with:
+          repository: xynolog/sdk
+          ref: ${{ steps.pin.outputs.commit }}
+          path: .xynolog-sdk
+
+      - name: Restore the bundle built from the pin
+        id: cache
+        uses: actions/cache@v6.1.0
+        with:
+          path: ${{ runner.temp }}/sdk-artifacts
+          key: xynolog-sdk-${{ steps.pin.outputs.commit }}-${{ env.SDK_LANGUAGES }}
+
+      - name: Build the bundle
+        if: steps.cache.outputs.cache-hit != 'true'
+        env:
+          BUNDLE: ${{ runner.temp }}/sdk-artifacts
+        run: |
+          git -C .xynolog-sdk submodule update --init --recursive
+          built="$(bash .xynolog-sdk/scripts/resolve-artifact-bundle.sh $SDK_LANGUAGES)"
+          cp -a "$built" "$BUNDLE"
+
+      - name: Verify the bundle against the SDK pin and its Protocol commit
+        env:
+          BUNDLE: ${{ runner.temp }}/sdk-artifacts
+          SDK_COMMIT: ${{ steps.pin.outputs.commit }}
+        run: |
+          languages=()
+          for language in $SDK_LANGUAGES; do languages+=(--language "$language"); done
+          python3 "$BUNDLE/tools/verify-artifact-bundle.py" "$BUNDLE" \
+            --sdk-commit "$SDK_COMMIT" \
+            --protocol-commit "$(git -C .xynolog-sdk ls-tree HEAD protocol | awk '{print $3}')" \
+            "${languages[@]}"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: sdk-artifacts
+          path: ${{ runner.temp }}/sdk-artifacts
+          if-no-files-found: error
+          include-hidden-files: true
+
+  # Every TypeScript fence of the builder docs, the skills and the react-ui
+  # docs type-checks against the SDK packages of the pinned bundle.
+  doc-snippets:
+    needs: sdk
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          submodules: recursive
+
+      - name: Read the SDK pin
+        id: pin
+        run: python3 -c 'import json; print("commit=" + json.load(open("sdk.lock"))["commit"])' >> "$GITHUB_OUTPUT"
+
+      # react-ui's declarations for jest-axe and its vitest matchers, which its
+      # npm package does not carry.
+      - name: Check out the pinned SDK's react-ui types
+        uses: actions/checkout@v7.0.1
+        with:
+          repository: xynolog/sdk
+          ref: ${{ steps.pin.outputs.commit }}
+          path: checks/doc-snippets/.xynolog-sdk
+          sparse-checkout: typescript/react-ui/src/types
+
+      - name: Download the SDK bundle
+        uses: actions/download-artifact@v8
+        with:
+          name: sdk-artifacts
+          path: .local/sdk-artifacts
+
+      - name: Take the SDK's npm packages from the bundle
+        run: python3 build-tools/prepare-sdk-package.py .local/sdk-artifacts checks/doc-snippets/package.json
+
+      - name: Type-check the doc snippets in a Node container
+        run: >-
+          docker run --rm
+          -v "$PWD:/workspace"
+          -w /workspace/checks/doc-snippets
+          node:24.15.0-bookworm
+          sh -lc 'npm install --no-audit --no-fund && npm run check'
+
   # What the ruleset requires. It waits for every other job, a census holds
   # that list to the workflow's jobs, and it fails when any of them failed or
   # was cancelled. A job skipped by its own condition passes.
   gate:
     name: CI Gate
     if: always()
-    needs: [dco, labels]
+    needs: [dco, labels, sdk, doc-snippets]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7.0.1

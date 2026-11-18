@@ -1,18 +1,18 @@
 # Styles
 
-How to use `@semiont/react-ui`'s styles in your own app: importing them, the
+How to use `@xynolog/react-ui`'s styles in your own app: importing them, the
 design tokens, and the classes the components are built from.
 
 Your app's own styling is unconstrained. Take all the styles with
-`@semiont/react-ui/styles`, or only the tokens with
-`@semiont/react-ui/styles/variables.css`.
+`@xynolog/react-ui/styles`, or only the tokens with
+`@xynolog/react-ui/styles/variables.css`.
 
 Dark mode is `data-theme="dark"` on a parent element. The semantic tokens
-(`--semiont-text-*`, `--semiont-bg-*`, `--semiont-border-*`) change with it;
-the palette tokens (`--semiont-color-*`) are one fixed hue in both themes.
+(`--xynolog-text-*`, `--xynolog-bg-*`, `--xynolog-border-*`) change with it;
+the palette tokens (`--xynolog-color-*`) are one fixed hue in both themes.
 
 How the styles are written, named and linted inside the package is in its
-[STYLES.md](../../../packages/typescript/react-ui/docs/STYLES.md).
+[STYLES.md](https://github.com/xynolog/sdk/blob/main/typescript/react-ui/docs/STYLES.md).
 
 ## Using the Styles in Your App
 
@@ -22,7 +22,7 @@ Add this to your app's main CSS file:
 
 ```css
 /* app/globals.css (Next.js) or src/index.css (Vite/CRA) */
-@import '@semiont/react-ui/styles';
+@import '@xynolog/react-ui/styles';
 ```
 
 ### Requirements
@@ -33,15 +33,15 @@ Your build system must support:
 
 ### What Happens
 
-1. Your build system resolves `@import '@semiont/react-ui/styles'` to `node_modules/@semiont/react-ui/src/styles/index.css`
+1. Your build system resolves `@import '@xynolog/react-ui/styles'` to `node_modules/@xynolog/react-ui/src/styles/index.css`
 2. PostCSS processes all nested `@import` statements (including component CSS)
 3. All CSS is bundled into a single optimized file
 
-The package exports **source CSS files**, not built CSS, so your framework's build system processes them. Vite does it with no configuration: the Semiont Browser's own stylesheet starts with this import.
+The package exports **source CSS files**, not built CSS, so your framework's build system processes them. Vite does it with no configuration: the Xynolog Browser's own stylesheet starts with this import.
 
 ### Debugging
 
-Because your bundler processes the source files, its CSS source maps lead to them: a rule in the browser's developer tools opens at its file under `node_modules/@semiont/react-ui/src/styles/`. In Vite, `css: { devSourcemap: true }` turns them on for development.
+Because your bundler processes the source files, its CSS source maps lead to them: a rule in the browser's developer tools opens at its file under `node_modules/@xynolog/react-ui/src/styles/`. In Vite, `css: { devSourcemap: true }` turns them on for development.
 
 ```
 src/styles/
@@ -64,33 +64,33 @@ Design tokens are defined in `variables.css`:
 ### Color Palette
 
 ```css
---semiont-color-primary-500: #0080ff;
---semiont-color-gray-50: #f9fafb;
---semiont-color-gray-900: #111827;
---semiont-color-white: #ffffff;
---semiont-color-black: #000000;
+--xynolog-color-primary-500: #0080ff;
+--xynolog-color-gray-50: #f9fafb;
+--xynolog-color-gray-900: #111827;
+--xynolog-color-white: #ffffff;
+--xynolog-color-black: #000000;
 /* Full palettes for primary, gray, red, yellow, green, blue, etc. */
 ```
 
 ### Typography
 
 ```css
---semiont-font-sans: /* system font stack */;
---semiont-font-mono: /* monospace font stack */;
---semiont-text-xs: 0.75rem;
---semiont-text-sm: 0.875rem;
---semiont-text-base: 1rem;
---semiont-text-lg: 1.125rem;
+--xynolog-font-sans: /* system font stack */;
+--xynolog-font-mono: /* monospace font stack */;
+--xynolog-text-xs: 0.75rem;
+--xynolog-text-sm: 0.875rem;
+--xynolog-text-base: 1rem;
+--xynolog-text-lg: 1.125rem;
 /* ... and more */
 ```
 
 ### Spacing
 
 ```css
---semiont-spacing-xs: 0.25rem;
---semiont-spacing-sm: 0.5rem;
---semiont-spacing-md: 1rem;
---semiont-spacing-lg: 1.5rem;
+--xynolog-spacing-xs: 0.25rem;
+--xynolog-spacing-sm: 0.5rem;
+--xynolog-spacing-md: 1rem;
+--xynolog-spacing-lg: 1.5rem;
 /* ... and more */
 ```
 
@@ -98,24 +98,24 @@ Design tokens are defined in `variables.css`:
 
 ```css
 /* Centralized panel styling for consistency */
---semiont-panel-padding: 1rem;
---semiont-panel-gap: 1rem;
---semiont-panel-border-radius: var(--semiont-radius-lg);
---semiont-panel-title-size: var(--semiont-text-lg);
---semiont-panel-title-weight: var(--semiont-font-semibold);
---semiont-panel-header-margin-bottom: 0.75rem;
---semiont-panel-section-gap: 1.5rem;
---semiont-panel-field-gap: 0.5rem;
---semiont-panel-icon-size: 1.125rem;
+--xynolog-panel-padding: 1rem;
+--xynolog-panel-gap: 1rem;
+--xynolog-panel-border-radius: var(--xynolog-radius-lg);
+--xynolog-panel-title-size: var(--xynolog-text-lg);
+--xynolog-panel-title-weight: var(--xynolog-font-semibold);
+--xynolog-panel-header-margin-bottom: 0.75rem;
+--xynolog-panel-section-gap: 1.5rem;
+--xynolog-panel-field-gap: 0.5rem;
+--xynolog-panel-icon-size: 1.125rem;
 ```
 
 ### Border Radius
 
 ```css
---semiont-radius-sm: 0.125rem;
---semiont-radius-md: 0.375rem;
---semiont-radius-lg: 0.5rem;
---semiont-radius-full: 9999px;
+--xynolog-radius-sm: 0.125rem;
+--xynolog-radius-md: 0.375rem;
+--xynolog-radius-lg: 0.5rem;
+--xynolog-radius-full: 9999px;
 ```
 
 ## Core UI Elements
@@ -126,35 +126,35 @@ The `core/` directory contains fundamental UI elements that are reused throughou
 Located in `core/buttons.css`, provides a comprehensive button system:
 
 ```jsx
-<button className="semiont-button semiont-button--primary">
+<button className="xynolog-button xynolog-button--primary">
   Primary Button
 </button>
 ```
 
 Available modifiers:
-- `semiont-button--primary` - Primary action (cyan/blue gradient)
-- `semiont-button--secondary` - Secondary action
-- `semiont-button--tertiary` - Tertiary action
-- `semiont-button--danger` - Destructive action
-- `semiont-button--warning` - Amber; highlight actions
-- `semiont-button--large` - Full width, larger padding
-- `semiont-button--scale` - Grows on hover
+- `xynolog-button--primary` - Primary action (cyan/blue gradient)
+- `xynolog-button--secondary` - Secondary action
+- `xynolog-button--tertiary` - Tertiary action
+- `xynolog-button--danger` - Destructive action
+- `xynolog-button--warning` - Amber; highlight actions
+- `xynolog-button--large` - Full width, larger padding
+- `xynolog-button--scale` - Grows on hover
 
-`buttonStyles` (exported from `@semiont/react-ui`) holds these combinations as ready-made class strings. The `Button` component styles itself through data attributes instead: `data-variant` (`primary`, `secondary`, `tertiary`, `danger`, `warning`, `ghost`) and `data-size` (`xs` through `xl`) on `.semiont-button`.
+`buttonStyles` (exported from `@xynolog/react-ui`) holds these combinations as ready-made class strings. The `Button` component styles itself through data attributes instead: `data-variant` (`primary`, `secondary`, `tertiary`, `danger`, `warning`, `ghost`) and `data-size` (`xs` through `xl`) on `.xynolog-button`.
 
 ### Toggle Switches
 Located in `core/toggles.css`, for binary on/off controls:
 
 ```jsx
-<label className="semiont-toggle-label">
-  <span className="semiont-toggle-label__text">Line numbers</span>
+<label className="xynolog-toggle-label">
+  <span className="xynolog-toggle-label__text">Line numbers</span>
   <button
     type="button"
     role="switch"
     aria-checked={isOn}
-    className={`semiont-toggle ${isOn ? 'semiont-toggle--active' : ''}`}
+    className={`xynolog-toggle ${isOn ? 'xynolog-toggle--active' : ''}`}
   >
-    <span className={`semiont-toggle__slider ${isOn ? 'semiont-toggle__slider--active' : ''}`} />
+    <span className={`xynolog-toggle__slider ${isOn ? 'xynolog-toggle__slider--active' : ''}`} />
   </button>
 </label>
 ```
@@ -163,8 +163,8 @@ Located in `core/toggles.css`, for binary on/off controls:
 Located in `core/progress.css`, for showing completion status:
 
 ```jsx
-<div className="semiont-progress">
-  <div className="semiont-progress__fill" style={{width: '60%'}}></div>
+<div className="xynolog-progress">
+  <div className="xynolog-progress__fill" style={{width: '60%'}}></div>
 </div>
 ```
 
@@ -172,20 +172,20 @@ Located in `core/progress.css`, for showing completion status:
 Located in `core/sliders.css`, for numeric range inputs:
 
 ```jsx
-<input type="range" className="semiont-slider" min="0" max="100" />
+<input type="range" className="xynolog-slider" min="0" max="100" />
 ```
 
 ### Tags
 Located in `core/tags.css`, for content categorization:
 
 ```jsx
-<span className="semiont-tag">Category</span>
-<span className="semiont-tag semiont-tag--secondary">Secondary Tag</span>
+<span className="xynolog-tag">Category</span>
+<span className="xynolog-tag xynolog-tag--secondary">Secondary Tag</span>
 ```
 
 ## W3C Web Annotation Motivations
 
-The `motivations/` directory contains styles for the five W3C Web Annotation standard motivations. Each file defines its `--semiont-motivation-<type>-*` custom properties on `:root`, styles inline annotations through an `annotation-<type>` class, and styles that motivation's panel entries (`.semiont-annotation-entry[data-type="<type>"]`). The class an annotation renders with comes from its entry in `ANNOTATORS` (`src/lib/annotation-registry.ts`).
+The `motivations/` directory contains styles for the five W3C Web Annotation standard motivations. Each file defines its `--xynolog-motivation-<type>-*` custom properties on `:root`, styles inline annotations through an `annotation-<type>` class, and styles that motivation's panel entries (`.xynolog-annotation-entry[data-type="<type>"]`). The class an annotation renders with comes from its entry in `ANNOTATORS` (`src/lib/annotation-registry.ts`).
 
 ### Linking (References)
 Located in `motivation-reference.css`:
@@ -194,8 +194,8 @@ Located in `motivation-reference.css`:
 
 ```css
 .annotation-reference {
-  background: var(--semiont-motivation-reference-bg);   /* cyan-200 → blue-200 */
-  color: var(--semiont-motivation-reference-text);
+  background: var(--xynolog-motivation-reference-bg);   /* cyan-200 → blue-200 */
+  color: var(--xynolog-motivation-reference-text);
 }
 ```
 
@@ -206,8 +206,8 @@ Located in `motivation-highlight.css`:
 
 ```css
 .annotation-highlight {
-  background: var(--semiont-motivation-highlight-bg);   /* yellow-200 */
-  color: var(--semiont-motivation-highlight-text);
+  background: var(--xynolog-motivation-highlight-bg);   /* yellow-200 */
+  color: var(--xynolog-motivation-highlight-text);
 }
 ```
 
@@ -219,7 +219,7 @@ Located in `motivation-assessment.css`:
 ```css
 .annotation-assessment {
   text-decoration: underline wavy;
-  text-decoration-color: var(--semiont-motivation-assessment-primary);   /* red-500 */
+  text-decoration-color: var(--xynolog-motivation-assessment-primary);   /* red-500 */
 }
 ```
 
@@ -230,7 +230,7 @@ Located in `motivation-comment.css`:
 
 ```css
 .annotation-comment {
-  outline: 2px dashed var(--semiont-motivation-comment-outline);   /* gray-900 */
+  outline: 2px dashed var(--xynolog-motivation-comment-outline);   /* gray-900 */
   outline-offset: 1px;
 }
 ```
@@ -242,8 +242,8 @@ Located in `motivation-tag.css`:
 
 ```css
 .annotation-tag {
-  background: var(--semiont-motivation-tag-bg);   /* orange-200 → amber-200 */
-  color: var(--semiont-motivation-tag-text);
+  background: var(--xynolog-motivation-tag-bg);   /* orange-200 → amber-200 */
+  color: var(--xynolog-motivation-tag-text);
 }
 ```
 
@@ -253,7 +253,7 @@ Located in `motivation-tag.css`:
 Located in `patterns/cards.css`:
 
 ```jsx
-<div className="semiont-card">
+<div className="xynolog-card">
   <h3>Card Title</h3>
   <p>Content goes here</p>
 </div>
@@ -263,11 +263,11 @@ Located in `patterns/cards.css`:
 Located in `core/forms.css` and `core/inputs.css`:
 
 ```jsx
-<div className="semiont-form">
-  <div className="semiont-form__field">
-    <label htmlFor="title" className="semiont-form__label">Label</label>
-    <input id="title" className="semiont-input" />
-    <p className="semiont-form__help">Helper text</p>
+<div className="xynolog-form">
+  <div className="xynolog-form__field">
+    <label htmlFor="title" className="xynolog-form__label">Label</label>
+    <input id="title" className="xynolog-input" />
+    <p className="xynolog-form__help">Helper text</p>
   </div>
 </div>
 ```
@@ -276,11 +276,11 @@ Located in `core/forms.css` and `core/inputs.css`:
 Located in `patterns/panels-base.css`:
 
 ```jsx
-<div className="semiont-panel">
-  <div className="semiont-panel-header">
-    <h2 className="semiont-panel-header__title">Panel Title</h2>
+<div className="xynolog-panel">
+  <div className="xynolog-panel-header">
+    <h2 className="xynolog-panel-header__title">Panel Title</h2>
   </div>
-  <div className="semiont-panel__content">
+  <div className="xynolog-panel__content">
     Panel content
   </div>
 </div>

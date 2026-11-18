@@ -1,8 +1,8 @@
 # Authentication
 
-Semiont uses **bearer-only** authentication: every request authenticates with an `Authorization: Bearer` JWT (or, for media, a short-lived `?token=`). There are **no session cookies** — the gateway carries no ambient credentials, which is what lets CORS be fully open (`*`) and a KB be hosted on the public internet.
+Xynolog uses **bearer-only** authentication: every request authenticates with an `Authorization: Bearer` JWT (or, for media, a short-lived `?token=`). There are **no session cookies** — the gateway carries no ambient credentials, which is what lets CORS be fully open (`*`) and a KB be hosted on the public internet.
 
-See also [Security](./SECURITY.md) for what Semiont enforces and what it leaves to the issuer and the platform, [Secrets](../services/SECRETS.md) for how secrets reach services, and [Configuration](./CONFIGURATION.md#the-issuer) for how a knowledge base names the issuer it trusts.
+See also [Security](./SECURITY.md) for what Xynolog enforces and what it leaves to the issuer and the platform, [Secrets](../services/SECRETS.md) for how secrets reach services, and [Configuration](./CONFIGURATION.md#the-issuer) for how a knowledge base names the issuer it trusts.
 
 ## Overview
 
@@ -68,8 +68,8 @@ row against the literal, not against another document:
 
 | Token | Minted at | Literal |
 |---|---|---|
-| Access | the realm the launcher creates, [`packages/go/launcher/identity.go`](../../../packages/go/launcher/identity.go) | `keycloakAccessTokenLifespan`, which `semiont init` writes into the KnowledgeBase document as `spec.issuer.shared.accessTokenLifespan`, and the launcher into the knowledge base's realm as `accessTokenLifespan`. A knowledge base changes it there. **Applied only when the realm is created** — a start leaves a realm Keycloak already holds as it is, which keeps what it was created with, and `semiont start` warns when the realm's actual lifespan disagrees with the document. |
-| Media | [`images/gateway/src/tokens.rs`](../../../images/gateway/src/tokens.rs) | `MEDIA_TOKEN_SECONDS` (five minutes) |
+| Access | the realm the launcher creates, [cli's `internal/launcher/identity.go`](https://github.com/xynolog/cli/blob/main/internal/launcher/identity.go) | `keycloakAccessTokenLifespan`, which `xynolog init` writes into the KnowledgeBase document as `spec.issuer.shared.accessTokenLifespan`, and the launcher into the knowledge base's realm as `accessTokenLifespan`. A knowledge base changes it there. **Applied only when the realm is created** — a start leaves a realm Keycloak already holds as it is, which keeps what it was created with, and `xynolog start` warns when the realm's actual lifespan disagrees with the document. |
+| Media | [`images/gateway/src/tokens.rs`](https://github.com/xynolog/images/blob/main/gateway/src/tokens.rs) | `MEDIA_TOKEN_SECONDS` (five minutes) |
 
 ### Revocation
 
@@ -87,7 +87,7 @@ An agent is revoked the same way: its account is a client at the issuer, and dis
 
 ### The subject claim
 
-`spec.issuer.subjectClaim`, in the knowledge base's `knowledge-base.yaml`, names the issuer claim a principal's DID is built from: `sub`, as `semiont init` writes it, is the issuer's stable identifier, and `email` names people by address.
+`spec.issuer.subjectClaim`, in the knowledge base's `knowledge-base.yaml`, names the issuer claim a principal's DID is built from: `sub`, as `xynolog init` writes it, is the issuer's stable identifier, and `email` names people by address.
 
 It is required — the KnowledgeBase schema refuses a document without it, and the gateway refuses a configuration without it, naming the key — and it has no default: which claim identifies a principal is declared per deployment, never inferred. A person is `did:web:<site domain>:users:<claim value>` and an agent `did:web:<site domain>:agents:<claim value>`: an agent's account is told apart by the `kind` claim its issuer stamps on it ([At the issuer](#at-the-issuer)), so a person and the software working for them are peers under one authority, named the same way. With `"sub"`, a changed email changes nothing about who authored what; with `"email"`, the address is the identity, and the operator has said so — and an agent's account, which need have no address, cannot be named.
 
@@ -176,7 +176,7 @@ The gateway reads two credentials from its environment:
 | Variable | What it is |
 |---|---|
 | `JWT_SECRET` | The key ring that signs media tokens, and nothing else |
-| `SEMIONT_OIDC_CLIENT_ID`, `SEMIONT_OIDC_CLIENT_SECRET` | The gateway's own service account at the issuer, which it uses to reach the archivist |
+| `XYNOLOG_OIDC_CLIENT_ID`, `XYNOLOG_OIDC_CLIENT_SECRET` | The gateway's own service account at the issuer, which it uses to reach the archivist |
 
 It holds no credential on a person's behalf: it never signs anyone in, and verifies people's tokens against the issuer's published keys. The issuer a deployment trusts is named in the knowledge base's `knowledge-base.yaml`, at `spec.issuer`.
 
@@ -184,7 +184,7 @@ Nothing generates the signing key at request time, and the gateway refuses to st
 
 | Where the stack runs | Supplied by | Where it is kept |
 |---|---|---|
-| Your machine | `semiont start` | `jwt-secret` in the knowledge base's secrets store: its 1Password item, or a file in its state directory (not secure; for development only) |
+| Your machine | `xynolog start` | `jwt-secret` in the knowledge base's secrets store: its 1Password item, or a file in its state directory (not secure; for development only) |
 | A codespace | The launcher inside the codespace | The file store, on the codespace's filesystem |
 | Your own platform | You | Your platform's secret store, mapped to the variable |
 
@@ -199,7 +199,7 @@ Replacing the key outright stops every media token in hand from verifying at onc
 ```bash
 # 1. Mint a new key and put it FIRST, keeping the old one behind it.
 export JWT_SECRET="$(openssl rand -hex 32),$OLD_SECRET"
-semiont start --service gateway        # or restart however you deploy
+xynolog start --service gateway        # or restart however you deploy
 
 # 2. Nothing breaks. New media tokens are signed with the new key; tokens
 #    already issued still verify against the old one.
@@ -207,12 +207,12 @@ semiont start --service gateway        # or restart however you deploy
 # 3. Once every outstanding media token has expired (five minutes, the media
 #    TTL above), drop the tail:
 export JWT_SECRET="$NEW_SECRET"
-semiont start --service gateway
+xynolog start --service gateway
 ```
 
 Details worth knowing:
 
-- **Each key must be at least 32 characters.** The check is per key, not on the whole string — `<valid>,short` would otherwise pass trivially. `semiont start` refuses such a value up front rather than letting the gateway crash-loop.
+- **Each key must be at least 32 characters.** The check is per key, not on the whole string — `<valid>,short` would otherwise pass trivially. `xynolog start` refuses such a value up front rather than letting the gateway crash-loop.
 - **A comma cannot appear in a key**, so the delimiter is unambiguous: generated keys are hex, and the documented recipe is `openssl rand -hex 32`.
 - **Two keys is the normal maximum.** The ring exists for a rotation window, not as a key store; trial verification costs one extra HMAC per key on the failing path.
 
@@ -223,80 +223,80 @@ A knowledge base admits a worker the way it admits a person: by an account its o
 **The worker's owner** prints the public half on the machine that runs the worker, and sends it:
 
 ```bash
-semiont worker key > alice.jwks
+xynolog worker key > alice.jwks
 ```
 
-It is a JWK Set: the key, and the key id each of the worker's sign-ins names (the key's RFC 7638 thumbprint). `semiont worker key --pem` prints the key as a PEM instead, with the key id on stderr. The private half never leaves that machine.
+It is a JWK Set: the key, and the key id each of the worker's sign-ins names (the key's RFC 7638 thumbprint). `xynolog worker key --pem` prints the key as a PEM instead, with the key id on stderr. The private half never leaves that machine.
 
 ### At a knowledge base the launcher runs
 
 ```bash
-semiont identity grant alice --key alice.jwks
+xynolog identity grant alice --key alice.jwks
 ```
 
-This creates one client in the realm, `semiont-worker-alice`. It is the client the launcher makes for its own machine's worker, `semiont-worker-local`, with another key:
+This creates one client in the realm, `xynolog-worker-alice`. It is the client the launcher makes for its own machine's worker, `xynolog-worker-local`, with another key:
 
 - confidential, authenticating by signed JWT with that key;
 - its client-credentials grant enabled;
-- its token stamped with the flat `roles` `semiont-service` and `semiont-worker`, and with this knowledge base's audience.
+- its token stamped with the flat `roles` `xynolog-service` and `xynolog-worker`, and with this knowledge base's audience.
 
-It prints the knowledge base's domain, the client id, the gateway's address, and the `semiont worker kb add` line that adds this knowledge base on the worker's machine, to send back. None of it is secret. Before anything reaches the realm, it refuses a private key, a key that is not RSA, and the label `local`. If the knowledge base's documents state the gateway at a loopback address, it warns, since a worker on another machine cannot reach one.
+It prints the knowledge base's domain, the client id, the gateway's address, and the `xynolog worker kb add` line that adds this knowledge base on the worker's machine, to send back. None of it is secret. Before anything reaches the realm, it refuses a private key, a key that is not RSA, and the label `local`. If the knowledge base's documents state the gateway at a loopback address, it warns, since a worker on another machine cannot reach one.
 
 Granting the same key again changes nothing. A new key under the same label replaces the old one on the same client, so the worker keeps its account, and the subject the knowledge base knows it by.
 
 ```bash
-semiont identity revoke alice
+xynolog identity revoke alice
 ```
 
 This deletes that client, and no other. The worker's next sign-in is refused, and it stops working for this knowledge base alone. A token it already holds stays good until it expires, within the realm's access-token lifetime ([Token lifecycle](#token-lifecycle), [Revocation](#revocation)).
 
-Both need the realm's bootstrap admin password, as `semiont identity sync` does.
+Both need the realm's bootstrap admin password, as `xynolog identity sync` does.
 
 ### At an issuer you run
 
 Create the client yourself. It is the same client:
 
 - **Confidential**, authenticating by a **signed JWT**: RFC 7523's client assertion, RS256. Keycloak calls this authenticator "Signed JWT".
-- **The worker's public key registered on it**, under the key id each assertion names: the `kid` of the JWK Set that `semiont worker key` prints. An issuer given the PEM must be given that key id too; Keycloak refuses an assertion naming a key id its client does not hold.
+- **The worker's public key registered on it**, under the key id each assertion names: the `kid` of the JWK Set that `xynolog worker key` prints. An issuer given the PEM must be given that key id too; Keycloak refuses an assertion naming a key id its client does not hold.
 - **The client-credentials grant enabled**, and nothing else: no browser flow, no password grant.
-- **A flat `roles` claim** carrying `semiont-service` and `semiont-worker`, a **`kind`** of `agent`, and an **`aud`** carrying this knowledge base's resource identifier ([At the issuer](#at-the-issuer)).
+- **A flat `roles` claim** carrying `xynolog-service` and `xynolog-worker`, a **`kind`** of `agent`, and an **`aud`** carrying this knowledge base's resource identifier ([At the issuer](#at-the-issuer)).
 
-The worker's assertion names the client as its `iss` and its `sub`, and the issuer's token endpoint as its `aud`, so the issuer must accept that audience. Its whole shape is [`protocol/specs/src/session/client-assertion-cases.json`](../../../protocol/specs/src/session/client-assertion-cases.json). A worker written with any Semiont SDK (TypeScript, Python, Rust, Go or Kotlin) signs it, each SDK held to that table, so a participant's own worker is admitted the same way as Semiont's.
+The worker's assertion names the client as its `iss` and its `sub`, and the issuer's token endpoint as its `aud`, so the issuer must accept that audience. Its whole shape is [`protocol/specs/src/session/client-assertion-cases.json`](https://github.com/xynolog/protocol/blob/main/specs/src/session/client-assertion-cases.json). A worker written with any Xynolog SDK (TypeScript, Python, Rust, Go or Kotlin) signs it, each SDK held to that table, so a participant's own worker is admitted the same way as Xynolog's.
 
 To revoke, delete the client.
 
 ### What the worker's owner does with it
 
-`semiont identity grant` prints the knowledge base's domain, its gateway's address and the client id, and the line that adds the knowledge base to the worker, to run on the worker's machine, inside a local knowledge base the worker serves:
+`xynolog identity grant` prints the knowledge base's domain, its gateway's address and the client id, and the line that adds the knowledge base to the worker, to run on the worker's machine, inside a local knowledge base the worker serves:
 
 ```bash
-semiont worker kb add kb.example.org --gateway https://kb.example.org --client-id semiont-worker-alice
+xynolog worker kb add kb.example.org --gateway https://kb.example.org --client-id xynolog-worker-alice
 ```
 
-The machine runs one worker, serving a list of knowledge bases kept beside its key. A local knowledge base's `semiont start` puts it on the list when its Inference document gives one of its jobs an engine. `semiont worker kb add`, run inside one on the list, adds a knowledge base someone else runs, and the worker offers it the engines the local one's Inference document gives it, on this machine's provider keys. The launcher takes the issuer from the gateway, which names it at `/.well-known/oauth-protected-resource`. The next start runs the worker serving every knowledge base on the list: at each it signs in as the client that knowledge base's realm holds the key on, with the one key. `semiont worker kb list` shows the list, and `semiont worker kb remove <domain>` takes one off; a local one whose engines an added one is offered is refused until that one is removed. A local knowledge base taken off the list while one added from it remains leaves that one unserved, which the start says, until the local one's next start.
+The machine runs one worker, serving a list of knowledge bases kept beside its key. A local knowledge base's `xynolog start` puts it on the list when its Inference document gives one of its jobs an engine. `xynolog worker kb add`, run inside one on the list, adds a knowledge base someone else runs, and the worker offers it the engines the local one's Inference document gives it, on this machine's provider keys. The launcher takes the issuer from the gateway, which names it at `/.well-known/oauth-protected-resource`. The next start runs the worker serving every knowledge base on the list: at each it signs in as the client that knowledge base's realm holds the key on, with the one key. `xynolog worker kb list` shows the list, and `xynolog worker kb remove <domain>` takes one off; a local one whose engines an added one is offered is refused until that one is removed. A local knowledge base taken off the list while one added from it remains leaves that one unserved, which the start says, until the local one's next start.
 
-A worker started another way is given the same in its document: one `knowledgeBases` entry for each knowledge base, with its domain, its gateway, its issuer and client id, and the engines it offers it ([the worker's configuration](../../../images/worker/README.md#configuration)). Its key is `SEMIONT_OIDC_CLIENT_KEY` in its environment, the same for every knowledge base.
+A worker started another way is given the same in its document: one `knowledgeBases` entry for each knowledge base, with its domain, its gateway, its issuer and client id, and the engines it offers it ([the worker's configuration](https://github.com/xynolog/images/blob/main/worker/README.md#configuration)). Its key is `XYNOLOG_OIDC_CLIENT_KEY` in its environment, the same for every knowledge base.
 
-At each knowledge base the worker asks which knowledge base it reached before it claims, and refuses one that answers another domain. A knowledge base that revokes the grant, or that cannot be reached, stops only its own work: the worker keeps working for the others ([Worker Service § Knowledge bases](../../../protocol/contract/WORKER-SERVICE.md#knowledge-bases)).
+At each knowledge base the worker asks which knowledge base it reached before it claims, and refuses one that answers another domain. A knowledge base that revokes the grant, or that cannot be reached, stops only its own work: the worker keeps working for the others ([Worker Service § Knowledge bases](https://github.com/xynolog/protocol/blob/main/contract/WORKER-SERVICE.md#knowledge-bases)).
 
-The record names a worker's work by its account, `agents:<subject>`, and the engine it ran in each write's `generator`, so two people's workers running one model are two agents there. What a worker is called is what it says of itself: Semiont's worker says its client id, and readers name it from that.
+The record names a worker's work by its account, `agents:<subject>`, and the engine it ran in each write's `generator`, so two people's workers running one model are two agents there. What a worker is called is what it says of itself: Xynolog's worker says its client id, and readers name it from that.
 
 ## Security Best Practices
 
 ### Token handling
 
-1. **A client holds its own tokens, and never as a cookie.** The SDK attaches the access token to each request explicitly, and keeps the access and refresh pair wherever its storage adapter puts it. The Browser's is `localStorage`, one entry per knowledge base, so a session survives a reload and a script running in the Browser's origin can read it. `semiont login` keeps them in the launcher's sign-in store, a file only its owner can read. A script chooses its own. The gateway holds no credential on a person's behalf.
+1. **A client holds its own tokens, and never as a cookie.** The SDK attaches the access token to each request explicitly, and keeps the access and refresh pair wherever its storage adapter puts it. The Browser's is `localStorage`, one entry per knowledge base, so a session survives a reload and a script running in the Browser's origin can read it. `xynolog login` keeps them in the launcher's sign-in store, a file only its owner can read. A script chooses its own. The gateway holds no credential on a person's behalf.
 2. **The access token lifetime is the containment window.** A leaked access token works until it expires, and disabling the account at the issuer prevents a replacement rather than cancelling the one in hand. Keep the realm's lifetime short for that reason. A leaked refresh token obtains new access tokens until the person signs out, which revokes it, or the account is disabled.
 3. **Always use HTTPS in production.**
 4. **Open CORS is intentional and safe here** because no credentials are carried (see [Security](./SECURITY.md)). Never re-introduce credentialed CORS or origin-reflection.
 
 ### At the issuer
 
-These decisions sit in the realm: who may register, which domains are admitted, how long an access token lives, and whether an account is enabled. Semiont enforces none of them and cannot compensate for them.
+These decisions sit in the realm: who may register, which domains are admitted, how long an access token lives, and whether an account is enabled. Xynolog enforces none of them and cannot compensate for them.
 
-Two of those the launcher does write into the realm it creates, rather than inherit, so they are decisions someone can read back rather than Keycloak defaults that move with an upgrade — the access token lifetime in the table above, and the **user profile**. The profile requires `firstName` and `lastName`, so a person an administrator created an account for is asked for their own name at first sign-in. Keycloak composes the `name` claim from those two, and that claim is what every annotation and resource they author is attributed to; `semiont useradd` deliberately sets no display name, because splitting one typed string on a space gets "Mary Jane" and "van der Berg" wrong.
+Two of those the launcher does write into the realm it creates, rather than inherit, so they are decisions someone can read back rather than Keycloak defaults that move with an upgrade — the access token lifetime in the table above, and the **user profile**. The profile requires `firstName` and `lastName`, so a person an administrator created an account for is asked for their own name at first sign-in. Keycloak composes the `name` claim from those two, and that claim is what every annotation and resource they author is attributed to; `xynolog useradd` deliberately sets no display name, because splitting one typed string on a space gets "Mary Jane" and "van der Berg" wrong.
 
-An operator federating a **different** issuer owes Semiont the following. Everything else above is this realm's shape, not a requirement of the gateway.
+An operator federating a **different** issuer owes Xynolog the following. Everything else above is this realm's shape, not a requirement of the gateway.
 
 **Every token the gateway accepts:**
 
@@ -306,22 +306,22 @@ An operator federating a **different** issuer owes Semiont the following. Everyt
 
 **A person's token also needs** the claims [Validation layers](#validation-layers-per-request) lists — a `sub`, an `email`, and an `email_verified` that is not `false`. `name` is optional, and is what every annotation and resource they author is attributed to.
 
-**A service account's token also needs** a flat `roles` array containing `semiont-service` — an array of strings at the top level, deliberately not Keycloak's nested `realm_access.roles`. An issuer with its own group model maps it into that claim.
+**A service account's token also needs** a flat `roles` array containing `xynolog-service` — an array of strings at the top level, deliberately not Keycloak's nested `realm_access.roles`. An issuer with its own group model maps it into that claim.
 
 **And a `kind` claim holding `agent`**, a string at the top level. It marks the account an agent's rather than a person's: every service's account and every worker's carries it, and a person's never does. It is a kind, not a role, because roles are capabilities that people and agents can both be granted.
 
-**A worker's token also needs `semiont-worker`** in that same array. The gateway stamps the token's roles onto everything the worker emits, and the dispatcher admits a `job:claim` only from a token carrying it — `semiont-service` is what every sidecar has, so it cannot be what distinguishes a worker. A worker that is not yours is admitted by its key: see [Admitting a worker someone else runs](#admitting-a-worker-someone-else-runs).
+**A worker's token also needs `xynolog-worker`** in that same array. The gateway stamps the token's roles onto everything the worker emits, and the dispatcher admits a `job:claim` only from a token carrying it — `xynolog-service` is what every sidecar has, so it cannot be what distinguishes a worker. A worker that is not yours is admitted by its key: see [Admitting a worker someone else runs](#admitting-a-worker-someone-else-runs).
 
-**For people to sign in at all**, the issuer needs a public client that supports the device grant (for `semiont login`) and an authorization endpoint that enforces PKCE with redirect URIs covering the Browser.
+**For people to sign in at all**, the issuer needs a public client that supports the device grant (for `xynolog login`) and an authorization endpoint that enforces PKCE with redirect URIs covering the Browser.
 
-**Each Semiont service needs its own client**, not one shared between them: the archivist, dispatcher, gateway, librarian, smelter, weaver and worker each authenticate as themselves, and a shared credential would let any one of them act as any other. For the Keycloak the launcher runs, named by `spec.issuer.shared`, the launcher creates all seven in the knowledge base's realm. For an issuer at `spec.issuer.external` you create them there and supply each secret as `SEMIONT_OIDC_CLIENT_SECRET_<SERVICE>` — but the worker's: the worker proves itself with a key, signing each sign-in (a JWT client assertion, RFC 7523), so its client, `semiont-worker-local`, authenticates by signed JWT and holds the public key `semiont worker key` prints. See [Maintenance](./MAINTENANCE.md) for rotation.
+**Each Xynolog service needs its own client**, not one shared between them: the archivist, dispatcher, gateway, librarian, smelter, weaver and worker each authenticate as themselves, and a shared credential would let any one of them act as any other. For the Keycloak the launcher runs, named by `spec.issuer.shared`, the launcher creates all seven in the knowledge base's realm. For an issuer at `spec.issuer.external` you create them there and supply each secret as `XYNOLOG_OIDC_CLIENT_SECRET_<SERVICE>` — but the worker's: the worker proves itself with a key, signing each sign-in (a JWT client assertion, RFC 7523), so its client, `xynolog-worker-local`, authenticates by signed JWT and holds the public key `xynolog worker key` prints. See [Maintenance](./MAINTENANCE.md) for rotation.
 
-`semiont start` preflights every one of these against whatever issuer is configured and reports what it finds, so a federation that does not conform says so at startup rather than one 401 at a time. For a realm the launcher runs, `semiont identity sync` repairs what the preflight finds: it creates missing service-account clients, reconciles an existing client's roles mapper (a realm created before the worker role existed) and its kind mapper (a realm created before the `kind` claim), and the worker's client's key (this machine's), adds the loopback redirect URIs, turns the implicit flow off, and sets the access-token lifetime to match `spec.issuer.shared`. It reconciles configuration only and never touches accounts.
+`xynolog start` preflights every one of these against whatever issuer is configured and reports what it finds, so a federation that does not conform says so at startup rather than one 401 at a time. For a realm the launcher runs, `xynolog identity sync` repairs what the preflight finds: it creates missing service-account clients, reconciles an existing client's roles mapper (a realm created before the worker role existed) and its kind mapper (a realm created before the `kind` claim), and the worker's client's key (this machine's), adds the loopback redirect URIs, turns the implicit flow off, and sets the access-token lifetime to match `spec.issuer.shared`. It reconciles configuration only and never touches accounts.
 
 ### API
 
 - Every route requires a bearer token unless the spec declares it public (`security: []`).
-- What one principal may take (the streams it holds, the emits it makes) is limited alike for people and agents, by a baseline and a coefficient per role: see [Limits](../../../protocol/contract/TRANSPORT-HTTP.md#limits). A request whose token is refused is limited per holder the token names, and those that name none together: see the same table. Limits per address are an ingress's to apply.
+- What one principal may take (the streams it holds, the emits it makes) is limited alike for people and agents, by a baseline and a coefficient per role: see [Limits](https://github.com/xynolog/protocol/blob/main/contract/TRANSPORT-HTTP.md#limits). A request whose token is refused is limited per holder the token names, and those that name none together: see the same table. Limits per address are an ingress's to apply.
 - Every JSON body is validated against its schema in `protocol/specs/`.
 
 ## Troubleshooting
@@ -335,18 +335,18 @@ An operator federating a **different** issuer owes Semiont the following. Everyt
 - The token may lack the claim `subjectClaim` names; the gateway refuses it, naming the claim.
 
 **A granted worker's sign-in is refused (`invalid_client`)**
-- It signs with another key than the one registered: its owner may have made a new one. `semiont worker key` on its machine prints the key it signs with; grant that one under the same label.
+- It signs with another key than the one registered: its owner may have made a new one. `xynolog worker key` on its machine prints the key it signs with; grant that one under the same label.
 - Its client was revoked.
 - At an issuer you run: the key id registered is not the key's thumbprint, or the issuer does not accept its token endpoint as an assertion's `aud`.
 
 **Sign-in fails at the issuer**
-- The account may be disabled there. That is where enable and disable live; `semiont useradd --active` re-enables one.
+- The account may be disabled there. That is where enable and disable live; `xynolog useradd --active` re-enables one.
 - Nothing about this is visible in the gateway's logs, because the gateway is never contacted for a sign-in that fails.
 
 ## Related Documentation
 
-- [Security](./SECURITY.md): what Semiont enforces, and what it does not
+- [Security](./SECURITY.md): what Xynolog enforces, and what it does not
 - [Secrets](../services/SECRETS.md): where the signing key and the service accounts' secrets are kept
-- [Deploying Semiont](./DEPLOYMENT.md): bringing an issuer of your own
+- [Deploying Xynolog](./DEPLOYMENT.md): bringing an issuer of your own
 - [Database](./DATABASE.md): the PostgreSQL Keycloak uses
 - [Configuration](./CONFIGURATION.md#the-issuer): `spec.issuer`, and the Issuer document
