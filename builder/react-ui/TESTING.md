@@ -353,8 +353,8 @@ it('should match snapshot', () => {
 ## Testing Accessibility
 
 `jest-axe` ships no type declarations: react-ui declares them in
-`packages/typescript/react-ui/src/types/jest-axe.d.ts`, adds the matcher to vitest's `Assertion` in
-`packages/typescript/react-ui/src/types/vitest-matchers.d.ts`, and its `vitest.setup.ts` extends
+sdk's `typescript/react-ui/src/types/jest-axe.d.ts`, adds the matcher to vitest's `Assertion` in
+sdk's `typescript/react-ui/src/types/vitest-matchers.d.ts`, and its `vitest.setup.ts` extends
 `expect` once for every test.
 
 ```tsx

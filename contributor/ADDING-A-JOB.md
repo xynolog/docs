@@ -13,14 +13,14 @@ The steps add a `mark` job of a new motivation, which is the usual case. Each wa
 | | Step | Where | What fails when it is left out |
 |---|---|---|---|
 | 1 | [State the job](#1-state-the-job-in-the-spec) | `protocol/specs/src/components/schemas`, `protocol/specs/src/openapi.json`, `protocol/specs/src/service-telemetry/telemetry.json` | `npm run lint:spec-jobs`, `npm run lint:spec-archivist`; `protocol/conformance/worker-service/telemetry.test.ts` |
-| 2 | [Regenerate the types](#2-regenerate-the-types) | `packages/typescript/core`, `packages/go/sdk`, `packages/python/sdk` | CI's `generated-artifacts` job |
+| 2 | [Regenerate the types](#2-regenerate-the-types) | sdk's `typescript/core`, sdk's `go/`, sdk's `python/sdk` | CI's `generated-artifacts` job |
 | 3 | [Admit it](#3-admit-it-the-dispatcher) | `images/dispatcher/handlers/src/admission.rs` | the dispatcher's build; `protocol/conformance/dispatcher/create.test.ts` |
 | 4 | [Do it](#4-do-it-the-worker) | `images/worker/src/xynolog_worker` | `mypy`, `pyright` and `pytest` in `images/worker` |
 | 5 | [State how its reply is read](#5-state-how-its-reply-is-read) | `protocol/specs/src/worker/parser-cases.json` | `images/worker/tests/test_parser_cases.py`; `npm run lint:spec-case-tables` |
 | 6 | [Hold a Worker service to it](#6-hold-a-worker-service-to-it) | `protocol/conformance/worker-service` | `npm run lint:conformance-readmes`, `npm run lint:transport-contract`; `images/worker/tests/test_prompts.py` |
 | 7 | [Write the rule](#7-write-the-rule) | `protocol/contract/WORKER-SERVICE.md` | `npm run lint:transport-contract` |
-| 8 | [Give it an engine](#8-give-it-an-engine) | a knowledge base's Inference document; nothing in the launcher | `TestEveryEngineJobHasAFilter`, in `packages/go/launcher` |
-| 9 | [Word it in each client](#9-word-it-in-each-client) | `packages/go/launcher/verbs/mark.go`, `packages/typescript/react-ui/translations` | `TestEveryMotivationHasItsNoun`; `delegate-progress-copy.test.ts`; `npm run lint:translations` |
+| 8 | [Give it an engine](#8-give-it-an-engine) | a knowledge base's Inference document; nothing in the launcher | `TestEveryEngineJobHasAFilter`, in cli's `internal/launcher` |
+| 9 | [Word it in each client](#9-word-it-in-each-client) | cli's `internal/launcher/verbs/mark.go`, sdk's `typescript/react-ui/translations` | `TestEveryMotivationHasItsNoun`; `delegate-progress-copy.test.ts`; `npm run lint:translations` |
 
 The numbers are the order the change reaches each part, and not the order to write it in. The repository works test first: step 5's cases and step 6's case are written before step 4's code, and each is seen to fail for the missing job.
 
@@ -52,7 +52,7 @@ No language's types of the protocol are written by hand. The spec is bundled fir
 | Language | How | What it writes |
 |---|---|---|
 | TypeScript | `npm run generate:openapi --workspace=@xynolog/core`, then `npm run build --workspace=@xynolog/core` | `@xynolog/core`'s types, and with the build `MARK_MOTIVATIONS`, the list a client words its copy by |
-| Go | `go generate ./...` in `packages/go/sdk` | [`api/client_gen.go`](https://github.com/xynolog/sdk/blob/main/go/api/client_gen.go), which is committed |
+| Go | `go generate ./...` in sdk's `go/` | [`api/client_gen.go`](https://github.com/xynolog/sdk/blob/main/go/api/client_gen.go), which is committed |
 | Python | `uv run --project packages/python/sdk --locked python packages/python/sdk/scripts/generate_models.py` | [`types.py`](https://github.com/xynolog/sdk/blob/main/python/sdk/src/xynolog/types.py), which is committed |
 | Rust | nothing to run | `xynolog::types`, made from `protocol/specs/src` by the SDK's build script when the crate is built |
 | Kotlin | nothing to run | `xynolog.types`, made from `protocol/specs/src` by the SDK's Gradle build before every compile |
@@ -149,7 +149,7 @@ A knowledge base's software does the new job once its Inference document gives t
 The wire carries no sentence, so each client has its own words for a job:
 
 - **The launcher** calls an annotation of each motivation by a noun, in `markNouns` ([`mark.go`](https://github.com/xynolog/cli/blob/main/internal/launcher/verbs/mark.go)), and `TestEveryMotivationHasItsNoun` holds that table to `Motivation.json`. `xynolog mark --delegate` takes the job's params as flags, and a param no flag gives is a flag added in the same file.
-- **The Browser** words a progress report from [`packages/typescript/react-ui/translations`](https://github.com/xynolog/sdk/tree/main/typescript/react-ui/translations). `delegate-progress-copy.test.ts` holds that there is one noun for every motivation the spec has, and `npm run lint:translations` that every locale has every key.
+- **The Browser** words a progress report from [sdk's `typescript/react-ui/translations`](https://github.com/xynolog/sdk/tree/main/typescript/react-ui/translations). `delegate-progress-copy.test.ts` holds that there is one noun for every motivation the spec has, and `npm run lint:translations` that every locale has every key.
 
 A new progress code is words in both: the launcher's `progressText` ([`job.go`](https://github.com/xynolog/cli/blob/main/internal/launcher/verbs/job.go)), and a key in every locale. What a client shows a person to ask for the job with is that client's own.
 

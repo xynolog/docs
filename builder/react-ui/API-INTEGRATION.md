@@ -170,7 +170,7 @@ The closure can return `undefined` to signal "still loading" — see
 
 `createSearchPipeline` is unit-testable without React: pass a stub fetch
 function, push values into `setQuery`, assert on emissions from `state$`. See
-`packages/typescript/sdk/src/state/lib/__tests__/search-pipeline.test.ts`.
+sdk's `typescript/sdk/src/state/lib/__tests__/search-pipeline.test.ts`.
 
 ## Writing data
 

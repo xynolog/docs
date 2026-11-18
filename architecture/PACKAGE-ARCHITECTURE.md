@@ -107,15 +107,15 @@ Four crates are published to crates.io: `xynolog`, `xynolog-http-transport`, `xy
 
 ## The Python projects
 
-`packages/python/sdk` is one distribution, `xynolog`: the client, its transport over a gateway, sign-in, and telemetry with no exporter, which Rust keeps in four crates. It depends on `httpx`, `pydantic` and `opentelemetry-api`, and on nothing else in this repository. What it holds of `protocol/specs/` is generated, committed and held by drift gates.
+In sdk, `python/sdk` is one distribution, `xynolog`: the client, its transport over a gateway, sign-in, and telemetry with no exporter, which Rust keeps in four crates. It depends on `httpx`, `pydantic` and `opentelemetry-api`, and on nothing else of Xynolog's. What it holds of `protocol/specs/` is generated, committed and held by drift gates.
 
-`packages/python/inference` is `xynolog-inference`: the model providers a Python service asks, behind one interface. It depends on `xynolog`, and each provider's own library is an extra of it, required by nothing.
+In images, `shared/python/inference` is `xynolog-inference`: the model providers a Python service asks, behind one interface. It depends on `xynolog`, and each provider's own library is an extra of it, required by nothing.
 
-`packages/python/graph` is `xynolog-graph`: the graph databases a Python service writes and reads, behind one interface. It depends on `xynolog`, and each database's own client is an extra of it, required by nothing.
+In images, `shared/python/graph` is `xynolog-graph`: the graph databases a Python service writes and reads, behind one interface. It depends on `xynolog`, and each database's own client is an extra of it, required by nothing.
 
-`packages/python/vectors` is `xynolog-vectors`: the vector index a Python service writes and searches, and the embedding providers that make its vectors, each behind one interface. It depends on `xynolog`, and asks a Qdrant and a provider over HTTP, so it takes no database's client and no provider's library.
+In images, `shared/python/vectors` is `xynolog-vectors`: the vector index a Python service writes and searches, and the embedding providers that make its vectors, each behind one interface. It depends on `xynolog`, and asks a Qdrant and a provider over HTTP, so it takes no database's client and no provider's library.
 
-`packages/python/service` is `xynolog-service`: what every Python service does to be one, which is to read its configuration document, answer for its health, write its log and export its telemetry. It depends on `xynolog`, and on OpenTelemetry's SDK and OTLP exporter, which only a process that exports takes. It is the services' own code, built into their images and published to no index.
+In images, `shared/python/service` is `xynolog-service`: what every Python service does to be one, which is to read its configuration document, answer for its health, write its log and export its telemetry. It depends on `xynolog`, and on OpenTelemetry's SDK and OTLP exporter, which only a process that exports takes. It is the services' own code, built into their images and published to no index.
 
 `images/worker`, `images/weaver`, `images/smelter` and `images/librarian` are `xynolog-worker`, `xynolog-weaver`, `xynolog-smelter` and `xynolog-librarian`: the Worker, the Weaver, the Smelter and the Librarian. Each depends on `xynolog`, on `xynolog-service` and on more of the packages above: the Worker on `xynolog-inference`, the Weaver on `xynolog-graph`, the Smelter on `xynolog-vectors`, and the Librarian on all three. The Smelter also takes `pypdfium2`, whose wheel carries PDFium, which reads a PDF. Nothing depends on a service: it is a service's code, run from its image, and published to no index.
 
@@ -129,11 +129,11 @@ The launcher is the module `github.com/xynolog/cli`, in [cli](https://github.com
 
 ## The Gradle build
 
-`packages/kotlin/sdk` is the Kotlin SDK, one artifact for Kotlin and Java programs, package `xynolog` and those beneath it: the client, its transport over a gateway (`xynolog.http`), sign-in, the state units (`xynolog.state`), a worker's claims (`xynolog.jobs`) and the doubles a test is built on (`xynolog.testing`). It depends on `kotlinx.coroutines`, `kotlinx.serialization` and the OpenTelemetry API, and on nothing else in this repository. What it holds of `protocol/specs/` its own build generates from `protocol/specs/src` before every compile, and nothing generated is committed. It is published nowhere yet.
+In sdk, `kotlin/sdk` is the Kotlin SDK, one artifact for Kotlin and Java programs, package `xynolog` and those beneath it: the client, its transport over a gateway (`xynolog.http`), sign-in, the state units (`xynolog.state`), a worker's claims (`xynolog.jobs`) and the doubles a test is built on (`xynolog.testing`). It depends on `kotlinx.coroutines`, `kotlinx.serialization` and the OpenTelemetry API, and on nothing else of Xynolog's. What it holds of `protocol/specs/` its own build generates from `protocol/specs/src` before every compile, and nothing generated is committed. It is published nowhere yet.
 
 Its `conformance` source set is the three programs the conformance suite drives the Kotlin SDK through (wire, live and worker), and the only Kotlin that takes an OpenTelemetry exporter.
 
-`packages/swift/sdk` is the Swift SDK for Apple apps and Linux services.
+In sdk, `swift/sdk` is the Swift SDK for Apple apps and Linux services.
 The `Xynolog` library includes the client and its HTTP transport, live queries,
 sign-in and the registry, state units, and worker claims. The SwiftPM build
 plugin generates its wire models and tables from `protocol/specs/src`.

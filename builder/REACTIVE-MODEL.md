@@ -58,7 +58,7 @@ Observable is the right primitive for all of these. Promise has no "second value
 
 A consumer that doesn't care about progress shouldn't have to learn RxJS to use the SDK.
 
-Two Observable subclasses live in [`packages/typescript/sdk/src/awaitable.ts`](https://github.com/xynolog/sdk/blob/main/typescript/sdk/src/awaitable.ts). Both extend `Observable<T>`, but of the two only **StreamObservable** is thenable — `CacheObservable` has an explicit `.fresh()` instead:
+Two Observable subclasses live in [sdk's `typescript/sdk/src/awaitable.ts`](https://github.com/xynolog/sdk/blob/main/typescript/sdk/src/awaitable.ts). Both extend `Observable<T>`, but of the two only **StreamObservable** is thenable — `CacheObservable` has an explicit `.fresh()` instead:
 
 ```ts
 import { Observable, lastValueFrom, firstValueFrom } from 'rxjs';
@@ -467,7 +467,7 @@ cache updates.
 - [Usage.md](./Usage.md) — per-namespace tour with concrete examples
 - [STATE-UNITS.md](./STATE-UNITS.md) — the foundational stateful-unit pattern (a surface consumers read but cannot write, and a dispose lifecycle); the substrate behind every flow state machine, worker adapter, and view-shaped state machine in the codebase
 - [CACHE-SEMANTICS.md](https://github.com/xynolog/protocol/blob/main/contract/CACHE-SEMANTICS.md) — the `Cache<K,V>` primitive's behavioral contract behind `CacheObservable`
-- [`packages/typescript/sdk/src/awaitable.ts`](https://github.com/xynolog/sdk/blob/main/typescript/sdk/src/awaitable.ts) — the awaitable Observable subclasses' implementation
+- [sdk's `typescript/sdk/src/awaitable.ts`](https://github.com/xynolog/sdk/blob/main/typescript/sdk/src/awaitable.ts) — the awaitable Observable subclasses' implementation
 - [protocol/contract/EVENT-BUS.md](https://github.com/xynolog/protocol/blob/main/contract/EVENT-BUS.md) — channel naming, scoping, correlation; the protocol layer the SDK wraps
 - [protocol/contract/CHANNELS.md](https://github.com/xynolog/protocol/blob/main/contract/CHANNELS.md) — channel inventory: persisted events, ephemeral signals, correlation responses, resource broadcasts
 - [protocol/contract/TRANSPORT-CONTRACT.md](https://github.com/xynolog/protocol/blob/main/contract/TRANSPORT-CONTRACT.md) — the `ITransport` behavioral guarantees underlying every namespace method, including `errors$`

@@ -248,9 +248,9 @@ the jobs the worker concluded there among them.
 
 ## Relationship to the structured logger and `busLog`
 
-- **Structured logger** (the Rust services', in `packages/rust/observability/src/logging.rs`;
+- **Structured logger** (the Rust services', in images' `packages/rust/observability/src/logging.rs`;
   the Python services', in
-  `packages/python/service/src/xynolog_service/log.py`) — JSON-line,
+  images' `shared/python/service/src/xynolog_service/log.py`) — JSON-line,
   level-filtered, always on. Logs semantic events (validation failed,
   user authenticated). Goes to log aggregator. Every line is auto-
   tagged with the active span's `trace_id` / `span_id` when one

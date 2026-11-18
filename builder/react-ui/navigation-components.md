@@ -69,4 +69,4 @@ browser follows it.
 
 Each component's classes are defined beside it: `CollapsibleResourceNavigation.css`,
 `SimpleNavigation.css`, `NavigationMenu.css` and `NavigationTabs.css` in
-`packages/typescript/react-ui/src/components/navigation/`.
+sdk's `typescript/react-ui/src/components/navigation/`.

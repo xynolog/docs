@@ -108,7 +108,7 @@ or with zero KBs configured.
 to the wrong bus is a silent no-op — subscribers on the other bus
 never see it. `EventMap` is the single source of truth for which
 channel belongs where; if you can't tell from the name, check
-`packages/typescript/core/src/bus-protocol.ts`.
+sdk's `typescript/core/src/bus-protocol.ts`.
 
 Components pick based on the channel scope:
 
@@ -325,7 +325,7 @@ wiring required.
 Tests use `InMemorySessionStorage` (or a simple subclass whose
 `subscribe()` simulates cross-context sync) to drive session state
 without depending on jsdom's `localStorage`. See
-`packages/typescript/sdk/src/session/__tests__/test-storage-helpers.ts` for
+sdk's `typescript/sdk/src/session/__tests__/test-storage-helpers.ts` for
 the test harness pattern.
 
 StateUnit factory tests drive a real `XynologClient` from `createTestClient()`

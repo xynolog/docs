@@ -27,8 +27,8 @@ peers that answer differently.
 |---|---|---|---|
 | `STARTUP_FETCH_RETRY` | a TypeScript agent signing in (`agent-token.ts`, in `@xynolog/http-transport`) | the issuer to grant its token, and the **gateway** to name it (`GET /api/users/me`) | 8 × 1s→8s ≈ 39s |
 | `emitRetry`, in [`protocol/specs/src/client/timing.json`](https://github.com/xynolog/protocol/blob/main/specs/src/client/timing.json) | every SDK, for each emit | the **gateway** to accept one `/bus/emit` | the one `timing.json` states, once per credential: a renewed credential starts a fresh one |
-| the catalog reader's, in `packages/python/service/src/xynolog_service/catalog.py` | weaver, smelter | the **archivist** to subscribe | 17 × 1s→30s ≈ 361s |
-| `EMBEDDING_PROVIDER_RETRY`, in `packages/python/vectors/src/xynolog_vectors/_retry.py` | librarian, smelter | the **embedding provider** to serve a model | 12 × 1s→15s ≈ 120s |
+| the catalog reader's, in images' `shared/python/service/src/xynolog_service/catalog.py` | weaver, smelter | the **archivist** to subscribe | 17 × 1s→30s ≈ 361s |
+| `EMBEDDING_PROVIDER_RETRY`, in images' `shared/python/vectors/src/xynolog_vectors/_retry.py` | librarian, smelter | the **embedding provider** to serve a model | 12 × 1s→15s ≈ 120s |
 
 Budgets above are the delays alone. Each attempt is separately bounded — by
 `EMBED_ROUND_TRIP_SECONDS` (15s) for the provider, and by `timing.json`'s `emitTimeoutMs` for an

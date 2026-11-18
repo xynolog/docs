@@ -13,10 +13,10 @@ the only type that exercises every axis at its hardest setting.
 
 [`protocol/specs/src/media-types/registry.json`](https://github.com/xynolog/protocol/blob/main/specs/src/media-types/registry.json)
 holds one row per supported type. Every SDK generates its table from it:
-TypeScript's is `MEDIA_TYPES` in `packages/typescript/core/src/media-types.ts`, Rust's is
+TypeScript's is `MEDIA_TYPES` in sdk's `typescript/core/src/media-types.ts`, Rust's is
 `xynolog::media_types`, Python's is `MEDIA_TYPES` in
 `xynolog.media_types_table`, and Go's is `mediatypes.Rows` in
-`packages/go/sdk/mediatypes`, which the launcher reads to name an upload's
+sdk's `go/mediatypes`, which the launcher reads to name an upload's
 format from its file extension. TypeScript's and Rust's tables carry every
 column. Python's carries a type's extension, its `textSource`, and whether it
 is `authorable` and `generatable`; Go's carries the extension alone. A row, as

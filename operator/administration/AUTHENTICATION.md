@@ -68,7 +68,7 @@ row against the literal, not against another document:
 
 | Token | Minted at | Literal |
 |---|---|---|
-| Access | the realm the launcher creates, [`packages/go/launcher/identity.go`](https://github.com/xynolog/cli/blob/main/internal/launcher/identity.go) | `keycloakAccessTokenLifespan`, which `xynolog init` writes into the KnowledgeBase document as `spec.issuer.shared.accessTokenLifespan`, and the launcher into the knowledge base's realm as `accessTokenLifespan`. A knowledge base changes it there. **Applied only when the realm is created** — a start leaves a realm Keycloak already holds as it is, which keeps what it was created with, and `xynolog start` warns when the realm's actual lifespan disagrees with the document. |
+| Access | the realm the launcher creates, [cli's `internal/launcher/identity.go`](https://github.com/xynolog/cli/blob/main/internal/launcher/identity.go) | `keycloakAccessTokenLifespan`, which `xynolog init` writes into the KnowledgeBase document as `spec.issuer.shared.accessTokenLifespan`, and the launcher into the knowledge base's realm as `accessTokenLifespan`. A knowledge base changes it there. **Applied only when the realm is created** — a start leaves a realm Keycloak already holds as it is, which keeps what it was created with, and `xynolog start` warns when the realm's actual lifespan disagrees with the document. |
 | Media | [`images/gateway/src/tokens.rs`](https://github.com/xynolog/images/blob/main/gateway/src/tokens.rs) | `MEDIA_TOKEN_SECONDS` (five minutes) |
 
 ### Revocation
