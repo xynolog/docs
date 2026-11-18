@@ -25,10 +25,10 @@ peers that answer differently.
 
 | policy | who waits | for what | budget |
 |---|---|---|---|
-| `STARTUP_FETCH_RETRY` | a TypeScript agent signing in (`agent-token.ts`, in `@semiont/http-transport`) | the issuer to grant its token, and the **gateway** to name it (`GET /api/users/me`) | 8 × 1s→8s ≈ 39s |
+| `STARTUP_FETCH_RETRY` | a TypeScript agent signing in (`agent-token.ts`, in `@xynolog/http-transport`) | the issuer to grant its token, and the **gateway** to name it (`GET /api/users/me`) | 8 × 1s→8s ≈ 39s |
 | `emitRetry`, in [`protocol/specs/src/client/timing.json`](https://github.com/xynolog/protocol/blob/main/specs/src/client/timing.json) | every SDK, for each emit | the **gateway** to accept one `/bus/emit` | the one `timing.json` states, once per credential: a renewed credential starts a fresh one |
-| the catalog reader's, in `packages/python/service/src/semiont_service/catalog.py` | weaver, smelter | the **archivist** to subscribe | 17 × 1s→30s ≈ 361s |
-| `EMBEDDING_PROVIDER_RETRY`, in `packages/python/vectors/src/semiont_vectors/_retry.py` | librarian, smelter | the **embedding provider** to serve a model | 12 × 1s→15s ≈ 120s |
+| the catalog reader's, in `packages/python/service/src/xynolog_service/catalog.py` | weaver, smelter | the **archivist** to subscribe | 17 × 1s→30s ≈ 361s |
+| `EMBEDDING_PROVIDER_RETRY`, in `packages/python/vectors/src/xynolog_vectors/_retry.py` | librarian, smelter | the **embedding provider** to serve a model | 12 × 1s→15s ≈ 120s |
 
 Budgets above are the delays alone. Each attempt is separately bounded — by
 `EMBED_ROUND_TRIP_SECONDS` (15s) for the provider, and by `timing.json`'s `emitTimeoutMs` for an
@@ -65,7 +65,7 @@ a bus refusal both answer no for different reasons.
 | predicate | true for | lives in |
 |---|---|---|
 | an emit's, from the `boot` rule | what the rule accepts of a `POST`: no answer, a limit's refusal, or a status that says the gateway will recover | every SDK |
-| `_not_ready` | the model is not pulled, **or** the provider is not listening | `semiont_vectors` (`_dimensions.py`) |
+| `_not_ready` | the model is not pulled, **or** the provider is not listening | `xynolog_vectors` (`_dimensions.py`) |
 
 What counts as worth another attempt is the same in every language: the rules are
 [`protocol/specs/src/retry/cases.json`](https://github.com/xynolog/protocol/blob/main/specs/src/retry/cases.json), and each implementation runs
@@ -106,7 +106,7 @@ is not asked again; a read whose connection was not taken within its wait is not
 the Archivist cannot be reached and a second attempt would wait as long again; a read's answer
 begins within `connectSeconds` and `readSeconds` together of its first send, its retry included,
 and a read whose answer did not is not sent again; and an upload is never sent again: its body is
-streamed. How long the gateway waits is the Archivist's document's to say (its `x-semiont-limits`),
+streamed. How long the gateway waits is the Archivist's document's to say (its `x-xynolog-limits`),
 as it is for the Python services that read it ([the gateway's
 calls](../../images/gateway/docs/ARCHITECTURE.md#calls-to-the-archivist)), and those waits end
 inside a client's own deadline on its request, `httpRequestTimeoutMs`.

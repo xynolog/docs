@@ -31,7 +31,7 @@ for pkg in core http-transport sdk react-ui observability; do
     exit 1
   fi
 done
-if [ ! -d "$REPO_ROOT/node_modules/@semiont/sdk" ]; then
+if [ ! -d "$REPO_ROOT/node_modules/@xynolog/sdk" ]; then
   echo "❌ doc-snippets: workspace links missing — run 'npm install' first."
   exit 1
 fi

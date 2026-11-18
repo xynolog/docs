@@ -44,9 +44,9 @@ These hold in every SDK. The ids are the axioms' names in both test harnesses.
 
 ## In TypeScript
 
-`@semiont/sdk` exposes a single foundational pattern called a **state unit**. The flow state units (`createMarkStateUnit`, `createGatherStateUnit`, `createMatchStateUnit`, `createYieldStateUnit`, `createBeckonStateUnit`), the connection actor `@semiont/http-transport` keeps inside each transport, and the per-feature page state units in `@semiont/react-ui` are all instances of it.
+`@xynolog/sdk` exposes a single foundational pattern called a **state unit**. The flow state units (`createMarkStateUnit`, `createGatherStateUnit`, `createMatchStateUnit`, `createYieldStateUnit`, `createBeckonStateUnit`), the connection actor `@xynolog/http-transport` keeps inside each transport, and the per-feature page state units in `@xynolog/react-ui` are all instances of it.
 
-A unit's surface is RxJS. Its state is a `Watched<T>` field: an `Observable` that also gives its value now (`getValue()`), a disposed unit's too. Its events are `Observable` fields. What writes either is a `Subject` held in the unit's closure. The SDK's units and the session's signals hand out their state as `Watched`; `@semiont/react-ui`'s page units and the HTTP transport's actor hand out plain `Observable` views.
+A unit's surface is RxJS. Its state is a `Watched<T>` field: an `Observable` that also gives its value now (`getValue()`), a disposed unit's too. Its events are `Observable` fields. What writes either is a `Subject` held in the unit's closure. The SDK's units and the session's signals hand out their state as `Watched`; `@xynolog/react-ui`'s page units and the HTTP transport's actor hand out plain `Observable` views.
 
 ### Who consumes them
 
@@ -62,7 +62,7 @@ interface StateUnit {
 }
 ```
 
-`StateUnit` lives in `@semiont/core` — so every layer (`@semiont/sdk`, `@semiont/http-transport`, `@semiont/react-ui`, …) implements the same interface without a dependency cycle, and the `@semiont/core/testing/axioms` harness can verify any of them. (App consumers import it from `@semiont/sdk`, which re-exports it — same one-import convenience as the branded types.) That's the entire structural commitment the type system catches. Implementing this interface is a claim that you're following the pattern; the rest is enforced below the type system — by the axiom suite and CI compliance scripts for the testable subset, and by review for the remainder (see [§ How these rules are enforced](#how-these-rules-are-enforced)). A reader who sees `extends StateUnit` should expect everything below.
+`StateUnit` lives in `@xynolog/core` — so every layer (`@xynolog/sdk`, `@xynolog/http-transport`, `@xynolog/react-ui`, …) implements the same interface without a dependency cycle, and the `@xynolog/core/testing/axioms` harness can verify any of them. (App consumers import it from `@xynolog/sdk`, which re-exports it — same one-import convenience as the branded types.) That's the entire structural commitment the type system catches. Implementing this interface is a claim that you're following the pattern; the rest is enforced below the type system — by the axiom suite and CI compliance scripts for the testable subset, and by review for the remainder (see [§ How these rules are enforced](#how-these-rules-are-enforced)). A reader who sees `extends StateUnit` should expect everything below.
 
 ### Anatomy
 
@@ -76,7 +76,7 @@ export interface FooStateUnit extends StateUnit {
   trigger(input: Input): void;
 }
 
-export function createFooStateUnit(session: SemiontSession): FooStateUnit {
+export function createFooStateUnit(session: XynologSession): FooStateUnit {
   const { client } = session;
 
   // Internal state — Subjects held in the closure.
@@ -119,8 +119,8 @@ export function createFooStateUnit(session: SemiontSession): FooStateUnit {
 Six things in this code recur in every state unit:
 
 1. **Factory function, not class.** The "instance" is a closure capturing private state.
-   And note the parameter: **session-scoped factories take a `SemiontSession`, not a
-   bare `SemiontClient`**. A client can be
+   And note the parameter: **session-scoped factories take a `XynologSession`, not a
+   bare `XynologClient`**. A client can be
    disposed and replaced under a live unit on a KB switch; the session is the stable
    identity, and destructuring `client` inside the factory pins the unit to the client
    it was built for — exchange callbacks and subscriptions then capture that session by
@@ -159,7 +159,7 @@ When an outer state unit takes an inner state unit as a constructor argument, th
 ```ts
 // ✅ outer takes inner as a parameter — does not own it
 export function createComposePageStateUnit(
-  session: SemiontSession,
+  session: XynologSession,
   shellStateUnit: ShellStateUnit,  // owned by caller
   params: ComposeParams,
 ): ComposePageStateUnit {
@@ -235,18 +235,18 @@ A few specific shapes are wrong and worth calling out:
 
 ### Writing a new state unit — checklist
 
-1. **Decide the surface.** What state does the consumer need to observe? Each piece becomes a `Watched<T>` field, and each stream of events an `Observable<T>` one. What inputs does the consumer push? Each becomes a method or an input Subject the unit observes. If the unit touches a session-scoped client, the factory takes `SemiontSession` (destructure `client` inside) — see Anatomy note 1.
+1. **Decide the surface.** What state does the consumer need to observe? Each piece becomes a `Watched<T>` field, and each stream of events an `Observable<T>` one. What inputs does the consumer push? Each becomes a method or an input Subject the unit observes. If the unit touches a session-scoped client, the factory takes `XynologSession` (destructure `client` inside) — see Anatomy note 1.
 2. **Hold internal state in private Subjects.** `BehaviorSubject<T>` for current-value semantics; `Subject<T>` for event-stream semantics.
 3. **Expose `watched(subject)` on the public surface** (`.asObservable()` for events). Never expose the raw Subject.
 4. **Decide activation timing.** Does the factory return ready-to-subscribe, or does it need an explicit `start()`? Either is fine; `dispose()` must work either way.
 5. **Track every internal subscription.** Use a `Subscription[]` or `createDisposer()`. On `dispose()`, unsubscribe all of them and complete every Subject you own.
 6. **Compose by parameter, not by ownership.** Take collaborators as arguments. Don't dispose passed-in collaborators.
 7. **No module-scoped state.** Everything mutable lives in the closure.
-8. **Add the axiom block.** In the unit's test file, call `assertStateUnitAxioms<FooStateUnit>({ setup, surfaces?, invocations?, ownedChildSurfaces? })` from `@semiont/core/testing/axioms`, naming the unit it holds (add `fast-check` to your devDependencies — the doubles at `@semiont/core/testing` need no such thing) — it checks the lifecycle and composition axioms (X1/A5/A5b/A6/X3/A7) for you. Mirror an existing `*-state-unit.test.ts`; see [§ How these rules are enforced](#how-these-rules-are-enforced).
+8. **Add the axiom block.** In the unit's test file, call `assertStateUnitAxioms<FooStateUnit>({ setup, surfaces?, invocations?, ownedChildSurfaces? })` from `@xynolog/core/testing/axioms`, naming the unit it holds (add `fast-check` to your devDependencies — the doubles at `@xynolog/core/testing` need no such thing) — it checks the lifecycle and composition axioms (X1/A5/A5b/A6/X3/A7) for you. Mirror an existing `*-state-unit.test.ts`; see [§ How these rules are enforced](#how-these-rules-are-enforced).
 
 ## In Rust
 
-A unit is a struct built over an `Arc<SemiontClient>` it never closes. Its state is read through `tokio::sync::watch` receivers, the value now and each value after it, and its events through streams. The senders stay private to the unit. `dispose` ends it, and so does dropping it.
+A unit is a struct built over an `Arc<XynologClient>` it never closes. Its state is read through `tokio::sync::watch` receivers, the value now and each value after it, and its events through streams. The senders stay private to the unit. `dispose` ends it, and so does dropping it.
 
 One TypeScript rule has no Rust form: a unit is a struct, not a closure.
 
@@ -254,21 +254,21 @@ The Rust README lists [the units and what each holds](https://github.com/xynolog
 
 ## In Python
 
-A unit is a class built over a client it never closes, inside a running event loop, and it names `StateUnit` (`semiont.state_unit`) as its base. Each thing it holds is a `Watched[T]` (`semiont.watched`): `.value` is the value now, and `async for` gives that value and then each change, until the unit ends; a reader that falls behind is given the latest. What writes it is a `Variable` the unit keeps to itself. A unit hears the client's own bus from the moment it exists, in the order things were said, and acts a turn of the loop later. `dispose()` ends it, and so does leaving `async with`, by which time what it had running has ended.
+A unit is a class built over a client it never closes, inside a running event loop, and it names `StateUnit` (`xynolog.state_unit`) as its base. Each thing it holds is a `Watched[T]` (`xynolog.watched`): `.value` is the value now, and `async for` gives that value and then each change, until the unit ends; a reader that falls behind is given the latest. What writes it is a `Variable` the unit keeps to itself. A unit hears the client's own bus from the moment it exists, in the order things were said, and acts a turn of the loop later. `dispose()` ends it, and so does leaving `async with`, by which time what it had running has ended.
 
 As in Rust, a unit is a class, not a closure. The Python README lists [the units and what each holds](https://github.com/xynolog/sdk/blob/main/python/sdk/README.md#state-units), with a program that watches one.
 
 ## In Go
 
-A unit is a struct built over a `*semiont.Client` it never closes, made by its constructor (`state.NewYieldStateUnit(client, locale)`), and it declares itself a `semiont.StateUnit` where it is declared (`var _ semiont.StateUnit = (*YieldStateUnit)(nil)`). Each thing it holds is a `semiont.Watched[T]`: `Value()` is the value now, and `Changes(ctx)` gives that value and then each change, until the unit ends or the context is done; a reader that falls behind is given the latest. What writes it is a `semiont.Variable` the unit keeps to itself, handing out only its `Reading()`. A unit hears the client's own bus from the moment it exists, and runs what it starts on goroutines of its own. `Close()` ends it: what it had running stops, and every `Changes` it handed out ends.
+A unit is a struct built over a `*xynolog.Client` it never closes, made by its constructor (`state.NewYieldStateUnit(client, locale)`), and it declares itself a `xynolog.StateUnit` where it is declared (`var _ xynolog.StateUnit = (*YieldStateUnit)(nil)`). Each thing it holds is a `xynolog.Watched[T]`: `Value()` is the value now, and `Changes(ctx)` gives that value and then each change, until the unit ends or the context is done; a reader that falls behind is given the latest. What writes it is a `xynolog.Variable` the unit keeps to itself, handing out only its `Reading()`. A unit hears the client's own bus from the moment it exists, and runs what it starts on goroutines of its own. `Close()` ends it: what it had running stops, and every `Changes` it handed out ends.
 
 As in Rust, a unit is a struct, not a closure. The Go README lists [the units and what each holds](https://github.com/xynolog/sdk/blob/main/go/README.md#state-units), with a program that watches one.
 
 ## In Kotlin
 
-A unit is a class built over a `SemiontClient` it never closes, made by its constructor (`YieldStateUnit(client, locale)`), and it implements `semiont.StateUnit`. Each thing it holds is a `Watched<T>`: `value` is the value now, and collecting it gives that value and then each change, until the unit ends; a reader that falls behind is given the latest. What writes it the unit keeps to itself. A unit runs what it starts as coroutines in its client's context. `close()` ends it: what it had running stops, and every reader of its states ends. A Java program reads a state through `asPublisher()`.
+A unit is a class built over a `XynologClient` it never closes, made by its constructor (`YieldStateUnit(client, locale)`), and it implements `xynolog.StateUnit`. Each thing it holds is a `Watched<T>`: `value` is the value now, and collecting it gives that value and then each change, until the unit ends; a reader that falls behind is given the latest. What writes it the unit keeps to itself. A unit runs what it starts as coroutines in its client's context. `close()` ends it: what it had running stops, and every reader of its states ends. A Java program reads a state through `asPublisher()`.
 
-As in Rust, a unit is a class, not a closure. The units are the classes of `semiont.state`.
+As in Rust, a unit is a class, not a closure. The units are the classes of `xynolog.state`.
 
 ## In C#
 
@@ -279,18 +279,18 @@ to stop an individual reader. Dispose the unit to cancel its work and
 complete all its readers. The client passed to a unit remains caller-owned.
 
 The C# SDK runs the shared behavior cases and exposes L1 through L3 for
-consumer tests in `Semiont.Testing`. See the [testing toolkit](https://github.com/xynolog/sdk/blob/main/csharp/sdk/README.md#testing-a-composition).
+consumer tests in `Xynolog.Testing`. See the [testing toolkit](https://github.com/xynolog/sdk/blob/main/csharp/sdk/README.md#testing-a-composition).
 
 ## In Swift
 
 The [Swift SDK](https://github.com/xynolog/sdk/blob/main/swift/sdk/README.md#registry-and-state-units) has `MarkStateUnit`, `YieldStateUnit`, `GatherStateUnit`, `MatchStateUnit`, `BeckonStateUnit`, `HoverDwell`, `SearchPipeline` and `SessionSignals`, and `Cache` for an application's own read-through queries. Each unit exposes its state as `Watched<T>` values, read with `for await`. `dispose()` cancels a unit's work and finishes its streams. The client passed to a unit stays the application's.
 
-The Swift SDK runs the shared behavior cases, and its `SemiontTesting` library has `assertLivenessAxioms` for consumer tests.
+The Swift SDK runs the shared behavior cases, and its `XynologTesting` library has `assertLivenessAxioms` for consumer tests.
 
 ## In Haskell
 
 The [Haskell SDK](https://github.com/xynolog/sdk/blob/main/haskell/sdk/README.md#state-units) exposes opaque
-units in `Semiont.State.Mark`, `Yield`, `Gather`, `Match`, `Beckon`,
+units in `Xynolog.State.Mark`, `Yield`, `Gather`, `Match`, `Beckon`,
 `HoverDwell`, `Search`, and `SessionSignals`; the cache and session complete the
 ten units. Read a unit's `StateValue` with `current` in STM, or scope a stream
 of observations with `watch`. Consumers receive no state writer.
@@ -308,27 +308,27 @@ checks each unit's receiver methods and public constructor in both directions.
 
 ## How these rules are enforced
 
-The structural contract — `dispose()` exists — is the only part the **type system** catches. Everything else is enforced by an executable axiom suite plus CI compliance scripts (the runtime twin of this doc), with a residue of review-only conventions. The executable spec IS the harness — `assertStateUnitAxioms` from `@semiont/core/testing/axioms`, invoked once from each state unit's test file; its property definitions are the authoritative statements of the axioms below.
+The structural contract — `dispose()` exists — is the only part the **type system** catches. Everything else is enforced by an executable axiom suite plus CI compliance scripts (the runtime twin of this doc), with a residue of review-only conventions. The executable spec IS the harness — `assertStateUnitAxioms` from `@xynolog/core/testing/axioms`, invoked once from each state unit's test file; its property definitions are the authoritative statements of the axioms below.
 
-That is the TypeScript harness. Rust's (`semiont::testing::axioms`), Python's (`semiont.testing.axioms`), Go's (`semionttest.AssertStateUnitAxioms`) and Kotlin's (its tests' `assertStateUnitAxioms`, in `src/test/kotlin/semiont/state/Axioms.kt`) hold their units under the same ids; the last column says which rules they hold too.
+That is the TypeScript harness. Rust's (`xynolog::testing::axioms`), Python's (`xynolog.testing.axioms`), Go's (`xynologtest.AssertStateUnitAxioms`) and Kotlin's (its tests' `assertStateUnitAxioms`, in `src/test/kotlin/xynolog/state/Axioms.kt`) hold their units under the same ids; the last column says which rules they hold too.
 
-What a unit does is held apart from the axioms. [`protocol/specs/src/client/state-units.json`](https://github.com/xynolog/protocol/blob/main/specs/src/client/state-units.json) states it case by case, and every SDK runs each case of the units it has: `packages/typescript/sdk/src/__tests__/state-cases.test.ts`, `packages/rust/sdk/tests/state_cases.rs`, `packages/python/sdk/tests/test_state_cases.py`, `packages/go/sdk/state/cases_test.go`, `packages/kotlin/sdk/src/test/kotlin/semiont/state/StateUnitCasesTest.kt`, [the C# case runner](https://github.com/xynolog/sdk/blob/main/csharp/sdk/tests/Xynolog.Tests/StateUnitCasesTests.cs), `packages/swift/sdk/Tests/SemiontTests/StateUnitCasesTests.swift` and `packages/haskell/sdk/test/StateUnitCases.hs`.
+What a unit does is held apart from the axioms. [`protocol/specs/src/client/state-units.json`](https://github.com/xynolog/protocol/blob/main/specs/src/client/state-units.json) states it case by case, and every SDK runs each case of the units it has: `packages/typescript/sdk/src/__tests__/state-cases.test.ts`, `packages/rust/sdk/tests/state_cases.rs`, `packages/python/sdk/tests/test_state_cases.py`, `packages/go/sdk/state/cases_test.go`, `packages/kotlin/sdk/src/test/kotlin/xynolog/state/StateUnitCasesTest.kt`, [the C# case runner](https://github.com/xynolog/sdk/blob/main/csharp/sdk/tests/Xynolog.Tests/StateUnitCasesTests.cs), `packages/swift/sdk/Tests/XynologTests/StateUnitCasesTests.swift` and `packages/haskell/sdk/test/StateUnitCases.hs`.
 
 Five enforcement tiers:
 
 | Tier | Mechanism | Rules | Held in Rust, Python, Go and Kotlin too |
 |---|---|---|---|
 | **Axioms** — property-based (fast-check) | `assertStateUnitAxioms`, per unit | **A5** idempotent & total dispose · **A5b** post-dispose inertness · **A6** subscribers see `complete` · **X3-runtime** instance isolation | A5, A5b, A6, X3: all four |
-| **Liveness axioms** — property-based (fast-check), composition-level | `assertLivenessAxioms` / `assertExactlyOnceDelivery` from `@semiont/core/testing/axioms`, driving `FaultyTransport` (sdk) and the mock-conn SSE harness (http-transport) | **L1** subscriptions never silently pend forever · **L2** every `Bus.request` settles within timeout × retry budget · **L3** exactly-once delivery across handovers (drain-over-abort) · **L4** degraded modes emit breadcrumbs | L1, L2, L3: all four |
+| **Liveness axioms** — property-based (fast-check), composition-level | `assertLivenessAxioms` / `assertExactlyOnceDelivery` from `@xynolog/core/testing/axioms`, driving `FaultyTransport` (sdk) and the mock-conn SSE harness (http-transport) | **L1** subscriptions never silently pend forever · **L2** every `Bus.request` settles within timeout × retry budget · **L3** exactly-once delivery across handovers (drain-over-abort) · **L4** degraded modes emit breadcrumbs | L1, L2, L3: all four |
 | **Structural assertions** — single-shot | `assertStateUnitAxioms`, per unit | **X1** no raw origin Subject on the surface · **A7-passed** don't dispose injected deps · **A7-owned** do dispose constructed children | A7-passed, A7-owned: all four; X1: Python, Go and Kotlin |
 | **Static compliance** — CI grep (`packages/typescript/scripts/compliance/`, run by the `compliance-check` job of `ci.yml`) | bash + grep | no `class` in a `*-state-unit.ts` file (TypeScript's convention: its units are made by factories) · **X3-static** no module-scoped mutable state · **X5** no fire-and-forget `Promise<void>` in SDK namespaces · **session-typed factories** — no `!`-asserted factory args; `useStateUnit` confined to the shell allowlist | X3: Rust, as a test that fails any `static` item; Python, as a test that fails module state not marked `Final` |
 | **Conventions** — code review only | — | **A3-interior** internal state in Subjects · **X2** no `Promise<T>` on long-running ops · **X6** no dual bus+field exposure of the same state | — |
 
-Every state unit's test carries an `assertStateUnitAxioms<Unit>({...})` block that names its unit — all 17 units across `@semiont/sdk`, `@semiont/http-transport` and `@semiont/react-ui`, `SemiontSession` among them. `lint:state-unit-census` (`.github/scripts/checks/check-state-unit-census.mjs`) fails an interface that extends `StateUnit`, or a class that implements it, with no such block, as `packages/rust/sdk/tests/census.rs` fails a Rust unit with no axiom test, `packages/python/sdk/tests/test_census.py` a Python one, and `packages/go/sdk/units_axioms_test.go` a Go one.
+Every state unit's test carries an `assertStateUnitAxioms<Unit>({...})` block that names its unit — all 17 units across `@xynolog/sdk`, `@xynolog/http-transport` and `@xynolog/react-ui`, `XynologSession` among them. `lint:state-unit-census` (`.github/scripts/checks/check-state-unit-census.mjs`) fails an interface that extends `StateUnit`, or a class that implements it, with no such block, as `packages/rust/sdk/tests/census.rs` fails a Rust unit with no axiom test, `packages/python/sdk/tests/test_census.py` a Python one, and `packages/go/sdk/units_axioms_test.go` a Go one.
 
 ### Rule reference
 
-- **No class in a state-unit file — TypeScript's convention, not an axiom.** TypeScript makes its units by factories returning plain objects, and a static check holds `*-state-unit.ts` files to it. The axioms say how a unit behaves, the same in every SDK; how a unit is represented is each language's (a Rust unit is a struct, a Python unit a class, a Go unit a struct made by its constructor, and TypeScript's `SemiontSession` a class).
+- **No class in a state-unit file — TypeScript's convention, not an axiom.** TypeScript makes its units by factories returning plain objects, and a static check holds `*-state-unit.ts` files to it. The axioms say how a unit behaves, the same in every SDK; how a unit is represented is each language's (a Rust unit is a struct, a Python unit a class, a Go unit a struct made by its constructor, and TypeScript's `XynologSession` a class).
 - **X1 — no raw origin Subject on the public surface.** A field that is `instanceof Subject` with `.source === undefined` (a `new Subject`/`new BehaviorSubject` — the unit's own state) lets consumers `next()` past the unit's logic; expose `watched(...)`. Derived `AnonymousSubject`s from `shareReplay().pipe(...)` carry a `.source` and are inert sinks — excluded. *TypeScript, Python and Go, whose harness fails a unit that hands out the `Variable` holding a state. Rust has it by construction: a unit's senders are private.*
 - **X3 / X3-runtime — instance isolation.** Runtime: driving one instance never moves another's surfaces. Static: no module-scoped `let`/`var` or `const x = new Map/Subject/...`. The two are complementary — the static check catches shapes (e.g. a shared monotonic counter) whose leak doesn't change emission counts, which the runtime check can miss. *Every SDK.*
 - **A5 / A5b — dispose is idempotent and total; methods are inert afterward.** *Every SDK.*

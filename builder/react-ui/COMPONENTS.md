@@ -1,6 +1,6 @@
 # Components
 
-Component library reference for `@semiont/react-ui`.
+Component library reference for `@xynolog/react-ui`.
 
 ## Overview
 
@@ -21,12 +21,12 @@ All components are framework-agnostic. Components that need routing accept a `Li
 ### ResourceViewer
 
 Displays a resource with its annotation overlay (highlights, references, comments, tags) for
-any media type. **Bring-your-own-session:** it takes your `SemiontSession` directly — no
-`SemiontProvider`, cache or translation context. Its language is a required prop, a `locale` of
+any media type. **Bring-your-own-session:** it takes your `XynologSession` directly — no
+`XynologProvider`, cache or translation context. Its language is a required prop, a `locale` of
 react-ui's own or your `translationManager`, and it mounts its own `TranslationProvider` from it.
 
 ```tsx
-import { ResourceViewer, useResourceLoader } from '@semiont/react-ui';
+import { ResourceViewer, useResourceLoader } from '@xynolog/react-ui';
 
 function ResourcePane({ rId }: { rId: ResourceId }) {
   const { resource, annotations } = useResourceLoader(session.client, rId);
@@ -45,7 +45,7 @@ function ResourcePane({ rId }: { rId: ResourceId }) {
 ```
 
 **Props:**
-- `session` — the `SemiontSession` backing the resource (its client mutates/invalidates; its bus feeds annotation events); `null` while loading.
+- `session` — the `XynologSession` backing the resource (its client mutates/invalidates; its bus feeds annotation events); `null` while loading.
 - `resource` — the `ResourceDescriptor` with `content` merged in (decoded text, or a media-token URL for binary media).
 - `annotations` — grouped annotations (`useResourceLoader` returns them ready-shaped).
 - `onOpenResource?` — a resolved reference was followed; called with that resource's `ResourceId` (host-owned navigation).
@@ -54,11 +54,11 @@ function ResourcePane({ rId }: { rId: ResourceId }) {
 
 **Ids are typed.** `useResourceLoader` takes a `ResourceId`, and `onOpenResource` hands one
 back. A description's `@id` is one already. Text from outside the SDK — a route parameter, a
-query string — becomes one through `@semiont/core`. Ask before any hook runs, in a component of
+query string — becomes one through `@xynolog/core`. Ask before any hook runs, in a component of
 its own:
 
 ```tsx
-import { isResourceId } from '@semiont/core';
+import { isResourceId } from '@xynolog/core';
 
 function ResourceRoute({ id }: { id: string }) {
   if (!isResourceId(id)) return <p>No such resource.</p>;  // narrows `id` to a ResourceId
@@ -85,11 +85,11 @@ follow the same rule, with `isAnnotationId` / `annotationId` and `isJobId` / `jo
 
 The read-only render layer that `ResourceViewer` composes in browse mode — markdown/media
 rendering plus the annotation overlay applied over the DOM. It takes **decoded `content`** (not
-a resource object) and a `SemiontSession` for its bus. Most hosts use `ResourceViewer` rather
+a resource object) and a `XynologSession` for its bus. Most hosts use `ResourceViewer` rather
 than this directly.
 
 ```tsx
-import { BrowseView, useResourceLoader } from '@semiont/react-ui';
+import { BrowseView, useResourceLoader } from '@xynolog/react-ui';
 
 const { annotations } = useResourceLoader(session.client, resourceId);  // grouped by motivation
 
@@ -109,11 +109,11 @@ const { annotations } = useResourceLoader(session.client, resourceId);  // group
 ### AnnotateView
 
 The annotate-mode layer that `ResourceViewer` composes for creating annotations (text selection
-+ drawing). Like `BrowseView` it takes decoded `content` + a `SemiontSession`, plus annotation
++ drawing). Like `BrowseView` it takes decoded `content` + a `XynologSession`, plus annotation
 UI state. Most hosts use `ResourceViewer`.
 
 ```tsx
-import { AnnotateView, useResourceLoader, type AnnotationUIState } from '@semiont/react-ui';
+import { AnnotateView, useResourceLoader, type AnnotationUIState } from '@xynolog/react-ui';
 
 const { annotations } = useResourceLoader(session.client, resourceId);  // grouped by motivation
 const [uiState, setUiState] = useState<AnnotationUIState>({
@@ -146,7 +146,7 @@ person by name, a software peer by the provider and model it says it runs, or by
 its DID when it said none.
 
 ```tsx
-import { AnnotationHistory } from '@semiont/react-ui';
+import { AnnotationHistory } from '@xynolog/react-ui';
 
 <AnnotationHistory events={events} Link={Link} routes={routes} />
 ```
@@ -158,7 +158,7 @@ import { AnnotationHistory } from '@semiont/react-ui';
 ## Authentication Components
 
 Neither signing in nor signing up is a form here. A knowledge base trusts an issuer, and the
-Browser sends the user there (`SemiontBrowser.beginSignIn` / `completeSignIn` in `@semiont/sdk`);
+Browser sends the user there (`XynologBrowser.beginSignIn` / `completeSignIn` in `@xynolog/sdk`);
 accounts are created at that issuer by an administrator. No component in this package collects a
 credential; the one authentication component is the error display below.
 
@@ -167,7 +167,7 @@ credential; the one authentication component is the error display below.
 Display authentication error messages.
 
 ```tsx
-import { AuthErrorDisplay } from '@semiont/react-ui';
+import { AuthErrorDisplay } from '@xynolog/react-ui';
 
 <AuthErrorDisplay
   errorType="AccessDenied" // or "Configuration", "Verification", etc.
@@ -210,7 +210,7 @@ The standard page shell — composes `UnifiedHeader` around your content, which 
 in a `MainContent`. (It does *not* take `header` / `sidebar` slots.)
 
 ```tsx
-import { PageLayout } from '@semiont/react-ui';
+import { PageLayout } from '@xynolog/react-ui';
 
 <PageLayout Link={Link} routes={routes} tNav={tNav} tHome={tHome}>
   {content}
@@ -263,7 +263,7 @@ applies it — the bar holds no pref state, emits no bus events, and touches no 
 Composed for you by `ResourceViewer`; use it directly only for a custom annotate surface.
 
 ```tsx
-import { AnnotateToolbar, ANNOTATORS, type SelectionMotivation, type ClickAction } from '@semiont/react-ui';
+import { AnnotateToolbar, ANNOTATORS, type SelectionMotivation, type ClickAction } from '@xynolog/react-ui';
 
 function AnnotateBar() {
   const [selectedMotivation, setSelectedMotivation] = useState<SelectionMotivation | null>(null);
@@ -289,8 +289,8 @@ Optional: `parts` (which of the four control groups to render — `'clickAction'
 ### Annotation Panels
 
 The side-panel renderers for each annotation motivation. **Bring-your-own-session**, like
-`ResourceViewer`: every panel takes a `session: SemiontSession | null` prop directly — no
-`SemiontProvider` required — plus the resource's mark unit as `mark: MarkStateUnit | undefined`,
+`ResourceViewer`: every panel takes a `session: XynologSession | null` prop directly — no
+`XynologProvider` required — plus the resource's mark unit as `mark: MarkStateUnit | undefined`,
 which a panel asks to delegate a job, drop the annotation being composed, or clear an ended
 job's display, and the **grouped annotation arrays + UI state** (from `useResourceLoader` /
 the page state unit). They render what you pass, send interactions through the session's
@@ -299,7 +299,7 @@ client and the mark unit, and follow `browse:click` on its bus for entry focus.
 cancel and dismiss controls inert.
 
 ```tsx
-import { HighlightPanel, createMarkStateUnit, useResourceLoader, useSessionStateUnit } from '@semiont/react-ui';
+import { HighlightPanel, createMarkStateUnit, useResourceLoader, useSessionStateUnit } from '@xynolog/react-ui';
 
 const { annotations } = useResourceLoader(session.client, rId);
 // The resource's mark unit, made and disposed with the session (the page unit holds one as `mark`).
@@ -324,7 +324,7 @@ additionally takes `annotators`, `Link` + `routes` for its reference-tab links, 
 `onOpenResource?` for host-owned navigation when a resolved reference is followed).
 Each panel's `Props` interface lists its state inputs. `resourceId` is a `ResourceId`, and
 `onOpenResource` is called with one. `JsonLdPanel` is the one exception
-that still reads `SemiontProvider`; its editor also reads `LineNumbersProvider` and, for
+that still reads `XynologProvider`; its editor also reads `LineNumbersProvider` and, for
 its light or dark theme, `ThemeProvider`.
 
 ### Panel Entries
@@ -334,7 +334,7 @@ chrome around the same interaction contract: `HighlightEntry`, `ReferenceEntry`,
 `CommentEntry`, `AssessmentEntry`, `TagEntry`. Same bring-your-own-session shape.
 
 ```tsx
-import { CommentEntry, ReferenceEntry } from '@semiont/react-ui';
+import { CommentEntry, ReferenceEntry } from '@xynolog/react-ui';
 
 <>
   <CommentEntry session={session} comment={annotation} isFocused={false} />
@@ -350,7 +350,7 @@ import { CommentEntry, ReferenceEntry } from '@semiont/react-ui';
 
 **The shared contract:**
 - `session`, the annotation (prop named by motivation: `highlight` / `reference` / `comment` / `assessment` / `tag`), and `isFocused` are required; `isHovered?` pulses the row, `ref?` reaches the row element.
-- Click emits `browse:click` via `session.client.browse.click(id)` — the same event the stock Browser routes to panel focus, so a host-composed list and any Semiont surface on the same session stay in sync for free.
+- Click emits `browse:click` via `session.client.browse.click(id)` — the same event the stock Browser routes to panel focus, so a host-composed list and any Xynolog surface on the same session stay in sync for free.
 - Hover (debounced) emits the beckon hover signal that highlights the annotation in an open viewer on the same session.
 - `ReferenceEntry` extras: `onOpenResource?` (host navigation when the resolved reference is followed; called with its `ResourceId`), `annotateMode?` (resolve / unlink affordances), `isGenerating?`.
 
@@ -365,7 +365,7 @@ renewed (`expired`), or the knowledge base refused the sign-in (`refused`).
 Reads `sessionEnded$` from the active session's `SessionSignals`.
 
 ```tsx
-import { SessionEndedModal } from '@semiont/react-ui';
+import { SessionEndedModal } from '@xynolog/react-ui';
 
 <SessionEndedModal />
 ```
@@ -380,7 +380,7 @@ Displays when a request is refused for lack of permission. Reads
 `permissionDenied$` from the active session's `SessionSignals`.
 
 ```tsx
-import { PermissionDeniedModal } from '@semiont/react-ui';
+import { PermissionDeniedModal } from '@xynolog/react-ui';
 
 <PermissionDeniedModal />
 ```
@@ -395,7 +395,7 @@ import { PermissionDeniedModal } from '@semiont/react-ui';
 Displays keyboard shortcuts help.
 
 ```tsx
-import { KeyboardShortcutsHelpModal } from '@semiont/react-ui';
+import { KeyboardShortcutsHelpModal } from '@xynolog/react-ui';
 
 const [showHelp, setShowHelp] = useState(false);
 
@@ -415,7 +415,7 @@ The panel-switcher rail — toggles the resource side panels (annotations, info,
 json-ld, collaboration, knowledge-base, user, settings). Not a generic container.
 
 ```tsx
-import { Toolbar } from '@semiont/react-ui';
+import { Toolbar } from '@xynolog/react-ui';
 
 <Toolbar
   context="document"        // 'document' | 'simple'
@@ -429,7 +429,7 @@ import { Toolbar } from '@semiont/react-ui';
 Toast notification system.
 
 ```tsx
-import { ToastProvider, useToast } from '@semiont/react-ui';
+import { ToastProvider, useToast } from '@xynolog/react-ui';
 
 // In providers
 <ToastProvider>{children}</ToastProvider>
@@ -453,7 +453,7 @@ function MyComponent() {
 Accessibility live region for announcements.
 
 ```tsx
-import { LiveRegionProvider, useLiveRegion } from '@semiont/react-ui';
+import { LiveRegionProvider, useLiveRegion } from '@xynolog/react-ui';
 
 // In providers
 <LiveRegionProvider>{children}</LiveRegionProvider>
@@ -477,7 +477,7 @@ function MyComponent() {
 Displays time until session expires.
 
 ```tsx
-import { SessionTimer } from '@semiont/react-ui';
+import { SessionTimer } from '@xynolog/react-ui';
 
 <SessionTimer />
 ```
@@ -487,7 +487,7 @@ import { SessionTimer } from '@semiont/react-ui';
 Warning banner before session expires.
 
 ```tsx
-import { SessionExpiryBanner } from '@semiont/react-ui';
+import { SessionExpiryBanner } from '@xynolog/react-ui';
 
 <SessionExpiryBanner />
 ```
@@ -502,7 +502,7 @@ import { SessionExpiryBanner } from '@semiont/react-ui';
 Loading skeleton for user menu.
 
 ```tsx
-import { UserMenuSkeleton } from '@semiont/react-ui';
+import { UserMenuSkeleton } from '@xynolog/react-ui';
 
 <UserMenuSkeleton />
 ```
@@ -519,7 +519,7 @@ The skip link for keyboard users. Takes no props — it renders one link, which 
 `TranslationProvider`.
 
 ```tsx
-import { SkipLinks } from '@semiont/react-ui';
+import { SkipLinks } from '@xynolog/react-ui';
 
 <SkipLinks />
 ```
@@ -530,7 +530,7 @@ The page's `<main>` landmark, and the element the skip link lands on. Takes the 
 `<main>`, less `id` and `tabIndex`, which are its own.
 
 ```tsx
-import { MainContent } from '@semiont/react-ui';
+import { MainContent } from '@xynolog/react-ui';
 
 <MainContent className="page-body">{children}</MainContent>
 ```
@@ -539,14 +539,14 @@ import { MainContent } from '@semiont/react-ui';
 
 ## Branding Components
 
-### SemiontBranding
+### XynologBranding
 
-Semiont logo + tagline. Takes a translation function `t` for the tagline text.
+Xynolog logo + tagline. Takes a translation function `t` for the tagline text.
 
 ```tsx
-import { SemiontBranding } from '@semiont/react-ui';
+import { XynologBranding } from '@xynolog/react-ui';
 
-<SemiontBranding t={t} size="lg" showTagline />
+<XynologBranding t={t} size="lg" showTagline />
 ```
 
 `size` is `'sm' | 'md' | 'lg' | 'xl'`; also optional: `showTagline`, `animated`, `compactTagline`, `className`.
@@ -560,7 +560,7 @@ import { SemiontBranding } from '@semiont/react-ui';
 React error boundary for graceful error handling.
 
 ```tsx
-import { ErrorBoundary } from '@semiont/react-ui';
+import { ErrorBoundary } from '@xynolog/react-ui';
 
 <ErrorBoundary fallback={(error, reset) => <button onClick={reset}>{error.message}. Try again</button>}>
   {children}
@@ -577,7 +577,7 @@ by `BrowseView` / `AnnotateView`). Editability is controlled by `editable` (not 
 it always renders markdown — there is no `language` prop.
 
 ```tsx
-import { CodeMirrorRenderer } from '@semiont/react-ui';
+import { CodeMirrorRenderer } from '@xynolog/react-ui';
 
 <CodeMirrorRenderer content={content} editable={false} showLineNumbers hoverDelayMs={200} />
 ```
@@ -590,7 +590,7 @@ Renders the gateway-connection / auth health indicator. Takes the host's current
 (not a free-form status/message); each defaults to `false`.
 
 ```tsx
-import { StatusDisplay } from '@semiont/react-ui';
+import { StatusDisplay } from '@xynolog/react-ui';
 
 function Status({ isFullyAuthed, tokenValid }: { isFullyAuthed: boolean; tokenValid: boolean }) {
   return <StatusDisplay isAuthenticated={isAuthenticated} isFullyAuthenticated={isFullyAuthed} hasValidGatewayToken={tokenValid} />;
@@ -602,7 +602,7 @@ function Status({ isFullyAuthed, tokenValid }: { isFullyAuthed: boolean; tokenVa
 Renders a resource's tags inline (read-only display).
 
 ```tsx
-import { ResourceTagsInline } from '@semiont/react-ui';
+import { ResourceTagsInline } from '@xynolog/react-ui';
 
 <ResourceTagsInline resourceId={rId} tags={['important', 'review']} isEditing={false} onUpdate={async () => {}} />
 ```
@@ -616,7 +616,7 @@ import { ResourceTagsInline } from '@semiont/react-ui';
 All components use the translation system:
 
 ```tsx
-import { useTranslations } from '@semiont/react-ui';
+import { useTranslations } from '@xynolog/react-ui';
 
 function MyComponent() {
   const t = useTranslations('MyComponent');
@@ -631,8 +631,8 @@ Components that render a link take the host's `Link` and `routes` as props (see
 [ROUTING.md](ROUTING.md)):
 
 ```tsx
-import type { ResourceId } from '@semiont/core';
-import type { LinkComponentProps, RouteBuilder } from '@semiont/react-ui';
+import type { ResourceId } from '@xynolog/core';
+import type { LinkComponentProps, RouteBuilder } from '@xynolog/react-ui';
 
 function MyComponent({ Link, routes, resourceId }: { Link: React.ComponentType<LinkComponentProps>; routes: RouteBuilder; resourceId: ResourceId }) {
   return <Link href={routes.resourceDetail(resourceId)}>Open</Link>;
@@ -644,10 +644,10 @@ function MyComponent({ Link, routes, resourceId }: { Link: React.ComponentType<L
 Components fetch data by observing the SDK's live queries:
 
 ```tsx
-import { useSemiont, useObservable } from '@semiont/react-ui';
+import { useXynolog, useObservable } from '@xynolog/react-ui';
 
 function MyComponent() {
-  const client = useObservable(useSemiont().activeSession$)?.client;
+  const client = useObservable(useXynolog().activeSession$)?.client;
   // Emissions are CacheState<ResourceList>: pending → ready | failed.
   const state = useObservable(client?.browse.resources());
 
@@ -660,7 +660,7 @@ function MyComponent() {
 
 ## Styling
 
-Components ship plain CSS: `semiont-`-prefixed BEM classes, data attributes, and CSS custom
+Components ship plain CSS: `xynolog-`-prefixed BEM classes, data attributes, and CSS custom
 properties — no utility framework. A component that takes `className` adds it beside its own
 classes:
 
@@ -668,7 +668,7 @@ classes:
 <NavigationMenu Link={Link} routes={routes} t={t} className="custom-nav" />
 ```
 
-Theme through the CSS custom properties (`@semiont/react-ui/styles/variables.css`); see
+Theme through the CSS custom properties (`@xynolog/react-ui/styles/variables.css`); see
 [STYLES.md](STYLES.md).
 
 ## Accessibility

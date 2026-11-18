@@ -1,7 +1,7 @@
 # Where a knowledge base lives on disk
 
 A knowledge base's record lives in its own working tree: the resources, and the event log under
-`.semiont/events/`. Everything else is derived from that record and is kept outside the tree.
+`.xynolog/events/`. Everything else is derived from that record and is kept outside the tree.
 
 Only the Archivist mounts the working tree. Every other service reaches content through it.
 
@@ -10,7 +10,7 @@ Only the Archivist mounts the working tree. Every other service reaches content 
 ```
 <KB root>/                               # the knowledge base: a git working tree
 ├── …                                    # resources, where they live
-└── .semiont/
+└── .xynolog/
     └── events/                          # Immutable event log (system of record, committed)
         └── {ab}/{cd}/{resourceId}/
             └── events-{seq}.jsonl
@@ -32,14 +32,14 @@ On the machine that runs the stack, that mount and every other store (the databa
 vectors, the job queue, the anchored text, and the supervisor's log of the gateway and of the
 Librarian) are directories the launcher keeps for the knowledge base. Each is mounted into one
 container: two containers sharing a directory can each see a file at a different length. [The launcher's README](https://github.com/xynolog/cli/blob/main/README.md#where-the-launcher-keeps-its-files)
-says where, on each system, and `semiont status --verbose` lists them with what each takes on disk.
+says where, on each system, and `xynolog status --verbose` lists them with what each takes on disk.
 The full layout of the log and the views is
 [specified with the Archivist](https://github.com/xynolog/protocol/blob/main/contract/ARCHIVIST.md).
 
 ## Content
 
 Resources reference their content via a **representation's** `storageUri` (e.g.
-`file://README.md`) — Semiont reads files where they live in the working tree rather than
+`file://README.md`) — Xynolog reads files where they live in the working tree rather than
 copying them into a separate store. The URI lives on the representation, not on the
 resource, because bytes are a fact about a *rendition*: a resource may carry an original,
 a thumbnail and a preview, each with its own location. Read it with

@@ -1,12 +1,12 @@
 # Container Topology
 
-How a Semiont stack splits into containers, and how those containers communicate. Two diagrams of one stack: who talks to whom, and what attaches to what.
+How a Xynolog stack splits into containers, and how those containers communicate. Two diagrams of one stack: who talks to whom, and what attaches to what.
 
 For what each container needs (its port, configuration, mounts and health check), see [the service catalog](services/OVERVIEW.md). For what the actors inside the containers do, see [Knowledge System](../architecture/KNOWLEDGE-SYSTEM.md); for the Browser, [Human UI](../architecture/HUMAN-UI.md).
 
 ## Multi-container layout
 
-A stack the launcher runs, on the documents `semiont init` writes, is, in the groups `semiont status` reads it by ([What runs](LOCAL-SEMIONT.md#what-runs)):
+A stack the launcher runs, on the documents `xynolog init` writes, is, in the groups `xynolog status` reads it by ([What runs](LOCAL-XYNOLOG.md#what-runs)):
 
 - **its record**: the gateway, the dispatcher, the archivist and NATS;
 - **its index**: the librarian, the smelter, the weaver, Neo4j and Qdrant, which is the machine's: one serves every knowledge base here, each one's index in collections of its own;
@@ -15,9 +15,9 @@ A stack the launcher runs, on the documents `semiont init` writes, is, in the gr
 - **the providers**: Ollama (none when one is installed on the computer, or when every model is a hosted provider's);
 - **the telemetry**: the OpenTelemetry Collector, Jaeger and Prometheus. `--no-observe` leaves out the last two; the collector still runs.
 
-The first two are the knowledge base's own, Qdrant aside, and its containers are named for it, `semiont-<kb>-<product>`, where `<kb>` is its did:web domain made safe for a name. Qdrant and the last four are shared: one of each serves every knowledge base here, named `semiont-<name>` ([the launcher's names](services/OVERVIEW.md#the-launchers-names)).
+The first two are the knowledge base's own, Qdrant aside, and its containers are named for it, `xynolog-<kb>-<product>`, where `<kb>` is its did:web domain made safe for a name. Qdrant and the last four are shared: one of each serves every knowledge base here, named `xynolog-<name>` ([the launcher's names](services/OVERVIEW.md#the-launchers-names)).
 
-Semiont's eight are published images that a stack pulls and configures at run time. Nothing about a knowledge base is built into them ([Container Images](administration/IMAGES.md)).
+Xynolog's eight are published images that a stack pulls and configures at run time. Nothing about a knowledge base is built into them ([Container Images](administration/IMAGES.md)).
 
 ### Who talks to whom
 
@@ -26,23 +26,23 @@ The communication plane: the SDK clients, the SPA server, and every process-to-p
 ```mermaid
 graph TB
     subgraph CLIENTS ["clients — people and SDKs"]
-        USER["User's desktop<br/>web browser — runs the SPA · @semiont/sdk"]
+        USER["User's desktop<br/>web browser — runs the SPA · @xynolog/sdk"]
         INGEST["Content ingestion<br/>SDK client"]
         CURATE["Content curation<br/>SDK client"]
         AGENT["Agentic workflows<br/>SDK client"]
     end
 
-    BROWSERC["semiont-browser<br/>static SPA server"]
-    GW["semiont-&lt;kb&gt;-gateway<br/>bus hub · token verifier · content proxy"]
-    KC["semiont-keycloak<br/>the issuer — this KB's realm in it"]
+    BROWSERC["xynolog-browser<br/>static SPA server"]
+    GW["xynolog-&lt;kb&gt;-gateway<br/>bus hub · token verifier · content proxy"]
+    KC["xynolog-keycloak<br/>the issuer — this KB's realm in it"]
 
     subgraph SERVICES ["services — each its own service account"]
-        LIB["semiont-&lt;kb&gt;-librarian<br/>Gatherer · Matcher"]
-        WORKER["semiont-worker<br/>worker pool — Generator · detection workers"]
-        SMELT["semiont-&lt;kb&gt;-smelter<br/>Smelter — vector pipeline"]
-        WEAVE["semiont-&lt;kb&gt;-weaver<br/>Weaver — graph pipeline"]
-        ARCH["semiont-&lt;kb&gt;-archivist<br/>Stower · Browser · CloneTokenManager"]
-        DISP["semiont-&lt;kb&gt;-dispatcher<br/>owns the job queue · answers job:*"]
+        LIB["xynolog-&lt;kb&gt;-librarian<br/>Gatherer · Matcher"]
+        WORKER["xynolog-worker<br/>worker pool — Generator · detection workers"]
+        SMELT["xynolog-&lt;kb&gt;-smelter<br/>Smelter — vector pipeline"]
+        WEAVE["xynolog-&lt;kb&gt;-weaver<br/>Weaver — graph pipeline"]
+        ARCH["xynolog-&lt;kb&gt;-archivist<br/>Stower · Browser · CloneTokenManager"]
+        DISP["xynolog-&lt;kb&gt;-dispatcher<br/>owns the job queue · answers job:*"]
     end
 
     USER -->|assets| BROWSERC
@@ -83,14 +83,14 @@ Reading the diagram:
 
 - **Dotted edges are identity, and they come first.** Nobody reaches the gateway without visiting the issuer. People and SDK clients sign in there, and so does every service, as its own account: that account is the agent its work is attributed to. The gateway verifies each bearer against the issuer's published keys and keeps no account of its own.
 - **Bidirectional edges are the bus**: `POST /bus/emit`, and `POST /bus/subscribe` as Server-Sent Events. The gateway hosts no actors. Every service subscribes over those two endpoints like any other participant, and each rectangle names what runs inside it.
-- **The blue rectangles are the bus's clients**, and each speaks an SDK — TypeScript (`@semiont/sdk`), Rust (`semiont`) or Go: the Browser in a person's web browser, and the same client without a UI for ingestion, curation and agentic workflows. The `semiont` launcher's verbs and its MCP server, `semiont mcp`, are two of them.
+- **The blue rectangles are the bus's clients**, and each speaks an SDK — TypeScript (`@xynolog/sdk`), Rust (`xynolog`) or Go: the Browser in a person's web browser, and the same client without a UI for ingestion, curation and agentic workflows. The `xynolog` launcher's verbs and its MCP server, `xynolog mcp`, are two of them.
 - **Edges pointing at the archivist are plain HTTP.** The gateway proxies content for its clients, the workers among them, and reads from the archivist the events a reconnecting stream missed. The smelter dials the archivist directly for bytes, for a resource's annotations and to keep the anchored-text store, and the librarian for bytes.
 - **The dispatcher has no edge to the archivist.** Job ids, types, parameters and status flow through it, and content never does. A worker claims a job there, then reads bytes on the gateway and writes annotations through the bus.
-- **`semiont-browser` only serves static files.** The app runs in the person's web browser and connects to gateways from there, so the container needs no config and no connection of its own.
+- **`xynolog-browser` only serves static files.** The app runs in the person's web browser and connects to gateways from there, so the container needs no config and no connection of its own.
 
 Two mechanisms behind the gateway hub are not drawn as edges:
 
-- **The signal plane** is the fan-out behind the two bus endpoints, and it is a driver. `signal.type: nats`, in the KnowledgeBase's `spec.messaging`, which `semiont init` writes, carries frames on core NATS subjects and keeps the gateway's in-flight state (the correlation ledger, and each principal's open-stream count) in JetStream key-value tables that every replica shares, so the gateway can run as several replicas. `in-process` keeps both inside one gateway's memory. The bus contract is the same either way, and no client sees the choice.
+- **The signal plane** is the fan-out behind the two bus endpoints, and it is a driver. `signal.type: nats`, in the KnowledgeBase's `spec.messaging`, which `xynolog init` writes, carries frames on core NATS subjects and keeps the gateway's in-flight state (the correlation ledger, and each principal's open-stream count) in JetStream key-value tables that every replica shares, so the gateway can run as several replicas. `in-process` keeps both inside one gateway's memory. The bus contract is the same either way, and no client sees the choice.
 - **The job queue** is the dispatcher's, held in NATS JetStream. Jobs are created at the dispatcher, announced on `job:queued`, and claimed by exactly one worker over the bus. The dispatcher admits a claim only from a token carrying the worker role.
 
 One NATS daemon, the `messaging` role, serves both. The second diagram draws it.
@@ -106,40 +106,40 @@ config:
 ---
 graph TB
     subgraph G1 ["control plane"]
-        GW["semiont-&lt;kb&gt;-gateway<br/>bus hub · token verifier · content proxy"]
-        DISP["semiont-&lt;kb&gt;-dispatcher<br/>owns the job queue · answers job:*"]
-        NATS["semiont-&lt;kb&gt;-nats<br/>messaging — core subjects · JetStream"]
+        GW["xynolog-&lt;kb&gt;-gateway<br/>bus hub · token verifier · content proxy"]
+        DISP["xynolog-&lt;kb&gt;-dispatcher<br/>owns the job queue · answers job:*"]
+        NATS["xynolog-&lt;kb&gt;-nats<br/>messaging — core subjects · JetStream"]
         JS[("job queue<br/>KV bucket jobs · stream JOBS")]
         SIG[("signal tables<br/>KV ledger_* · streams_held")]
     end
 
     subgraph G4 ["identity"]
-        KC["semiont-keycloak<br/>identity — a realm for each KB"]
-        PG["semiont-postgres<br/>PostgreSQL — every KB's realm"]
+        KC["xynolog-keycloak<br/>identity — a realm for each KB"]
+        PG["xynolog-postgres<br/>PostgreSQL — every KB's realm"]
     end
 
     subgraph G2 ["knowledge system"]
-        ARCH["semiont-&lt;kb&gt;-archivist<br/>Stower · Browser · CloneTokenManager"]
+        ARCH["xynolog-&lt;kb&gt;-archivist<br/>Stower · Browser · CloneTokenManager"]
         TREE[("KB working tree<br/>content · event log · git state")]
         VIEWS[("views<br/>resources/ · projections/")]
         ANCH[("anchored-text store")]
-        WEAVE["semiont-&lt;kb&gt;-weaver<br/>Weaver — graph pipeline"]
-        SMELT["semiont-&lt;kb&gt;-smelter<br/>Smelter — vector pipeline"]
-        NEO["semiont-&lt;kb&gt;-neo4j<br/>Neo4j — graph projection"]
-        QD["semiont-qdrant<br/>Qdrant — every KB's vector index"]
+        WEAVE["xynolog-&lt;kb&gt;-weaver<br/>Weaver — graph pipeline"]
+        SMELT["xynolog-&lt;kb&gt;-smelter<br/>Smelter — vector pipeline"]
+        NEO["xynolog-&lt;kb&gt;-neo4j<br/>Neo4j — graph projection"]
+        QD["xynolog-qdrant<br/>Qdrant — every KB's vector index"]
     end
 
-    LIB["semiont-&lt;kb&gt;-librarian<br/>Gatherer · Matcher"]
-    OL["semiont-ollama<br/>Ollama — embeddings · local inference"]
+    LIB["xynolog-&lt;kb&gt;-librarian<br/>Gatherer · Matcher"]
+    OL["xynolog-ollama<br/>Ollama — embeddings · local inference"]
 
     subgraph G3 ["worker — any host that reaches the gateway"]
-        WORKER["semiont-worker<br/>worker pool — Generator · detection workers"]
+        WORKER["xynolog-worker<br/>worker pool — Generator · detection workers"]
     end
 
     subgraph G5 ["observability"]
-        COLL["semiont-otel-collector<br/>OTel Collector — telemetry fan-in"]
-        TRACES["semiont-jaeger<br/>Jaeger — traces"]
-        METRICS["semiont-prometheus<br/>Prometheus — metrics"]
+        COLL["xynolog-otel-collector<br/>OTel Collector — telemetry fan-in"]
+        TRACES["xynolog-jaeger<br/>Jaeger — traces"]
+        METRICS["xynolog-prometheus<br/>Prometheus — metrics"]
     end
 
     ARCH -->|rw| TREE
@@ -212,7 +212,7 @@ Reading the diagram:
 - **The worker's frame is a deployment boundary.** A worker holds no mount and no broker credential. Everything it dials (the gateway, for the bus and for bytes, and an inference provider) is a network address, so it can run on a machine the rest of the stack never shares. A worker that is not the deployment's own joins the same way: its client is granted the worker role at the issuer, and the dispatcher admits its claims by that role ([Admitting a worker someone else runs](./administration/AUTHENTICATION.md#admitting-a-worker-someone-else-runs)).
 - **The Ollama edges show the fully local case.** On an Inference document that names a remote API such as Anthropic's, inference for the workers and the librarian goes there instead. Embeddings stay on Ollama unless the KnowledgeIndex names Voyage.
 
-Every service authenticates once, as itself. It signs in at the knowledge base's issuer as its own account (client credentials, `SEMIONT_OIDC_CLIENT_ID` with `SEMIONT_OIDC_CLIENT_SECRET`, or the worker's key), and presents that token to the gateway, which verifies it as it would a person's and names the service by its account, as an agent. The model a service runs is not who it is: what a model produced names the model on the write.
+Every service authenticates once, as itself. It signs in at the knowledge base's issuer as its own account (client credentials, `XYNOLOG_OIDC_CLIENT_ID` with `XYNOLOG_OIDC_CLIENT_SECRET`, or the worker's key), and presents that token to the gateway, which verifies it as it would a person's and names the service by its account, as an agent. The model a service runs is not who it is: what a model produced names the model on the write.
 
 The partition is why the gateway stays responsive: keeping the record, retrieval, model calls, embedding and graph projection each run in their own process.
 
@@ -223,8 +223,8 @@ The second diagram draws the mounts; this table states the rule. Every store is 
 | Container | `/kb` (git tree) | anchored-text | state (views) |
 |---|---|---|---|
 | archivist | **rw — sole owner** | **rw — sole owner**: writes what the smelter stores on its HTTP surface | **rw — sole owner, stamp holder**: writes views |
-| gateway | — | — | — (its signal tables are JetStream on `semiont-<kb>-nats`, not a mount) |
-| dispatcher | — | — | — (the job queue is JetStream on `semiont-<kb>-nats`, not a mount) |
+| gateway | — | — | — (its signal tables are JetStream on `xynolog-<kb>-nats`, not a mount) |
+| dispatcher | — | — | — (the job queue is JetStream on `xynolog-<kb>-nats`, not a mount) |
 | librarian | — | — | — (reads what the record holds on the bus) |
 | smelter | — | — (keeps its entries on the archivist's HTTP surface) | — |
 | worker · weaver · browser | — | — | — |
@@ -235,7 +235,7 @@ Every service but the Browser also mounts its own configuration document, read-o
 
 ## One bus, one kind of participant
 
-The gateway exposes two endpoints that carry the work: `POST /bus/emit` and `POST /bus/subscribe`. Every other route is for sign-in metadata, tokens, content bytes or health. Every participant uses those two endpoints through an SDK, whether it is the Browser, a script, an agent, or one of Semiont's own services. A new kind of participant joins the same way, with no change to the gateway.
+The gateway exposes two endpoints that carry the work: `POST /bus/emit` and `POST /bus/subscribe`. Every other route is for sign-in metadata, tokens, content bytes or health. Every participant uses those two endpoints through an SDK, whether it is the Browser, a script, an agent, or one of Xynolog's own services. A new kind of participant joins the same way, with no change to the gateway.
 
 The wire protocol is [EVENT-BUS.md](https://github.com/xynolog/protocol/blob/main/contract/EVENT-BUS.md). The actors, and why people and agents are the same kind of participant, are in [the actor model](../architecture/ACTOR-MODEL.md).
 
@@ -243,18 +243,18 @@ The wire protocol is [EVENT-BUS.md](https://github.com/xynolog/protocol/blob/mai
 
 A codespace stack has the same topology, and the launcher runs at two layers:
 
-- **On your machine**, `semiont start --runtime codespace` handles the outside: it creates or resumes the codespace, waits for the stack to be healthy, and forwards the knowledge base and its issuer to `localhost`.
+- **On your machine**, `xynolog start --runtime codespace` handles the outside: it creates or resumes the codespace, waits for the stack to be healthy, and forwards the knowledge base and its issuer to `localhost`.
 - **Inside the codespace**, the codespace's own launcher brings the stack up with Docker, from the knowledge base's post-start hook, exactly as on a laptop.
 
 The outer launcher never reaches into the containers. When something must happen inside, such as creating a user, it asks the inner launcher over `gh codespace ssh`.
 
 ## Inside each container
 
-Each image runs `tini` as its first process, which runs the one service: a Rust binary for the gateway, the dispatcher and the Archivist, the Python service for the worker, a Node entry point for the rest. When the launcher starts a stack it also sets `SEMIONT_SUPERVISE`, which has the container restart a crashed service and kill a hung one, because a laptop has no scheduler to do that. On a platform that has one, leave it unset ([Deployment](administration/DEPLOYMENT.md#what-your-platform-provides)).
+Each image runs `tini` as its first process, which runs the one service: a Rust binary for the gateway, the dispatcher and the Archivist, the Python service for the worker, a Node entry point for the rest. When the launcher starts a stack it also sets `XYNOLOG_SUPERVISE`, which has the container restart a crashed service and kill a hung one, because a laptop has no scheduler to do that. On a platform that has one, leave it unset ([Deployment](administration/DEPLOYMENT.md#what-your-platform-provides)).
 
 ## Related
 
 - [The service catalog](services/OVERVIEW.md): each container's port, configuration, mounts and health check
-- [Deploying Semiont](administration/DEPLOYMENT.md): the three ways to run a stack
+- [Deploying Xynolog](administration/DEPLOYMENT.md): the three ways to run a stack
 - [Container Images](administration/IMAGES.md): what is published, and verifying it
 - [Where a knowledge base lives on disk](../architecture/FILESYSTEM.md): the stores in the second diagram

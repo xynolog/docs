@@ -1,5 +1,5 @@
 {
-  "name": "@semiont/doc-snippets",
+  "name": "@xynolog/doc-snippets",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -8,9 +8,9 @@
     "check": "node check.mjs"
   },
   "devDependencies": {
-    "@semiont/observability": "*",
-    "@semiont/react-ui": "*",
-    "@semiont/sdk": "*",
+    "@xynolog/observability": "*",
+    "@xynolog/react-ui": "*",
+    "@xynolog/sdk": "*",
     "@testing-library/react": "^16.3.3",
     "@types/react": "^19.3.0",
     "react": "^19.3.1",

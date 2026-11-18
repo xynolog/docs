@@ -1,6 +1,6 @@
 # Keyboard Navigation
 
-Every interaction in the Semiont Browser is reachable from the keyboard. This page is the shortcut reference; for the implementation patterns behind it, see [images/browser/docs/KEYBOARD-NAV.md](https://github.com/xynolog/images/blob/main/browser/docs/KEYBOARD-NAV.md).
+Every interaction in the Xynolog Browser is reachable from the keyboard. This page is the shortcut reference; for the implementation patterns behind it, see [images/browser/docs/KEYBOARD-NAV.md](https://github.com/xynolog/images/blob/main/browser/docs/KEYBOARD-NAV.md).
 
 Press **`?`** at any time to bring up an in-app shortcut help modal.
 

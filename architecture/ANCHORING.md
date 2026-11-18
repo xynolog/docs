@@ -13,7 +13,7 @@ This doc is the pipeline that closes that gap.
 
 ## The shared vocabulary: `AnchoredText`
 
-Everything below produces or consumes one type, in `@semiont/core`:
+Everything below produces or consumes one type, in `@xynolog/core`:
 
 ```ts
 interface AnchoredText { text: string; items: PdfTextItem[] }
@@ -32,7 +32,7 @@ every text offset does.
 | text / markdown | code-point offsets | decode |
 | PDF, born-digital | page + rect | text layer |
 | PDF / image, scanned | page + rect | OCR |
-| PDF, Semiont-generated | page + rect | authored at generation |
+| PDF, Xynolog-generated | page + rect | authored at generation |
 
 Coordinates are PDF points with the origin at the **bottom-left** of the page,
 Y increasing upward. The flip to canvas pixels happens in the browser; the
@@ -40,7 +40,7 @@ server has no canvas.
 
 ## Two directions over one map
 
-`@semiont/core/pdf-anchoring` holds an inverse pair, and which one runs depends
+`@xynolog/core/pdf-anchoring` holds an inverse pair, and which one runs depends
 on who is annotating.
 
 ```
@@ -176,7 +176,7 @@ resource, not edits to it.
 
 ## Authored maps are not stored here
 
-A PDF that Semiont *generates* knows its own layout: it does not recover
+A PDF that Xynolog *generates* knows its own layout: it does not recover
 geometry, it chose it. That map is embedded **in the PDF**, as tags or a PDF/A-3
 attachment, not stored alongside it. There is no authored-map directory, which
 is why eviction and stamp-misses in the derived store can never destroy
@@ -189,17 +189,17 @@ bytes, hence the checksum, which the Smelter reads as a content change.
 
 | Concern | Location |
 |---|---|
-| `AnchoredText`, `locate`, `textUnder`, the threshold | `@semiont/core` — `pdf-anchoring.ts` |
+| `AnchoredText`, `locate`, `textUnder`, the threshold | `@xynolog/core` — `pdf-anchoring.ts` |
 | Producing a map (text layer, OCR, tables, forms) | `images/smelter` — `extraction.py`, over `pdfium.py` and `tesseract.py` |
 | Storing one | `images/smelter` — `anchored_text_store.py`, over the Archivist's `PUT /resources/{id}/anchored-text`; `images/archivist` — `record/src/anchored_text.rs` |
 | Publishing at ingest | `images/smelter` — `smelter.py` |
 | Serving one, with the barrier | `images/archivist` — `src/anchored.rs` |
-| Detection's geometry tail | `@semiont/core` — `annotationOfSpan`, in `annotation-builders.ts` |
-| Holding the text for a viewer, and asking again | `@semiont/react-ui` — `hooks/useAnchoredText.ts` |
-| The PDF canvas | `@semiont/react-ui` — `PdfAnnotationCanvas.tsx` |
-| The image canvas | `@semiont/react-ui` — `SvgDrawingCanvas.tsx` |
+| Detection's geometry tail | `@xynolog/core` — `annotationOfSpan`, in `annotation-builders.ts` |
+| Holding the text for a viewer, and asking again | `@xynolog/react-ui` — `hooks/useAnchoredText.ts` |
+| The PDF canvas | `@xynolog/react-ui` — `PdfAnnotationCanvas.tsx` |
+| The image canvas | `@xynolog/react-ui` — `SvgDrawingCanvas.tsx` |
 
-`@semiont/core` holds what *reasons over* a map; the Smelter, a Python service
+`@xynolog/core` holds what *reasons over* a map; the Smelter, a Python service
 ([images/smelter](https://github.com/xynolog/images/tree/main/smelter)), holds what *produces* one. The split is
 not cosmetic: the browser needs `textUnder` at drag time, and producing a map
 takes PDFium, the `tesseract` program and a directory to write.

@@ -1,39 +1,39 @@
 ---
-name: semiont-tag
-description: Apply structural-analysis tag schemas to a Semiont resource — classify passages by their structural role using IRAC, IMRAD, Toulmin, or any KB-registered schema via mark.delegate with motivation tagging
+name: xynolog-tag
+description: Apply structural-analysis tag schemas to a Xynolog resource — classify passages by their structural role using IRAC, IMRAD, Toulmin, or any KB-registered schema via mark.delegate with motivation tagging
 disable-model-invocation: false
 user-invocable: true
 allowed-tools: Bash, Read, Write, Glob, Grep
 ---
 
-You are helping a user add tagging annotations to a Semiont resource. The `tagging` motivation classifies a passage by the role it plays in a document's structure, against a registered schema: IRAC (Issue, Rule, Application, Conclusion), IMRAD (Introduction, Methods, Results, Discussion), Toulmin (Claim, Evidence, Warrant, Counterargument, Rebuttal), or one the knowledge base defines.
+You are helping a user add tagging annotations to a Xynolog resource. The `tagging` motivation classifies a passage by the role it plays in a document's structure, against a registered schema: IRAC (Issue, Rule, Application, Conclusion), IMRAD (Introduction, Methods, Results, Discussion), Toulmin (Claim, Evidence, Warrant, Counterargument, Rebuttal), or one the knowledge base defines.
 
-This skill works in the annotation layer of [the layered data model](../README.md#the-layers). A tag is a span anyone can query, and its body names the schema and the category. An aggregating skill such as [`semiont-aggregate`](../semiont-aggregate/SKILL.md) walks tags to build a structural overview: every Rule paragraph in a corpus, every Methods section in a literature review.
+This skill works in the annotation layer of [the layered data model](../README.md#the-layers). A tag is a span anyone can query, and its body names the schema and the category. An aggregating skill such as [`xynolog-aggregate`](../xynolog-aggregate/SKILL.md) walks tags to build a structural overview: every Rule paragraph in a corpus, every Methods section in a literature review.
 
 ## Tagging, or classifying with entity types
 
 Two things look alike and are not the same.
 
 - **Tagging against a schema (this skill).** The vocabulary is a registered schema whose categories come from a method of analysis and carry a description and examples. Use motivation `tagging` with `schemaId` and `categories`. The knowledge base registers the schema with `frame.addTagSchema`.
-- **Classifying with entity types.** The vocabulary is a flat list the corpus declares for itself: theme labels, or role names such as `Plaintiff`, `Defendant` and `Counsel`. Use motivation `linking` with `entityTypes`, declared with `frame.addEntityTypes`. The annotation is a reference, and its body names the entity type. See [Classifying with entity types](#classifying-with-entity-types) below, and [`semiont-wiki`](../semiont-wiki/SKILL.md) for what references are for.
+- **Classifying with entity types.** The vocabulary is a flat list the corpus declares for itself: theme labels, or role names such as `Plaintiff`, `Defendant` and `Counsel`. Use motivation `linking` with `entityTypes`, declared with `frame.addEntityTypes`. The annotation is a reference, and its body names the entity type. See [Classifying with entity types](#classifying-with-entity-types) below, and [`xynolog-wiki`](../xynolog-wiki/SKILL.md) for what references are for.
 
 The test: does the vocabulary come from a published framework whose categories mean something on their own? IRAC does. Theme labels are discovered in one corpus. Role names are kinds of entity.
 
 ## Sign in
 
-`SemiontSession.signInDevice(...)` signs a person in at the knowledge base's issuer with the device authorization grant (RFC 8628): the issuer mints a code, `onCode` shows the person where to approve it, and no password passes through the script. The sign-in is kept in `kept`, a `MemorySignIn` here, so the script signs in again each time it starts; `SemiontSession.fromKept(...)` then opens the session over it, which keeps the token fresh. An access token is short-lived (five minutes from the Keycloak a launcher stack runs), so a session, not a bare client, is what keeps a script working past that. `fromKept` gives the session with the client it was built with, which end together. Sign in once, use `opened.session.client` for every call, and `opened.dispose()` when done: that closes its client, then ends the session.
+`XynologSession.signInDevice(...)` signs a person in at the knowledge base's issuer with the device authorization grant (RFC 8628): the issuer mints a code, `onCode` shows the person where to approve it, and no password passes through the script. The sign-in is kept in `kept`, a `MemorySignIn` here, so the script signs in again each time it starts; `XynologSession.fromKept(...)` then opens the session over it, which keeps the token fresh. An access token is short-lived (five minutes from the Keycloak a launcher stack runs), so a session, not a bare client, is what keeps a script working past that. `fromKept` gives the session with the client it was built with, which end together. Sign in once, use `opened.session.client` for every call, and `opened.dispose()` when done: that closes its client, then ends the session.
 
 ```typescript
-import { SemiontSession, MemorySignIn, httpKb } from '@semiont/sdk';
+import { XynologSession, MemorySignIn, httpKb } from '@xynolog/sdk';
 
-const url = new URL(process.env.SEMIONT_API_URL ?? 'http://localhost:4000');
+const url = new URL(process.env.XYNOLOG_API_URL ?? 'http://localhost:4000');
 const kb = httpKb({
-  id: 'semiont-tag', label: 'Semiont',
+  id: 'xynolog-tag', label: 'Xynolog',
   host: url.hostname, port: Number(url.port || 4000),
   protocol: url.protocol === 'https:' ? 'https' : 'http',
 });
 const kept = new MemorySignIn();
-await SemiontSession.signInDevice({
+await XynologSession.signInDevice({
   kb,
   kept,
   onCode: ({ verificationUri, verificationUriComplete, userCode }) => {
@@ -41,8 +41,8 @@ await SemiontSession.signInDevice({
     if (!verificationUriComplete) console.error(`Code: ${userCode}`);
   },
 });
-const opened = await SemiontSession.fromKept({ kb, kept });
-const semiont = opened.session.client;
+const opened = await XynologSession.fromKept({ kb, kept });
+const xynolog = opened.session.client;
 ```
 
 ## Tag against a schema
@@ -50,7 +50,7 @@ const semiont = opened.session.client;
 A tag schema belongs to the knowledge base that uses it. Write it as a `TagSchema` in the knowledge base's own source, register it, then run the job. A `tagging` job names its schema by id, and the stack refuses one whose schema is not registered (`Tag schema not registered: <id>`), so register first. Registering identical content again changes nothing, which makes it safe for every script to register the schemas it uses.
 
 ```typescript
-import { resourceId, type TagSchema } from '@semiont/sdk';
+import { resourceId, type TagSchema } from '@xynolog/sdk';
 
 const LEGAL_IRAC_SCHEMA: TagSchema = {
   id: 'legal-irac',
@@ -65,11 +65,11 @@ const LEGAL_IRAC_SCHEMA: TagSchema = {
   ],
 };
 
-await semiont.frame.addTagSchema(LEGAL_IRAC_SCHEMA);
+await xynolog.frame.addTagSchema(LEGAL_IRAC_SCHEMA);
 
 const rId = resourceId('opinion-citizens-united');
 
-const done = await semiont.mark.delegate(rId, {
+const done = await xynolog.mark.delegate(rId, {
   motivation: 'tagging',
   schemaId: LEGAL_IRAC_SCHEMA.id,
   categories: LEGAL_IRAC_SCHEMA.tags.map((t) => t.name),
@@ -97,12 +97,12 @@ Each tag's body has two items:
 For a flat list that is not a schema, declare it as entity types and detect references to them. Declare first: a job that names an undeclared type is refused. Detection runs once for each type.
 
 ```typescript
-import { entityType } from '@semiont/sdk';
+import { entityType } from '@xynolog/sdk';
 
 const ROLES = ['Plaintiff', 'Defendant', 'Counsel'];
-await semiont.frame.addEntityTypes(ROLES);
+await xynolog.frame.addEntityTypes(ROLES);
 
-const done = await semiont.mark.delegate(rId, {
+const done = await xynolog.mark.delegate(rId, {
   motivation: 'linking',
   entityTypes: ROLES.map(entityType),
 });
@@ -120,7 +120,7 @@ Each annotation has motivation `linking` and a body with one `TextualBody` whose
 To write one tag by hand, give `mark.annotation` the same two-item body the worker writes:
 
 ```typescript
-await semiont.mark.annotation({
+await xynolog.mark.annotation({
   target: {
     source: rId,
     selector: {
@@ -141,7 +141,7 @@ await semiont.mark.annotation({
 And one entity-type classification:
 
 ```typescript
-await semiont.mark.annotation({
+await xynolog.mark.annotation({
   target: {
     source: rId,
     selector: { type: 'TextQuoteSelector', exact: 'Acme Holdings LLC' },
@@ -155,8 +155,8 @@ await semiont.mark.annotation({
 
 ```typescript
 import {
-  SemiontSession, MemorySignIn, httpKb, resourceId, type TagSchema,
-} from '@semiont/sdk';
+  XynologSession, MemorySignIn, httpKb, resourceId, type TagSchema,
+} from '@xynolog/sdk';
 
 const LEGAL_IRAC_SCHEMA: TagSchema = {
   id: 'legal-irac',
@@ -172,14 +172,14 @@ const LEGAL_IRAC_SCHEMA: TagSchema = {
 };
 
 async function tagIRAC(resourceIdStr: string): Promise<void> {
-  const url = new URL(process.env.SEMIONT_API_URL ?? 'http://localhost:4000');
+  const url = new URL(process.env.XYNOLOG_API_URL ?? 'http://localhost:4000');
   const kb = httpKb({
-    id: 'semiont-tag', label: 'Semiont',
+    id: 'xynolog-tag', label: 'Xynolog',
     host: url.hostname, port: Number(url.port || 4000),
     protocol: url.protocol === 'https:' ? 'https' : 'http',
   });
   const kept = new MemorySignIn();
-  await SemiontSession.signInDevice({
+  await XynologSession.signInDevice({
     kb,
     kept,
     onCode: ({ verificationUri, verificationUriComplete, userCode }) => {
@@ -187,13 +187,13 @@ async function tagIRAC(resourceIdStr: string): Promise<void> {
       if (!verificationUriComplete) console.error(`Code: ${userCode}`);
     },
   });
-  const opened = await SemiontSession.fromKept({ kb, kept });
-  const semiont = opened.session.client;
+  const opened = await XynologSession.fromKept({ kb, kept });
+  const xynolog = opened.session.client;
 
   try {
-    await semiont.frame.addTagSchema(LEGAL_IRAC_SCHEMA);
+    await xynolog.frame.addTagSchema(LEGAL_IRAC_SCHEMA);
 
-    const done = await semiont.mark.delegate(resourceId(resourceIdStr), {
+    const done = await xynolog.mark.delegate(resourceId(resourceIdStr), {
       motivation: 'tagging',
       schemaId: LEGAL_IRAC_SCHEMA.id,
       categories: LEGAL_IRAC_SCHEMA.tags.map((t) => t.name),
@@ -225,11 +225,11 @@ tagIRAC(target).catch((e) => {
 
 - **Decide which shape applies first.** A schema with categories from a method of analysis is `tagging` with `schemaId` and `categories`. A flat list the corpus defines is `linking` with `entityTypes`.
 - **A schema lives with the knowledge base that uses it.** Write the `TagSchema` in the knowledge base's own source. The SDK ships no schemas.
-- **Register before you tag.** `await semiont.frame.addTagSchema(schema)` before any `mark.delegate` with motivation `tagging`. `await semiont.browse.tagSchemas().fresh()` lists what a knowledge base has registered.
+- **Register before you tag.** `await xynolog.frame.addTagSchema(schema)` before any `mark.delegate` with motivation `tagging`. `await xynolog.browse.tagSchemas().fresh()` lists what a knowledge base has registered.
 - **Themes the model discovers are entity types, not tags.** A `tagging` job needs its categories before it runs. When the values are only known afterwards, declare them with `frame.addEntityTypes` and classify with `linking`.
 - **Neither job takes `instructions`.** A `tagging` job is instructed by the schema's descriptions and examples, and a `linking` job by the entity types it is given. A job given a param its motivation does not take is refused. To steer a tagging pass, edit the schema.
-- **Tags feed aggregates.** [`semiont-aggregate`](../semiont-aggregate/SKILL.md) rolls tags up into a deliverable: a report of how later cases treated a precedent, a document's IRAC outline, a resource for each theme.
+- **Tags feed aggregates.** [`xynolog-aggregate`](../xynolog-aggregate/SKILL.md) rolls tags up into a deliverable: a report of how later cases treated a precedent, a document's IRAC outline, a resource for each theme.
 - **What `mark.delegate` can read.** A resource with text: Markdown, plain text, HTML, JSON, or a PDF. A resource with no text at all, such as an image, fails the job. A document whose text could not be read completes with a `declined` result and a reason code.
-- **Check results** with `await semiont.browse.annotations(rId).fresh()`. The readers in `@semiont/sdk` tell the two apart and read each: a tag is `isTag`, with `getTagCategory` for its category and `getTagSchemaId` for its schema; an entity-type classification is `isReference`, with `getEntityTypes` for its types.
-- **From the command line.** `semiont mark --delegate <resourceId> --motivation tagging --schema <id> --category <name>` runs the same job from the [launcher](https://github.com/xynolog/cli/blob/main/README.md#delegating-to-the-stack), and `semiont browse --tag-schemas` lists the schemas.
-- **Errors.** Every SDK throw extends `SemiontError`: catch it and route on its `code`. `BusRequestError` (a bus request, with a code such as `bus.timeout`) and `JobFailedError` narrow it. See [Error Handling](../../Usage.md#error-handling).
+- **Check results** with `await xynolog.browse.annotations(rId).fresh()`. The readers in `@xynolog/sdk` tell the two apart and read each: a tag is `isTag`, with `getTagCategory` for its category and `getTagSchemaId` for its schema; an entity-type classification is `isReference`, with `getEntityTypes` for its types.
+- **From the command line.** `xynolog mark --delegate <resourceId> --motivation tagging --schema <id> --category <name>` runs the same job from the [launcher](https://github.com/xynolog/cli/blob/main/README.md#delegating-to-the-stack), and `xynolog browse --tag-schemas` lists the schemas.
+- **Errors.** Every SDK throw extends `XynologError`: catch it and route on its `code`. `BusRequestError` (a bus request, with a code such as `bus.timeout`) and `JobFailedError` narrow it. See [Error Handling](../../Usage.md#error-handling).

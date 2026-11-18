@@ -43,7 +43,7 @@
 //     stack. It flags `await e` where NO constituent of e's type is thenable
 //     (any/unknown are skipped; `for await` is not checked — no doc snippet
 //     uses it).
-//   - @semiont/* resolve via workspace links → exports map → dist (consumer-
+//   - @xynolog/* resolve via workspace links → exports map → dist (consumer-
 //     shaped); TRANSITIVE deps still resolve via monorepo hoisting. Full
 //     external fidelity is the verdaccio drift check's job, not this gate's.
 //
@@ -91,7 +91,7 @@ const SUITES = {
     onlyDocDiagnostics: false,
   },
   // The agent skills: Node scripts, taught fence by fence. Node's types are on,
-  // and a name a fence uses that @semiont/sdk exports is imported for it.
+  // and a name a fence uses that @xynolog/sdk exports is imported for it.
   skills: {
     docs: [
       ...markdownIn('docs/builder/skills'),
@@ -102,7 +102,7 @@ const SUITES = {
     ],
     preludes: ['prelude-skills.ts'],
     options: { types: ['node'] },
-    ambientModules: ['@semiont/sdk'],
+    ambientModules: ['@xynolog/sdk'],
     onlyDocDiagnostics: false,
   },
   // The READMEs of the packages the SDK is built on. Each shows
@@ -138,9 +138,9 @@ const SUITES = {
       allowUmdGlobalAccess: true,
     },
     ambientModules: [
-      '@semiont/react-ui',
-      '@semiont/react-ui/test-utils',
-      '@semiont/sdk',
+      '@xynolog/react-ui',
+      '@xynolog/react-ui/test-utils',
+      '@xynolog/sdk',
       'react',
       'vitest',
       '@testing-library/react',

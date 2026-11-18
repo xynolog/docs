@@ -8,9 +8,9 @@
 // edit that adds boilerplate to satisfy the gate is wrong — extend this
 // prelude instead.
 import type {
-  SemiontSession as _SemiontSession,
+  XynologSession as _XynologSession,
   OpenedSession as _OpenedSession,
-  SemiontClient as _SemiontClient,
+  XynologClient as _XynologClient,
   ResourceId as _ResourceId,
   AnnotationId as _AnnotationId,
   GatheredContext as _GatheredContext,
@@ -30,18 +30,18 @@ import type {
   DeviceCode as _DeviceCode,
   AgentSession as _AgentSession,
   SignInFiles as _SignInFiles,
-} from '@semiont/sdk';
-import type { GenerationJobParams as _GenerationJobParams } from '@semiont/core';
-import type { FaultyTransport as _FaultyTransport } from '@semiont/sdk/testing';
-import type { ShellStateUnit as _ShellStateUnit } from '@semiont/react-ui';
+} from '@xynolog/sdk';
+import type { GenerationJobParams as _GenerationJobParams } from '@xynolog/core';
+import type { FaultyTransport as _FaultyTransport } from '@xynolog/sdk/testing';
+import type { ShellStateUnit as _ShellStateUnit } from '@xynolog/react-ui';
 
 declare global {
   // ── type vocabulary snippets use in annotations ──────────────────────
-  type SemiontSession = _SemiontSession;
-  type SemiontClient = _SemiontClient;
+  type XynologSession = _XynologSession;
+  type XynologClient = _XynologClient;
   type StateUnit = _StateUnit;
   type Watched<T> = _Watched<T>;
-  const watched: typeof import('@semiont/sdk').watched;
+  const watched: typeof import('@xynolog/sdk').watched;
   type CacheState<T> = _CacheState<T>;
   type AccessToken = _AccessToken;
   type ShellStateUnit = _ShellStateUnit;
@@ -58,15 +58,15 @@ declare global {
 
   // ── the signed-in world most snippets assume ─────────────────────────
   /** A signed-in session (long-running consumers). */
-  const session: _SemiontSession;
+  const session: _XynologSession;
   /** What a script's sign-in gives: the session and the client it was built with, ended together. */
   const opened: _OpenedSession;
-  /** A wired-up client — one-shot scripts call it `semiont`, sessions `client`. */
-  const semiont: _SemiontClient;
-  const client: _SemiontClient;
+  /** A wired-up client — one-shot scripts call it `xynolog`, sessions `client`. */
+  const xynolog: _XynologClient;
+  const client: _XynologClient;
   /** A worker's sign-in (`startAgentSession`): the agent its work is attributed to. */
   const agent: _AgentSession;
-  /** The scriptable test transport from `@semiont/sdk/testing` snippets. */
+  /** The scriptable test transport from `@xynolog/sdk/testing` snippets. */
   const transport: _FaultyTransport;
   const token$: import('rxjs').BehaviorSubject<_AccessToken | null>;
 

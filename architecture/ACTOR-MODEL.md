@@ -1,6 +1,6 @@
 # Actor Model
 
-Semiont's architecture is organized around **actors** communicating through a central **event bus**. This page explains who the actors are, how they relate, and why this shape was chosen.
+Xynolog's architecture is organized around **actors** communicating through a central **event bus**. This page explains who the actors are, how they relate, and why this shape was chosen.
 
 For the SPA-side wiring, see [HUMAN-UI.md](HUMAN-UI.md). For the read/write actors that mediate the knowledge base, see [KNOWLEDGE-SYSTEM.md](KNOWLEDGE-SYSTEM.md). For the deployment layout that hosts these actors, see [CONTAINER-TOPOLOGY.md](../operator/CONTAINER-TOPOLOGY.md).
 
@@ -85,7 +85,7 @@ In a running stack the AI actors are jobs: the dispatcher queues them and the wo
 A new resource enters as a **yield**, emitted by an actor like any other event, and the Stower records it. There is no separate intake path:
 
 - **A person** uploads a file, or writes one, on the Browser's compose page.
-- **A Feeder** finds content elsewhere and uploads it through the SDK. It is a client like any other, with no path of its own. The launcher's `semiont yield --upload` is the smallest one; the [ingest skill](../builder/skills/semiont-ingest/SKILL.md) and the Developer Guide's [ingest recipe](../builder/DEVELOPER-GUIDE.md#5-ingest-a-document) show how to write one.
+- **A Feeder** finds content elsewhere and uploads it through the SDK. It is a client like any other, with no path of its own. The launcher's `xynolog yield --upload` is the smallest one; the [ingest skill](../builder/skills/xynolog-ingest/SKILL.md) and the Developer Guide's [ingest recipe](../builder/DEVELOPER-GUIDE.md#5-ingest-a-document) show how to write one.
 - **A Generator Agent** writes one from gathered context.
 
 ## Flows

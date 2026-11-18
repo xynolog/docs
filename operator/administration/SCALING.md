@@ -1,17 +1,17 @@
 # Scaling
 
-What scales in a Semiont stack, what deliberately does not, and which signals tell you it is
-time. Semiont ships container images and selects behavior from config
+What scales in a Xynolog stack, what deliberately does not, and which signals tell you it is
+time. Xynolog ships container images and selects behavior from config
 ([DEPLOYMENT.md](./DEPLOYMENT.md), [CONFIGURATION.md](./CONFIGURATION.md)); scheduling those
 containers — and what that costs — is your platform's business, so this guide is written in
 replicas and drivers, not instance types.
 
 For real-time scaling signals, the OTel metrics described in
 [Observability](./OBSERVABILITY.md) are the authoritative source —
-particularly `semiont.job.queue.size` (worker fan-out trigger),
-`semiont.inference.duration` (how long a model takes the worker and the librarian),
-`semiont.gather.degraded` (gathers the graph or the vector index was too far behind for), and
-`semiont.sse.subscribers` (concurrent client load).
+particularly `xynolog.job.queue.size` (worker fan-out trigger),
+`xynolog.inference.duration` (how long a model takes the worker and the librarian),
+`xynolog.gather.degraded` (gathers the graph or the vector index was too far behind for), and
+`xynolog.sse.subscribers` (concurrent client load).
 
 ## What scales, per service
 
@@ -33,7 +33,7 @@ the projections.
 
 ## Infrastructure
 
-- **PostgreSQL** — Keycloak's, holding the realm and nothing of Semiont's; the gateway keeps no
+- **PostgreSQL** — Keycloak's, holding the realm and nothing of Xynolog's; the gateway keeps no
   rows and opens no connection. Scale it with the issuer, or hand it to a managed service.
 - **Neo4j and Qdrant** — the graph and vector indices. Derived state: sizeable, but
   rebuildable from the record. Managed equivalents work; durable volumes either way
@@ -43,18 +43,18 @@ the projections.
   than it needs scale; a single server serves many gateway replicas.
 - **Ollama** — local inference and embeddings. Inference concurrency, not user count, is its
   load; the anthropic Inference document moves LLM inference to the API and leaves embeddings local.
-- **The KB working tree and `.semiont/events/`** — the system of record, mounted by the
+- **The KB working tree and `.xynolog/events/`** — the system of record, mounted by the
   Archivist alone. Growth here is repository growth; it survives every container replacement.
 
 ## Scaling signals
 
-- `semiont.job.queue.size` climbing and staying up: add workers.
-- `semiont.sse.subscribers` per gateway replica approaching your tested ceiling: add gateway
+- `xynolog.job.queue.size` climbing and staying up: add workers.
+- `xynolog.sse.subscribers` per gateway replica approaching your tested ceiling: add gateway
   replicas (select the broker drivers first).
-- `semiont.inference.duration` p95 rising from `semiont-librarian`: the model its searches and
+- `xynolog.inference.duration` p95 rising from `xynolog-librarian`: the model its searches and
   gathers ask is the bottleneck — give it more resources. The librarian reports no time of
   its own for a search or a gather.
-- `semiont.gather.degraded` rising with `projection` `graph` or `vectors`: the weaver or the
+- `xynolog.gather.degraded` rising with `projection` `graph` or `vectors`: the weaver or the
   smelter is not keeping up with the record. The smelter's `/health` says how it follows the
   record, under `following`: whether its sweep is done, how many resources' logs a failing
   event has stopped until the next sweep, and `streamDrops`, how many times its stream
@@ -72,7 +72,7 @@ the projections.
 
 ## Cost
 
-Semiont's images are ordinary containers; cost is determined by the platform that schedules
+Xynolog's images are ordinary containers; cost is determined by the platform that schedules
 them and the managed services you substitute. A laptop runs the whole stack; so does one VM
 with Docker; so does a scheduler with the replica table above. Price the platform, not
-Semiont.
+Xynolog.

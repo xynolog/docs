@@ -1,6 +1,6 @@
 # Accessibility
 
-The Semiont Browser meets [WCAG 2.1 Level AA](https://www.w3.org/WAI/WCAG21/quickref/). Every interactive element is reachable from the keyboard alone, every dynamic update is announced to screen readers, and every UI surface has been tested with assistive technology.
+The Xynolog Browser meets [WCAG 2.1 Level AA](https://www.w3.org/WAI/WCAG21/quickref/). Every interactive element is reachable from the keyboard alone, every dynamic update is announced to screen readers, and every UI surface has been tested with assistive technology.
 
 ## What you get
 

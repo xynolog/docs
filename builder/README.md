@@ -1,8 +1,8 @@
-# Building with the Semiont SDK
+# Building with the Xynolog SDK
 
 > ⚠️ **Alpha.** API and package surface are not yet stable; breaking changes between 0.x releases are expected.
 
-For people, and AI agents, writing software that works with a Semiont knowledge base: a web, desktop or mobile application, an ingestion or enrichment pipeline, a service, an agent.
+For people, and AI agents, writing software that works with a Xynolog knowledge base: a web, desktop or mobile application, an ingestion or enrichment pipeline, a service, an agent.
 
 ## Choose your language
 
@@ -10,27 +10,27 @@ Java programs use the Kotlin SDK. The guides' examples are in TypeScript, and ea
 
 ### TypeScript
 
-[`@semiont/sdk`](https://github.com/xynolog/sdk/blob/main/typescript/sdk/README.md) is what the guides are written in.
+[`@xynolog/sdk`](https://github.com/xynolog/sdk/blob/main/typescript/sdk/README.md) is what the guides are written in.
 
 ```bash
-npm install @semiont/sdk
+npm install @xynolog/sdk
 ```
 
 ### Rust
 
-The [`semiont` crate](https://github.com/xynolog/sdk/blob/main/rust/sdk/README.md) maps each TypeScript shape in these docs to its Rust form. [`semiont-http-transport`](https://github.com/xynolog/sdk/blob/main/rust/http-transport/README.md) has the sessions and signing in.
+The [`xynolog` crate](https://github.com/xynolog/sdk/blob/main/rust/sdk/README.md) maps each TypeScript shape in these docs to its Rust form. [`xynolog-http-transport`](https://github.com/xynolog/sdk/blob/main/rust/http-transport/README.md) has the sessions and signing in.
 
 ```bash
-cargo add semiont
-cargo add semiont-http-transport --features sign-in    # the transport over a gateway
+cargo add xynolog
+cargo add xynolog-http-transport --features sign-in    # the transport over a gateway
 ```
 
 ### Python
 
-The [`semiont` package](https://github.com/xynolog/sdk/blob/main/python/sdk/README.md) runs on asyncio, and is checked by `mypy` and `pyright`, both strict. It has the client, live queries, sessions, the state units, and a registry of several knowledge bases with a person's sign-in by a page redirect.
+The [`xynolog` package](https://github.com/xynolog/sdk/blob/main/python/sdk/README.md) runs on asyncio, and is checked by `mypy` and `pyright`, both strict. It has the client, live queries, sessions, the state units, and a registry of several knowledge bases with a person's sign-in by a page redirect.
 
 ```bash
-pip install semiont
+pip install xynolog
 ```
 
 ### Go
@@ -38,7 +38,7 @@ pip install semiont
 The [Go SDK](https://github.com/xynolog/sdk/blob/main/go/README.md) reads over time with iterators and is stopped by a context. It has the client, live queries, sessions, the state units, a worker's claims, the annotation readers and builders, and a registry of several knowledge bases with a person's sign-in by a page redirect, and the launcher is built on it.
 
 ```bash
-go get github.com/The-AI-Alliance/semiont/packages/go/sdk
+go get github.com/xynolog/sdk/go
 ```
 
 ### Kotlin and Java
@@ -57,13 +57,13 @@ Use a [project reference](https://github.com/xynolog/sdk/blob/main/csharp/sdk/RE
 
 The [Swift SDK](https://github.com/xynolog/sdk/blob/main/swift/sdk/README.md) uses async functions and sequences in Apple apps and Linux services. Its README shows device sign-in, resource reads, delegation, and live queries.
 
-Use the [local Swift package in a Semiont checkout](https://github.com/xynolog/sdk/blob/main/swift/sdk/README.md#install).
+Use the [local Swift package in a Xynolog checkout](https://github.com/xynolog/sdk/blob/main/swift/sdk/README.md#install).
 
 ### Haskell
 
 The [Haskell SDK](https://github.com/xynolog/sdk/blob/main/haskell/sdk/README.md) uses `IO`, STM observations and scoped `streaming` readers. Its README covers sign-in, kept sessions, live queries and persistence, typed delegation, [claims and held jobs](https://github.com/xynolog/sdk/blob/main/haskell/sdk/README.md#running-a-worker), the state units, and a registry of knowledge bases.
 
-Use the [local Cabal package in a Semiont checkout](https://github.com/xynolog/sdk/blob/main/haskell/sdk/README.md#install) until it is published.
+Use the [local Cabal package in a Xynolog checkout](https://github.com/xynolog/sdk/blob/main/haskell/sdk/README.md#install) until it is published.
 
 ### OCaml
 
@@ -85,24 +85,24 @@ The client needs a knowledge base to talk to. The [Quick Start](./QUICK-START.md
 - **People and AI agents are the same kind of participant.** They use the same client and the same verbs, and every annotation records who made it.
 - **Data is live.** A read is a query that stays current as others write. Work a model does is a job you start and watch.
 
-The [Introduction](./INTRODUCTION.md) explains these ideas. [Architecture](../architecture/README.md) is how Semiont works behind the gateway.
+The [Introduction](./INTRODUCTION.md) explains these ideas. [Architecture](../architecture/README.md) is how Xynolog works behind the gateway.
 
 ## Where the SDK goes
 
 The SDK is a library, not a service. It runs no process of its own: you give a client a transport and somewhere to keep its session, and it lives inside whatever you are building.
 
-- **A web app.** The TypeScript SDK in the page, with the session in the browser's storage. [`@semiont/react-ui`](https://github.com/xynolog/sdk/blob/main/typescript/react-ui/README.md) adds the resource viewer and the annotation components. The Semiont Browser is built this way.
-- **A desktop app.** The TypeScript SDK in a webview, as Semiont's own desktop app has it, or the Rust or Swift SDK in a native app. A person signs in in their own browser and is sent back to the app.
+- **A web app.** The TypeScript SDK in the page, with the session in the browser's storage. [`@xynolog/react-ui`](https://github.com/xynolog/sdk/blob/main/typescript/react-ui/README.md) adds the resource viewer and the annotation components. The Xynolog Browser is built this way.
+- **A desktop app.** The TypeScript SDK in a webview, as Xynolog's own desktop app has it, or the Rust or Swift SDK in a native app. A person signs in in their own browser and is sent back to the app.
 - **A mobile app.** The same shape as a desktop app. Nothing in the SDK assumes a browser or a server around it, and where a session is kept is an interface, so the app keeps it in the platform's own secure store.
 - **An ingestion or enrichment pipeline.** A script or a scheduled job, in any of the SDKs' languages. It signs in once, yields documents, and annotates them itself or has a model do it with `mark.delegate` and follows the job.
 - **A service.** A long-running process that hears what happens in the knowledge base as it happens, and acts on it. It signs in with an account of its own. The [worker conformance suite](https://github.com/xynolog/protocol/blob/main/conformance/worker/README.md) drives a Java worker built with the Kotlin SDK. For .NET, see [Running a worker](https://github.com/xynolog/sdk/blob/main/csharp/sdk/README.md#running-a-worker).
-- **A command-line program.** The Go SDK in a single binary, as the [`semiont` launcher](https://github.com/xynolog/cli/blob/main/README.md) has it. It builds its session over the sign-in `semiont login` keeps, so a person who has signed in approves nothing more.
+- **A command-line program.** The Go SDK in a single binary, as the [`xynolog` launcher](https://github.com/xynolog/cli/blob/main/README.md) has it. It builds its session over the sign-in `xynolog login` keeps, so a person who has signed in approves nothing more.
 - **An agent.** The same client a person's application uses. The [agent skills](./skills/README.md) are ready-made definitions for AI coding assistants, one per task.
-- **An AI application, with no code at all.** `semiont mcp`, the launcher's MCP server, gives Claude and any other MCP client the knowledge bases you have signed in to, as you: `claude mcp add semiont -- semiont mcp`. [Connecting an AI application](./AI-APPLICATIONS.md) has the rest.
+- **An AI application, with no code at all.** `xynolog mcp`, the launcher's MCP server, gives Claude and any other MCP client the knowledge bases you have signed in to, as you: `claude mcp add xynolog -- xynolog mcp`. [Connecting an AI application](./AI-APPLICATIONS.md) has the rest.
 
 How a program signs in follows from which of these it is, and no password passes through your code in any of them. [Signing in](./SIGN-IN.md) has each way side by side, and each SDK's README shows the forms it has.
 
-From a shell, the [`semiont` launcher](https://github.com/xynolog/cli/blob/main/README.md#login-and-upload) speaks the same eight verbs: `semiont yield`, `semiont browse` and the rest, each with `--help`.
+From a shell, the [`xynolog` launcher](https://github.com/xynolog/cli/blob/main/README.md#login-and-upload) speaks the same eight verbs: `xynolog yield`, `xynolog browse` and the rest, each with `--help`.
 
 ## The docs
 
@@ -114,7 +114,7 @@ Read in this order. Most people need only the first three.
 | [Introduction](./INTRODUCTION.md) | The ideas, once: one wire, annotations as data, AI work as jobs, live data, and where your code sits |
 | **[Developer Guide](./DEVELOPER-GUIDE.md)** | **How to build: the recipes, with the exact lines** |
 | [Signing in](./SIGN-IN.md) | Each way a program signs in, by who is signing in, in TypeScript, Python, Rust, Go, Kotlin, C#, Swift, Haskell, and OCaml |
-| [Connecting an AI application](./AI-APPLICATIONS.md) | `semiont mcp`: the knowledge bases you have signed in to, as tools in Claude and any other MCP client |
+| [Connecting an AI application](./AI-APPLICATIONS.md) | `xynolog mcp`: the knowledge bases you have signed in to, as tools in Claude and any other MCP client |
 | [Usage](./Usage.md) | The reference: every method of every namespace, its options, what it returns, and the errors |
 | [Reactive model](./REACTIVE-MODEL.md) | The return shapes the SDKs share and why each method uses its shape |
 | [State units](./STATE-UNITS.md) | The pattern for coordinated page and flow state in an application |
@@ -126,4 +126,4 @@ Read in this order. Most people need only the first three.
 
 ## Other readers
 
-Running a knowledge base is [docs/operator](../operator/README.md). Changing Semiont itself, these docs and the SDK included, is [docs/contributor](../contributor/README.md).
+Running a knowledge base is [docs/operator](../operator/README.md). Changing Xynolog itself, these docs and the SDK included, is [docs/contributor](../contributor/README.md).

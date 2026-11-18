@@ -1,12 +1,12 @@
 # Routing
 
-`@semiont/react-ui` has no router and imports none. A component that renders a link takes the
+`@xynolog/react-ui` has no router and imports none. A component that renders a link takes the
 host's `Link` component, and one that builds a path takes the host's `routes` object.
 
 ## The two props
 
 ```tsx
-import type { LinkComponentProps, RouteBuilder } from '@semiont/react-ui';
+import type { LinkComponentProps, RouteBuilder } from '@xynolog/react-ui';
 ```
 
 **`Link`** is any component that accepts `LinkComponentProps`: `href`, `children`, and
@@ -53,7 +53,7 @@ A host writes both once and passes them wherever they are asked for. React Route
 
 ```tsx
 import { Link as RouterLink } from 'react-router';
-import type { LinkComponentProps, RouteBuilder } from '@semiont/react-ui';
+import type { LinkComponentProps, RouteBuilder } from '@xynolog/react-ui';
 
 export function Link({ href, ...props }: LinkComponentProps) {
   return <RouterLink to={href} {...props} />;
@@ -67,7 +67,7 @@ export const routes: RouteBuilder = {
 ```
 
 A framework whose link already takes `href` (Next.js) needs no adapter: pass its `Link` as it
-is. The Semiont Browser's own pair is `images/browser/src/lib/routing.tsx`.
+is. The Xynolog Browser's own pair is `images/browser/src/lib/routing.tsx`.
 
 ## Navigation that is not a link
 

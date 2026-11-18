@@ -18,18 +18,18 @@ command line.
 | Value | Variable | Kept as | Used by |
 |---|---|---|---|
 | Token-signing key | `JWT_SECRET` | `jwt-secret` | the gateway |
-| Keycloak's admin password | `KC_BOOTSTRAP_ADMIN_PASSWORD` | `keycloak-admin-password`, for the machine rather than a knowledge base | the shared Keycloak, `semiont useradd`, and `semiont clean` when it deletes a realm |
-| A service's account secret | `SEMIONT_OIDC_CLIENT_SECRET_<SERVICE>` | `oidc-client-secret-<service>` | that service, and the realm a start creates |
-| The worker's key | `SEMIONT_OIDC_CLIENT_KEY` | `worker-key`, for the machine rather than a knowledge base | the worker, which signs its sign-ins with it; every realm the launcher runs holds its public half |
+| Keycloak's admin password | `KC_BOOTSTRAP_ADMIN_PASSWORD` | `keycloak-admin-password`, for the machine rather than a knowledge base | the shared Keycloak, `xynolog useradd`, and `xynolog clean` when it deletes a realm |
+| A service's account secret | `XYNOLOG_OIDC_CLIENT_SECRET_<SERVICE>` | `oidc-client-secret-<service>` | that service, and the realm a start creates |
+| The worker's key | `XYNOLOG_OIDC_CLIENT_KEY` | `worker-key`, for the machine rather than a knowledge base | the worker, which signs its sign-ins with it; every realm the launcher runs holds its public half |
 | Neo4j's password | `NEO4J_PASSWORD` | `neo4j-password` | Neo4j, the librarian and the weaver |
 | PostgreSQL's password | `POSTGRES_PASSWORD` | `postgres-password`, for the machine rather than a knowledge base | the shared issuer's PostgreSQL, and Keycloak's connection to it |
-| The broker's password | `NATS_PASSWORD` (user `NATS_USER`, always `semiont`) | `nats-password` | the NATS broker, the dispatcher, and the gateway when its signal plane is the broker |
-| Qdrant's API key | `QDRANT_API_KEY` | `qdrant-api-key`, for the machine rather than a knowledge base when the knowledge base names the shared Qdrant | Qdrant, the tokens minted from it, and `semiont clean` when it deletes a knowledge base's index at the shared Qdrant |
+| The broker's password | `NATS_PASSWORD` (user `NATS_USER`, always `xynolog`) | `nats-password` | the NATS broker, the dispatcher, and the gateway when its signal plane is the broker |
+| Qdrant's API key | `QDRANT_API_KEY` | `qdrant-api-key`, for the machine rather than a knowledge base when the knowledge base names the shared Qdrant | Qdrant, the tokens minted from it, and `xynolog clean` when it deletes a knowledge base's index at the shared Qdrant |
 
 There is one service account for each stack service: the gateway, archivist, dispatcher,
 librarian, smelter, weaver and worker. Each proves itself with its secret but the worker, which
 proves itself with a key: one RSA key for the machine, never sent anywhere — the worker signs
-each sign-in with it, and a realm holds only its public half. `semiont worker key` prints that
+each sign-in with it, and a realm holds only its public half. `xynolog worker key` prints that
 public half. A daemon's password exists only when the launcher runs that daemon.
 
 **The vector index's tokens.** Qdrant answers only a request that carries its key or a token
@@ -58,12 +58,12 @@ value that begins with digits as a number. The dispatcher and the gateway are ha
 values.
 
 **Where they are kept**: in the knowledge base's secrets store. Each knowledge base has one,
-and `semiont settings secret-store` names it:
+and `xynolog settings secret-store` names it:
 
 | Store | Set with | Each value is |
 |---|---|---|
-| Files (the default; development only) | `semiont settings secret-store file` | a file, mode 0600, in the knowledge base's state directory: `~/Library/Application Support/semiont/roots/<key>/<name>` on macOS, `$XDG_DATA_HOME/semiont/roots/<key>/<name>` on Linux (`~/.local/share/…` when that variable is unset) |
-| 1Password | `semiont settings secret-store op://<vault>` | a concealed field of one Secure Note per knowledge base, titled `Semiont — <key>`, in the vault you name: `op://<vault>/Semiont — <key>/<name>` |
+| Files (the default; development only) | `xynolog settings secret-store file` | a file, mode 0600, in the knowledge base's state directory: `~/Library/Application Support/xynolog/roots/<key>/<name>` on macOS, `$XDG_DATA_HOME/xynolog/roots/<key>/<name>` on Linux (`~/.local/share/…` when that variable is unset) |
+| 1Password | `xynolog settings secret-store op://<vault>` | a concealed field of one Secure Note per knowledge base, titled `Xynolog — <key>`, in the vault you name: `op://<vault>/Xynolog — <key>/<name>` |
 
 `<key>` is the knowledge base's state key, derived from its domain, and `<name>` is the "Kept as"
 column above.
@@ -84,13 +84,13 @@ back to another store, which would generate new values over the ones kept.
 it runs, naming the operation and the secret, never its value:
 
 ```
-▸ secrets: read jwt-secret (op://Semiont/Semiont — example.org/jwt-secret)
+▸ secrets: read jwt-secret (op://Xynolog/Xynolog — example.org/jwt-secret)
 ```
 
-**Finding a value.** `semiont settings secret-store` names the store and where each value is kept
+**Finding a value.** `xynolog settings secret-store` names the store and where each value is kept
 once a start generates it, from the setting alone, without contacting the store. Every start's
 summary names the store, and when the launcher runs Neo4j, where its password is kept. A skill or a person connecting to
-Neo4j directly reads it there: the file, or `op read "op://<vault>/Semiont — <key>/neo4j-password"`.
+Neo4j directly reads it there: the file, or `op read "op://<vault>/Xynolog — <key>/neo4j-password"`.
 
 **Moving to another store.** Naming a different store moves every kept value: the launcher
 copies each one, reads each back, records the new store, and then deletes the values from the
@@ -98,15 +98,15 @@ store it leaves. It refuses a store that already holds values for this knowledge
 copies never disagree after a rotation.
 
 ```bash
-semiont settings secret-store op://Semiont    # from the files into 1Password
-semiont settings secret-store                 # which store, and where each value is
-semiont settings secret-store file            # back to the files (development only)
+xynolog settings secret-store op://Xynolog    # from the files into 1Password
+xynolog settings secret-store                 # which store, and where each value is
+xynolog settings secret-store file            # back to the files (development only)
 ```
 
 **A default for new knowledge bases.** To keep every new knowledge base's secrets in 1Password:
 
 ```bash
-semiont settings secret-store --default op://Semiont
+xynolog settings secret-store --default op://Xynolog
 ```
 
 A knowledge base adopts the default the first time a start needs a secret for it, if it has no
@@ -116,7 +116,7 @@ files stays on them until you move it. `init`'s summary names the store a new kn
 use.
 
 The settings are per machine, kept in `secretstores.json` beside `roots.json`: the default, and
-each knowledge base's own store. `semiont settings` lists them with the launcher's other settings.
+each knowledge base's own store. `xynolog settings` lists them with the launcher's other settings.
 
 **Generated once, then kept.** Each value is generated on the first start that needs it and
 written to its file before use. Every later start reuses it, because replacing it breaks
@@ -132,38 +132,38 @@ something that outlived the stack:
   another's. It is an ordered ring, `<new>,<old>`, which is how the key rotates without breaking
   the media links in hand. See
   [Authentication](../administration/AUTHENTICATION.md#rotating-jwt_secret).
-- An exported `KC_BOOTSTRAP_ADMIN_PASSWORD`, or `SEMIONT_OIDC_CLIENT_SECRET_<SERVICE>`, wins:
+- An exported `KC_BOOTSTRAP_ADMIN_PASSWORD`, or `XYNOLOG_OIDC_CLIENT_SECRET_<SERVICE>`, wins:
   one variable per service, never one shared by all.
 - The daemons' names (`NEO4J_PASSWORD`, `POSTGRES_PASSWORD`, `NATS_USER`, `NATS_PASSWORD`) are
   the launcher's. An exported one is refused for a daemon the launcher runs, a document may not
-  name one, and `semiont settings secret set` refuses them. A document describing a daemon the
+  name one, and `xynolog settings secret set` refuses them. A document describing a daemon the
   launcher runs names no password.
 
 **Rotating a daemon's password.** Delete it from the secrets store (its file, or its field in
 the 1Password item), then clear the data the daemon initialized with the old one, for example
-`semiont clean --store graph`. The next start generates a new password and a fresh data store.
+`xynolog clean --store graph`. The next start generates a new password and a fresh data store.
 
 **A store the launcher keeps no password for.** When a daemon's store holds data but the secrets
 store keeps no password for it, the data was initialized with a password the launcher does not
 have, such as one that was lost. A daemon started over it would
-reject every login, so `semiont start` refuses and names the fix:
+reject every login, so `xynolog start` refuses and names the fix:
 
 ```bash
-semiont stop
-semiont clean --store graph           # Neo4j: a projection, rebuilt from the event log
-semiont start
+xynolog stop
+xynolog clean --store graph           # Neo4j: a projection, rebuilt from the event log
+xynolog start
 ```
 
 The issuer's PostgreSQL is every knowledge base's, and so is its clean. It is refused until no knowledge base here runs and the issuer is stopped:
 
 ```bash
-semiont stop                                   # in each knowledge base here; the last stops the issuer
-semiont clean --shared --store identity-store  # every realm goes with it, and its accounts
-semiont start
-semiont useradd --email you@example.com --generate-password
+xynolog stop                                   # in each knowledge base here; the last stops the issuer
+xynolog clean --shared --store identity-store  # every realm goes with it, and its accounts
+xynolog start
+xynolog useradd --email you@example.com --generate-password
 ```
 
-**Removal.** An unscoped `semiont clean` deletes every kept value from the secrets store, showing
+**Removal.** An unscoped `xynolog clean` deletes every kept value from the secrets store, showing
 each, and removes the knowledge base's state directory. That is consistent: the accounts and the
 stores those values protect are removed with them. `--dry-run` lists the values it would
 delete. The store setting stays, so the next start keeps its new values in the same store. A
@@ -174,16 +174,16 @@ caveat: the launcher inside it generates them, and nothing is copied from the la
 
 ## Values you own
 
-Inference API keys and the like are never stored by the launcher. `semiont settings secret` registers
+Inference API keys and the like are never stored by the launcher. `xynolog settings secret` registers
 *where a value comes from*: a `{provider, path}` pointer, machine-wide, in `roots.json`. Every
-`semiont start` reads it again by running the provider's own CLI with the terminal attached, so
+`xynolog start` reads it again by running the provider's own CLI with the terminal attached, so
 its authorization prompt works.
 
 ```bash
-semiont settings secret set ANTHROPIC_API_KEY    # interactive
-semiont settings secret set ANTHROPIC_API_KEY op://YourVaultName/Anthropic/credential
-semiont settings secret                          # pointers, never values
-semiont settings secret rm ANTHROPIC_API_KEY
+xynolog settings secret set ANTHROPIC_API_KEY    # interactive
+xynolog settings secret set ANTHROPIC_API_KEY op://YourVaultName/Anthropic/credential
+xynolog settings secret                          # pointers, never values
+xynolog settings secret rm ANTHROPIC_API_KEY
 ```
 
 Exporting the variable yourself always wins, and is the escape hatch on a machine with no secret
@@ -204,7 +204,7 @@ A codespace runs on GitHub's machine and cannot reach your local provider, so th
 live there too:
 
 ```bash
-semiont settings secret push ANTHROPIC_API_KEY --repo owner/name
+xynolog settings secret push ANTHROPIC_API_KEY --repo owner/name
 ```
 
 This resolves the pointer, hands the value to `gh` on stdin (never argv), and *adds* the repo to
@@ -232,4 +232,4 @@ holding them.
 
 - [Configuration Guide](../administration/CONFIGURATION.md) — Full configuration reference
 - [Authentication](../administration/AUTHENTICATION.md) — what each credential is for
-- [Deploying Semiont](../administration/DEPLOYMENT.md#what-your-platform-provides) — delivering secrets on your own platform
+- [Deploying Xynolog](../administration/DEPLOYMENT.md#what-your-platform-provides) — delivering secrets on your own platform

@@ -1,6 +1,6 @@
 # Media Types and the Flow
 
-Every resource in Semiont travels the same path: **yield → smelt → weave →
+Every resource in Xynolog travels the same path: **yield → smelt → weave →
 annotate**. What differs between a Markdown note and a scanned PDF is not the
 path but what each stage is *able to do* — and that is declared in one place, as
 data, not scattered through the code that consumes it.
@@ -14,8 +14,8 @@ the only type that exercises every axis at its hardest setting.
 [`protocol/specs/src/media-types/registry.json`](https://github.com/xynolog/protocol/blob/main/specs/src/media-types/registry.json)
 holds one row per supported type. Every SDK generates its table from it:
 TypeScript's is `MEDIA_TYPES` in `packages/typescript/core/src/media-types.ts`, Rust's is
-`semiont::media_types`, Python's is `MEDIA_TYPES` in
-`semiont.media_types_table`, and Go's is `mediatypes.Rows` in
+`xynolog::media_types`, Python's is `MEDIA_TYPES` in
+`xynolog.media_types_table`, and Go's is `mediatypes.Rows` in
 `packages/go/sdk/mediatypes`, which the launcher reads to name an upload's
 format from its file extension. TypeScript's and Rust's tables carry every
 column. Python's carries a type's extension, its `textSource`, and whether it
@@ -105,7 +105,7 @@ textual — and everything else is `none`. The Rust, Python, Go and Kotlin SDKs
 read the column from their own generated tables and answer the same, a registry
 miss included (`text_source_of` in Rust's and Python's `media_types`,
 `TextSourceOf` in Go's `mediatypes`, `textSourceOf` within Kotlin's
-`semiont.mediatypes`); the case table `protocol/specs/src/media-types/cases.json` holds
+`xynolog.mediatypes`); the case table `protocol/specs/src/media-types/cases.json` holds
 the five to one answer.
 
 - **`decode`** — charset-aware passthrough. The text *is* the bytes. Free.
@@ -132,7 +132,7 @@ work:
 | who may do it | anyone holding bytes | the Smelter alone — it needs the store |
 
 So they are separate surfaces, and a call site cannot mistake one for the other:
-decoding is every SDK's (`decodeRepresentation` in `@semiont/core`); deriving is
+decoding is every SDK's (`decodeRepresentation` in `@xynolog/core`); deriving is
 the Smelter's alone ([images/smelter](https://github.com/xynolog/images/tree/main/smelter), `extraction.py`), and
 it stores what it derives.
 
@@ -158,7 +158,7 @@ media-type table of exactly the kind this registry exists to prevent.
 
 ## Authored PDFs: geometry chosen, not recovered
 
-`application/pdf` is the one type Semiont both **reads** and **writes**, and the
+`application/pdf` is the one type Xynolog both **reads** and **writes**, and the
 two directions differ in a way worth stating, because the axes above describe
 the reading direction only.
 
@@ -228,7 +228,7 @@ exists because of one of those three declarations.
    filed by the arithmetic the event log files a resource's events by
    ([`shard-cases.json`](https://github.com/xynolog/protocol/blob/main/specs/src/archivist/shard-cases.json)). The store
    is a directory the deployment supplies, kept per knowledge base, so it
-   survives a restart and `semiont clean --store anchored-text` can reclaim it.
+   survives a restart and `xynolog clean --store anchored-text` can reclaim it.
 7. **Smelter chunks, embeds, and writes vectors.**
 8. **It emits `smelt:settled { resourceId, contentChecksum, outcome }`** —
    `indexed` or `skipped`. The vector stamp is written *before* this fires, so
@@ -238,7 +238,7 @@ There is exactly one writer of that artifact: the Smelter.
 
 ### The artifact's shape
 
-Both directions over a PDF use one type, `AnchoredText` in `@semiont/core`:
+Both directions over a PDF use one type, `AnchoredText` in `@xynolog/core`:
 
 ```ts
 interface AnchoredText { text: string; items: PdfTextItem[] }
@@ -335,7 +335,7 @@ is held and has nothing under the shape.
     **fails loudly on partial completion**. That matters because a silently
     incomplete rebuild presents as a missing quote, which is also what a document
     with genuinely no text looks like.
-17. **`semiont clean --store anchored-text`** reclaims the tree. Everything in it
+17. **`xynolog clean --store anchored-text`** reclaims the tree. Everything in it
     is reproducible from bytes, so deleting costs recomputation and never data.
 
 ## What the other media types skip

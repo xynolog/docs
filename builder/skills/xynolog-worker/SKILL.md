@@ -1,14 +1,14 @@
 ---
-name: semiont-worker
-description: Build a job-claim worker daemon — claim jobs from the queue, process them, and report each one's lifecycle. In TypeScript on @semiont/sdk and @semiont/core, in Rust on the semiont and semiont-http-transport crates, or in Python on the semiont package.
+name: xynolog-worker
+description: Build a job-claim worker daemon — claim jobs from the queue, process them, and report each one's lifecycle. In TypeScript on @xynolog/sdk and @xynolog/core, in Rust on the xynolog and xynolog-http-transport crates, or in Python on the xynolog package.
 disable-model-invocation: false
 user-invocable: true
 allowed-tools: Bash, Read, Write, Glob, Grep
 ---
 
-You are helping a user build a worker: a daemon that claims jobs from a Semiont knowledge base's queue, does each one, and reports the job's lifecycle so that whoever asked for it, and anyone watching, sees its progress and its outcome.
+You are helping a user build a worker: a daemon that claims jobs from a Xynolog knowledge base's queue, does each one, and reports the job's lifecycle so that whoever asked for it, and anyone watching, sees its progress and its outcome.
 
-It is the shape of Semiont's own `semiont-worker` service. A daemon that reacts to bus events instead of claiming queued work is a watcher, which is [`semiont-session`](../semiont-session/SKILL.md).
+It is the shape of Xynolog's own `xynolog-worker` service. A daemon that reacts to bus events instead of claiming queued work is a watcher, which is [`xynolog-session`](../xynolog-session/SKILL.md).
 
 The worker is built up below in TypeScript. [The same worker in Rust](#the-same-worker-in-rust) and [in Python](#the-same-worker-in-python) follow it. The queue, the lifecycle, who a worker is and what it promises are the same in all three.
 
@@ -34,28 +34,28 @@ Two more channels go to the dispatcher: `job:checkpoint` records the units a job
 
 ## Who a worker is
 
-A worker does not sign in as a person. It is an agent, and an agent is an account, as a person is: a service account at the knowledge base's issuer, proved with the OAuth client-credentials grant. It proves itself with a key, not a secret: its client id is `SEMIONT_OIDC_CLIENT_ID`, and `SEMIONT_OIDC_CLIENT_KEY` holds its RSA private key, PKCS#8 PEM. The issuer holds the key's public half, registered on the worker's client by the knowledge base's operator (`semiont worker key` prints it on the machine that runs the worker, and `semiont identity grant` registers it), and each grant carries an assertion signed with the key (OpenID Connect's `private_key_jwt`), so no secret is sent. Every SDK reads such a PEM in a line and signs the assertion itself.
+A worker does not sign in as a person. It is an agent, and an agent is an account, as a person is: a service account at the knowledge base's issuer, proved with the OAuth client-credentials grant. It proves itself with a key, not a secret: its client id is `XYNOLOG_OIDC_CLIENT_ID`, and `XYNOLOG_OIDC_CLIENT_KEY` holds its RSA private key, PKCS#8 PEM. The issuer holds the key's public half, registered on the worker's client by the knowledge base's operator (`xynolog worker key` prints it on the machine that runs the worker, and `xynolog identity grant` registers it), and each grant carries an assertion signed with the key (OpenID Connect's `private_key_jwt`), so no secret is sent. Every SDK reads such a PEM in a line and signs the assertion itself.
 
 The token the issuer grants is the worker's bearer at the gateway, and the gateway names the worker by that account: `did:web:<domain>:agents:<subject>`, an agent's DID, because the realm marks every agent's account as one (its tokens carry the claim `kind`, holding `agent`). That DID is what the work is attributed to. The model a worker runs is no part of who it is: each annotation it commits names the engine that made it. A process signs in once, whatever models it runs.
 
-What a worker is called is its profile, and it says so itself, as any principal may: a `principal:profile` command, `{ name }`, emitted on its client's wire. The gateway stamps the command with the sender's own DID, so a worker names only itself. Readers name an agent by the last name it said, as they name a person, and leave one that has said nothing unnamed. Semiont's own worker says its client id, as the workers below do.
+What a worker is called is its profile, and it says so itself, as any principal may: a `principal:profile` command, `{ name }`, emitted on its client's wire. The gateway stamps the command with the sender's own DID, so a worker names only itself. Readers name an agent by the last name it said, as they name a person, and leave one that has said nothing unnamed. Xynolog's own worker says its client id, as the workers below do.
 
-The account needs the `semiont-worker` role at the issuer. The gateway passes on the roles its token carries, and the dispatcher refuses every claim from an account without that one. Granting it to the worker's client is how an operator admits a worker that is not one of the stack's own.
+The account needs the `xynolog-worker` role at the issuer. The gateway passes on the roles its token carries, and the dispatcher refuses every claim from an account without that one. Granting it to the worker's client is how an operator admits a worker that is not one of the stack's own.
 
 `startAgentSession` signs the worker in, asks the gateway its DID, and keeps its token fresh for as long as the process runs: it asks the issuer for a new one as each comes due, and at once when the gateway refuses one. The client is built over what it holds.
 
 ```typescript
 import {
-  HttpContentTransport, HttpTransport, JOB_CLAIM_CHANNELS, JOB_COMMIT_CHANNELS, SemiontClient,
+  HttpContentTransport, HttpTransport, JOB_CLAIM_CHANNELS, JOB_COMMIT_CHANNELS, XynologClient,
   discoverIssuer, privateKeyFromPem, startAgentSession, type AgentSession, type HttpEndpoint,
-} from '@semiont/sdk';
-import { baseUrl } from '@semiont/core';
+} from '@xynolog/sdk';
+import { baseUrl } from '@xynolog/core';
 
-async function signIn(endpoint: HttpEndpoint, gatewayUrl: string): Promise<{ agent: AgentSession; client: SemiontClient }> {
-  const clientId = process.env.SEMIONT_OIDC_CLIENT_ID;
-  const clientKey = process.env.SEMIONT_OIDC_CLIENT_KEY;
+async function signIn(endpoint: HttpEndpoint, gatewayUrl: string): Promise<{ agent: AgentSession; client: XynologClient }> {
+  const clientId = process.env.XYNOLOG_OIDC_CLIENT_ID;
+  const clientKey = process.env.XYNOLOG_OIDC_CLIENT_KEY;
   if (!clientId || !clientKey) {
-    throw new Error('SEMIONT_OIDC_CLIENT_ID and SEMIONT_OIDC_CLIENT_KEY are required');
+    throw new Error('XYNOLOG_OIDC_CLIENT_ID and XYNOLOG_OIDC_CLIENT_KEY are required');
   }
 
   // The knowledge base names its issuer. The worker signs in there as its
@@ -75,13 +75,13 @@ async function signIn(endpoint: HttpEndpoint, gatewayUrl: string): Promise<{ age
     // commit of annotations awaits.
     channels: [...JOB_CLAIM_CHANNELS, ...JOB_COMMIT_CHANNELS],
   });
-  return { agent, client: new SemiontClient(transport, new HttpContentTransport(transport), transport) };
+  return { agent, client: new XynologClient(transport, new HttpContentTransport(transport), transport) };
 }
 ```
 
 `agent.did` is the agent's DID, as the gateway names its account.
 
-**The stream must name `JOB_CLAIM_CHANNELS`.** `job:queued` and `job:cancel-requested` reach only a stream that names them, and a client made with no `channels` does not. `job.claim` refuses such a client at once, with `bus.unsubscribed`, where it would otherwise claim once and never be woken. A worker that commits annotations names `JOB_COMMIT_CHANNELS` as well. Beyond those it names the reply channels of each bus operation it awaits itself (`replyChannelsFor`, from `@semiont/core`), and nothing else: every other client's replies are traffic it would only parse and drop.
+**The stream must name `JOB_CLAIM_CHANNELS`.** `job:queued` and `job:cancel-requested` reach only a stream that names them, and a client made with no `channels` does not. `job.claim` refuses such a client at once, with `bus.unsubscribed`, where it would otherwise claim once and never be woken. A worker that commits annotations names `JOB_COMMIT_CHANNELS` as well. Beyond those it names the reply channels of each bus operation it awaits itself (`replyChannelsFor`, from `@xynolog/core`), and nothing else: every other client's replies are traffic it would only parse and drop.
 
 ## Claiming jobs
 
@@ -102,12 +102,12 @@ A held job says its own lifecycle: `job.start()`, then `job.progress(...)` and `
 A completion is its verb's. Its `result` is what that verb reports: a `mark` job's counts or a decline, the resource a `yield` job made or a decline, and the gateway refuses a completion whose result is the other verb's. So a held job is typed by its verb, and `job.jobType` is checked before `complete` is called. Every `mark` job reports the same counts, whatever its motivation: `found`, what the model proposed, and `persisted`, what the log holds.
 
 ```typescript
-import type { HeldMarkJob, SemiontClient } from '@semiont/sdk';
+import type { HeldMarkJob, XynologClient } from '@xynolog/sdk';
 
 /** Your work. A `mark` job reports how many passages the model proposed and how many were written. */
-type Work = (client: SemiontClient, job: HeldMarkJob) => Promise<{ found: number; persisted: number }>;
+type Work = (client: XynologClient, job: HeldMarkJob) => Promise<{ found: number; persisted: number }>;
 
-async function runJob(client: SemiontClient, job: HeldMarkJob, work: Work): Promise<void> {
+async function runJob(client: XynologClient, job: HeldMarkJob, work: Work): Promise<void> {
   // Nothing here says who the job is for. The gateway stamps this worker's
   // identity on every message, and the knowledge base derives who asked from the job.
   await job.start();
@@ -144,8 +144,8 @@ The SDK builds what a worker commits, with three functions:
 `reconcile` is one way to find a model's words in a text, with its own tolerance for a misquote: a worker that finds spans another way gives `annotationOfSpan` its own span (`start`, `end` and `exact`). The builders make nothing a hand-written payload could not, so nothing a knowledge base relies on rests on them.
 
 ```typescript
-import { annotationOfSpan, reconcile, type Annotation, type HeldMarkJob, type QuotedText } from '@semiont/sdk';
-import type { components } from '@semiont/core';
+import { annotationOfSpan, reconcile, type Annotation, type HeldMarkJob, type QuotedText } from '@xynolog/sdk';
+import type { components } from '@xynolog/core';
 
 /**
  * Record the passages a model quoted of a text, as highlights. Resolves once
@@ -173,19 +173,19 @@ async function recordHighlights(
 
 The commit waits for the record's acknowledgement. When none comes it asks the record whether the batch landed, and fails only if that cannot be established. When the job settles, it says how its commits were established; the worker states none of that itself. The worker's stream must name `JOB_COMMIT_CHANNELS`, as the sign-in above does.
 
-Semiont's own worker is the [Worker service](https://github.com/xynolog/images/blob/main/worker/README.md), in Python. It is a service's code and exports nothing to build on. What it does with a text and with a model's reply is written rule by rule in [WORKER-SERVICE.md](https://github.com/xynolog/protocol/blob/main/contract/WORKER-SERVICE.md), and the parts a table can state exactly are case tables in [`protocol/specs/src/worker`](https://github.com/xynolog/protocol/tree/main/specs/src/worker), which a worker in any language can run against its own code.
+Xynolog's own worker is the [Worker service](https://github.com/xynolog/images/blob/main/worker/README.md), in Python. It is a service's code and exports nothing to build on. What it does with a text and with a model's reply is written rule by rule in [WORKER-SERVICE.md](https://github.com/xynolog/protocol/blob/main/contract/WORKER-SERVICE.md), and the parts a table can state exactly are case tables in [`protocol/specs/src/worker`](https://github.com/xynolog/protocol/tree/main/specs/src/worker), which a worker in any language can run against its own code.
 
 ## Complete worker
 
 ```typescript
 import {
-  HttpContentTransport, HttpTransport, JOB_CLAIM_CHANNELS, JOB_COMMIT_CHANNELS, SemiontClient,
+  HttpContentTransport, HttpTransport, JOB_CLAIM_CHANNELS, JOB_COMMIT_CHANNELS, XynologClient,
   annotationOfSpan, discoverIssuer, privateKeyFromPem, reconcile, startAgentSession,
   type Annotation, type HeldMarkJob, type HttpEndpoint, type QuotedText,
-} from '@semiont/sdk';
-import { baseUrl, type components } from '@semiont/core';
+} from '@xynolog/sdk';
+import { baseUrl, type components } from '@xynolog/core';
 
-const gatewayUrl = process.env.SEMIONT_API_URL ?? 'http://localhost:4000';
+const gatewayUrl = process.env.XYNOLOG_API_URL ?? 'http://localhost:4000';
 const url = new URL(gatewayUrl);
 const endpoint: HttpEndpoint = {
   kind: 'http',
@@ -205,7 +205,7 @@ async function passagesOf(text: string): Promise<QuotedText[]> {
 
 /** Your work: read the resource, ask the model, and commit each passage where the text has it. */
 async function highlight(
-  client: SemiontClient,
+  client: XynologClient,
   job: HeldMarkJob,
   generator: components['schemas']['Agent'],
 ): Promise<{ found: number; persisted: number }> {
@@ -224,10 +224,10 @@ async function highlight(
 }
 
 async function main(): Promise<void> {
-  const clientId = process.env.SEMIONT_OIDC_CLIENT_ID;
-  const clientKey = process.env.SEMIONT_OIDC_CLIENT_KEY;
+  const clientId = process.env.XYNOLOG_OIDC_CLIENT_ID;
+  const clientKey = process.env.XYNOLOG_OIDC_CLIENT_KEY;
   if (!clientId || !clientKey) {
-    throw new Error('SEMIONT_OIDC_CLIENT_ID and SEMIONT_OIDC_CLIENT_KEY are required');
+    throw new Error('XYNOLOG_OIDC_CLIENT_ID and XYNOLOG_OIDC_CLIENT_KEY are required');
   }
 
   const { issuer } = await discoverIssuer(endpoint);
@@ -249,7 +249,7 @@ async function main(): Promise<void> {
     tokenRefresher: agent.refresh,
     channels: [...JOB_CLAIM_CHANNELS, ...JOB_COMMIT_CHANNELS],
   });
-  const client = new SemiontClient(transport, new HttpContentTransport(transport), transport);
+  const client = new XynologClient(transport, new HttpContentTransport(transport), transport);
   // What it is called, said as itself: here, its client id.
   await client.wire.emit('principal:profile', { name: clientId });
 
@@ -311,11 +311,11 @@ Let a job in hand finish before shutting down, or stop the claims, which fails i
 
 ## The same worker in Rust
 
-The Rust SDK is two crates: `semiont`, whose client has `job.claim`, and `semiont-http-transport`, which signs the worker in. `AgentToken::sign_in` signs the worker in as [its account](#who-a-worker-is), learns the DID the gateway names it by, and keeps its token fresh for as long as the process holds it.
+The Rust SDK is two crates: `xynolog`, whose client has `job.claim`, and `xynolog-http-transport`, which signs the worker in. `AgentToken::sign_in` signs the worker in as [its account](#who-a-worker-is), learns the DID the gateway names it by, and keeps its token fresh for as long as the process holds it.
 
 ```rust
 // Its account at the issuer proves itself with the worker's key, the
-// PKCS#8 PEM in `SEMIONT_OIDC_CLIENT_KEY`: each grant carries an
+// PKCS#8 PEM in `XYNOLOG_OIDC_CLIENT_KEY`: each grant carries an
 // assertion signed with it, and no secret.
 let credential = KeyCredential {
     issuer,
@@ -442,7 +442,7 @@ while let Some(handed) = claims.next().await {
 claims.stop().await;
 ```
 
-`gateway` is the gateway's origin as text, `issuer` the issuer the knowledge base trusts, `client_id` the worker's client there (`SEMIONT_OIDC_CLIENT_ID`), `key` the PKCS#8 PEM of its key (`SEMIONT_OIDC_CLIENT_KEY`), and `http` the process's `reqwest::Client`. `passages` stands for your model: given the text, the passages it would highlight, each as the words it quoted (a `Vec<QuotedText>`). [The transport's README](https://github.com/xynolog/sdk/blob/main/rust/http-transport/README.md#a-daemon) has what surrounds this block, and [the SDK's](https://github.com/xynolog/sdk/blob/main/rust/sdk/README.md#a-worker) has the rules it keeps.
+`gateway` is the gateway's origin as text, `issuer` the issuer the knowledge base trusts, `client_id` the worker's client there (`XYNOLOG_OIDC_CLIENT_ID`), `key` the PKCS#8 PEM of its key (`XYNOLOG_OIDC_CLIENT_KEY`), and `http` the process's `reqwest::Client`. `passages` stands for your model: given the text, the passages it would highlight, each as the words it quoted (a `Vec<QuotedText>`). [The transport's README](https://github.com/xynolog/sdk/blob/main/rust/http-transport/README.md#a-daemon) has what surrounds this block, and [the SDK's](https://github.com/xynolog/sdk/blob/main/rust/sdk/README.md#a-worker) has the rules it keeps.
 
 What differs from TypeScript is what the language gives:
 
@@ -455,16 +455,16 @@ What differs from TypeScript is what the language gives:
 
 ## The same worker in Python
 
-The Python SDK is one package, `semiont`. `AgentToken`, held with `async with`, signs the worker in as [its account](#who-a-worker-is), learns the DID the gateway names it by, and keeps its token fresh until its block is left.
+The Python SDK is one package, `xynolog`. `AgentToken`, held with `async with`, signs the worker in as [its account](#who-a-worker-is), learns the DID the gateway names it by, and keeps its token fresh until its block is left.
 
 ```python
-from semiont.annotations import QuotedText, annotation_of_span, reconcile
-from semiont.channels import PRINCIPAL_PROFILE
-from semiont.claims import JOB_CLAIM_CHANNELS, JOB_COMMIT_CHANNELS, ClaimRefusal, HeldMarkJob, HeldYieldJob
-from semiont.client import SemiontClient
-from semiont.http import AgentToken, HttpTransport, KeyCredential, ServiceToken, private_key_from_pem
-from semiont.identifiers import AnnotationId
-from semiont.types import (
+from xynolog.annotations import QuotedText, annotation_of_span, reconcile
+from xynolog.channels import PRINCIPAL_PROFILE
+from xynolog.claims import JOB_CLAIM_CHANNELS, JOB_COMMIT_CHANNELS, ClaimRefusal, HeldMarkJob, HeldYieldJob
+from xynolog.client import XynologClient
+from xynolog.http import AgentToken, HttpTransport, KeyCredential, ServiceToken, private_key_from_pem
+from xynolog.identifiers import AnnotationId
+from xynolog.types import (
     Agent,
     AgentSoftware,
     Annotation,
@@ -483,7 +483,7 @@ async def passages(text: str) -> list[QuotedText]:
     return [QuotedText(exact=text.partition("\n")[0])]
 
 
-async def highlight(client: SemiontClient[HttpTransport], job: HeldMarkJob, generator: Agent) -> MarkJobDone:
+async def highlight(client: XynologClient[HttpTransport], job: HeldMarkJob, generator: Agent) -> MarkJobDone:
     """Your work: read the resource, have its passages quoted, and commit a highlight of each one the text has."""
     text = await client.browse.resource_content(job.resource_id)
     quoted = await passages(text)
@@ -510,7 +510,7 @@ async def work(gateway: str, issuer: str, client_id: str, key: str) -> None:
         HttpTransport(
             gateway, token=agent.token, refresher=agent.refresh, channels=(*JOB_CLAIM_CHANNELS, *JOB_COMMIT_CHANNELS)
         ) as transport,
-        SemiontClient(transport, transport.content, transport) as client,
+        XynologClient(transport, transport.content, transport) as client,
     ):
         print(f"working as {agent.did}")
         # It says what it is called, as itself: here, its client id. Readers name it by the last name it said, as they name a person.
@@ -541,7 +541,7 @@ async def work(gateway: str, issuer: str, client_id: str, key: str) -> None:
                                 await job.complete(result)
 ```
 
-`gateway` is the gateway's origin and `issuer` is the issuer the knowledge base trusts. Nothing in the package reads the environment: the process reads its own `SEMIONT_OIDC_CLIENT_ID` and `SEMIONT_OIDC_CLIENT_KEY`, and passes what it found; `private_key_from_pem` reads the key. [The package's README](https://github.com/xynolog/sdk/blob/main/python/sdk/README.md#a-worker) has the rules this program keeps.
+`gateway` is the gateway's origin and `issuer` is the issuer the knowledge base trusts. Nothing in the package reads the environment: the process reads its own `XYNOLOG_OIDC_CLIENT_ID` and `XYNOLOG_OIDC_CLIENT_KEY`, and passes what it found; `private_key_from_pem` reads the key. [The package's README](https://github.com/xynolog/sdk/blob/main/python/sdk/README.md#a-worker) has the rules this program keeps.
 
 What differs from TypeScript is what the language gives:
 
@@ -554,14 +554,14 @@ What differs from TypeScript is what the language gives:
 
 ## When a worker does nothing
 
-Set `SEMIONT_BUS_LOG=1` in the worker's environment. Every emit, reply and stream frame is then logged as one line, and the claim protocol can be read off the log:
+Set `XYNOLOG_BUS_LOG=1` in the worker's environment. Every emit, reply and stream frame is then logged as one line, and the claim protocol can be read off the log:
 
 - **No `job:claim` at all**: the claims were never subscribed to, or the connection never opened. Watch the connection with `client.state$`.
-- **Every claim answered `job:claim-failed`, saying the caller is not a worker**: the account lacks the `semiont-worker` role, so its token carries none. `refused$` reports it as `bus.unauthorized`. On a launcher stack, `semiont identity sync` repairs the roles of the stack's own clients.
+- **Every claim answered `job:claim-failed`, saying the caller is not a worker**: the account lacks the `xynolog-worker` role, so its token carries none. `refused$` reports it as `bus.unauthorized`. On a launcher stack, `xynolog identity sync` repairs the roles of the stack's own clients.
 - **Claims answered with nothing pending**: the worker is healthy and the queue has no job its claim matches.
 
 ```typescript
-semiont.state$.subscribe((state) => console.log(`connection: ${state}`));
+xynolog.state$.subscribe((state) => console.log(`connection: ${state}`));
 ```
 
 `degraded` means the stream has been reconnecting for more than three seconds, which is the state worth reporting from a health endpoint.
@@ -569,11 +569,11 @@ semiont.state$.subscribe((state) => console.log(`connection: ${state}`));
 ## Guidance for the AI assistant
 
 - **Write the worker in the language of the user's project.** Take the TypeScript, the Rust or the Python worker above as it stands. Each is a program its SDK's tests compile and run, so do not translate one into another by hand: the names differ where the languages do.
-- **Worker or watcher.** A worker claims queued jobs. A watcher reacts to events and is [`semiont-session`](../semiont-session/SKILL.md). One process can be both.
+- **Worker or watcher.** A worker claims queued jobs. A watcher reacts to events and is [`xynolog-session`](../xynolog-session/SKILL.md). One process can be both.
 - **Say the whole lifecycle through the held job.** A job with no `job.start()` looks stuck, and one never settled is stuck until the dispatcher's sweep. Never emit a `job:*` message on the transport yourself.
 - **Settle every job, once.** Each held job ends in `job.complete(...)`, `job.fail(...)` or `job.cancel()`. The worker holds one job at a time and claims the next only when the one in hand settles.
 - **Give the transport its channels.** `JOB_CLAIM_CHANNELS`, `JOB_COMMIT_CHANNELS` when it commits annotations, and the reply channels of whatever else the worker awaits.
 - **Exit on `bus.unauthorized`.** A credential that cannot claim will never be able to. A crash the operator can see is better than a worker that idles forever.
 - **Never state who a job is for.** Not in a lifecycle event and not in what the worker writes. The knowledge base derives it from the job.
-- **The reference implementation** is Semiont's own Worker service, written on the Python SDK: [`service.py`](https://github.com/xynolog/images/blob/main/worker/src/xynolog_worker/service.py) for the process, [`agent.py`](https://github.com/xynolog/images/blob/main/worker/src/xynolog_worker/agent.py) for an agent's sign-in, its stream and its claiming, and [`held_job.py`](https://github.com/xynolog/images/blob/main/worker/src/xynolog_worker/held_job.py) for a held job's work, its checkpoints and reports, and how it ends.
-- **Errors.** A call rejects with a `SemiontError`: catch it and route on its `code`. See [Error Handling](../../Usage.md#error-handling).
+- **The reference implementation** is Xynolog's own Worker service, written on the Python SDK: [`service.py`](https://github.com/xynolog/images/blob/main/worker/src/xynolog_worker/service.py) for the process, [`agent.py`](https://github.com/xynolog/images/blob/main/worker/src/xynolog_worker/agent.py) for an agent's sign-in, its stream and its claiming, and [`held_job.py`](https://github.com/xynolog/images/blob/main/worker/src/xynolog_worker/held_job.py) for a held job's work, its checkpoints and reports, and how it ends.
+- **Errors.** A call rejects with a `XynologError`: catch it and route on its `code`. See [Error Handling](../../Usage.md#error-handling).

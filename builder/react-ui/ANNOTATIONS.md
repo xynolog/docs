@@ -2,7 +2,7 @@
 
 ## Overview
 
-`@semiont/react-ui` provides a comprehensive annotation system based on the [W3C Web Annotation Data Model](https://www.w3.org/TR/annotation-model/). The system is designed to be framework-agnostic, allowing applications to use any data fetching library while maintaining type safety and clean architecture.
+`@xynolog/react-ui` provides a comprehensive annotation system based on the [W3C Web Annotation Data Model](https://www.w3.org/TR/annotation-model/). The system is designed to be framework-agnostic, allowing applications to use any data fetching library while maintaining type safety and clean architecture.
 
 ### Supported Annotation Types
 
@@ -29,7 +29,7 @@
 
 ### Provider Pattern
 
-The annotation system follows the **Provider Pattern** to maintain framework independence. Apps provide implementations while `@semiont/react-ui` defines the interfaces.
+The annotation system follows the **Provider Pattern** to maintain framework independence. Apps provide implementations while `@xynolog/react-ui` defines the interfaces.
 
 ```tsx
 // react-ui defines the interface: markAnnotation(params) and deleteAnnotation(params)
@@ -62,8 +62,8 @@ All annotation types are created through a single, generic function, `markAnnota
 resolves to the created annotation's id:
 
 ```tsx
-import type { Selector } from '@semiont/core';
-import { useResourceAnnotations } from '@semiont/react-ui';
+import type { Selector } from '@xynolog/core';
+import { useResourceAnnotations } from '@xynolog/react-ui';
 
 function MyComponent() {
   const { markAnnotation } = useResourceAnnotations();
@@ -107,7 +107,7 @@ await session.client.mark.delete(rId, annotationId);
 Main component for viewing annotated resources:
 
 ```tsx
-import { ResourceViewer } from '@semiont/react-ui';
+import { ResourceViewer } from '@xynolog/react-ui';
 
 declare const grouped: AnnotationsCollection; // the resource's annotations, bucketed by motivation
 
@@ -138,7 +138,7 @@ declare const grouped: AnnotationsCollection; // the resource's annotations, buc
 
 The panels and their per-annotation entry rows (`HighlightEntry`, `ReferenceEntry`,
 `CommentEntry`, `AssessmentEntry`, `TagEntry`) are **bring-your-own-session**: each takes a
-`session: SemiontSession | null` prop and needs no `SemiontProvider` (`JsonLdPanel` is the
+`session: XynologSession | null` prop and needs no `XynologProvider` (`JsonLdPanel` is the
 one exception). See [COMPONENTS.md](COMPONENTS.md#annotation-panels) for the headless usage
 and the entries' interaction contract.
 
@@ -149,7 +149,7 @@ and the entries' interaction contract.
 Centralized metadata registry for annotation types:
 
 ```typescript
-import { ANNOTATORS, annotatorKeyForMotivation } from '@semiont/react-ui';
+import { ANNOTATORS, annotatorKeyForMotivation } from '@xynolog/react-ui';
 
 // Access annotator metadata
 const highlightAnnotator = ANNOTATORS.highlight;
@@ -200,7 +200,7 @@ const {
 ### The Mark State Unit
 
 Delegated detection is driven by the session-scoped **mark state unit**
-(`createMarkStateUnit`, in `@semiont/sdk`). The resource-viewer page state unit
+(`createMarkStateUnit`, in `@xynolog/sdk`). The resource-viewer page state unit
 owns one per resource and exposes it as `stateUnit.mark`. It tracks six
 observables that the UI reads via `useObservable`:
 
@@ -229,7 +229,7 @@ To trigger detection, a panel asks the mark unit — there is no handler to wire
 up and no detection context object:
 
 ```tsx
-import { useObservable } from '@semiont/react-ui';
+import { useObservable } from '@xynolog/react-ui';
 
 function DelegateReferences({ stateUnit }: { stateUnit: ResourceViewerPageStateUnit }) {
   // Read the delegated job's live state from the mark state unit
@@ -298,7 +298,7 @@ For UI side effects (toasts, scroll), subscribe to the same job channels with
 `useEventSubscriptions`, scoping by `resourceId`:
 
 ```typescript
-import { useEventSubscriptions } from '@semiont/react-ui';
+import { useEventSubscriptions } from '@xynolog/react-ui';
 
 function DelegatedJobMonitor({ resourceId }: { resourceId: ResourceId }) {
   useEventSubscriptions({
@@ -324,7 +324,7 @@ See [EVENTS.md](EVENTS.md) for complete event documentation.
 ### SVG Drawing Canvas
 
 ```tsx
-import { SvgDrawingCanvas } from '@semiont/react-ui';
+import { SvgDrawingCanvas } from '@xynolog/react-ui';
 
 declare const imageUrl: string; // the image's media URL
 
@@ -347,9 +347,9 @@ drawing until it holds that text: the quote of an annotation is cut from the tex
 annotation is made, and never again. Until then a drag draws nothing, whatever `drawingMode` says.
 What a host sees meanwhile:
 
-- The canvas's element, `.semiont-svg-drawing-canvas`, carries `data-annotate-deferred="true"` and
+- The canvas's element, `.xynolog-svg-drawing-canvas`, carries `data-annotate-deferred="true"` and
   `data-drawing-mode="none"`.
-- A line above the image, `.semiont-anchored-text-notice`, says the viewer is waiting for the text.
+- A line above the image, `.xynolog-anchored-text-notice`, says the viewer is waiting for the text.
   It is held back for a second, so an answer that comes quickly never shows it.
 
 For an image the answer is that its media type has no text, which the canvas holds as a text that
@@ -361,7 +361,7 @@ not be read, and the canvas takes no drawing for as long as it is mounted. A can
 
 The line is translated, so a canvas with a `session` is mounted inside a `TranslationProvider`
 (see [INTERNATIONALIZATION.md](INTERNATIONALIZATION.md)). The PDF canvas that `ResourceViewer` and
-`AnnotateView` mount keeps the same rule, and says it on `.semiont-pdf-annotation-canvas`.
+`AnnotateView` mount keeps the same rule, and says it on `.xynolog-pdf-annotation-canvas`.
 
 ### Supported Shapes
 
@@ -449,7 +449,7 @@ for (const { id, exact, offset, length, type, source } of toOverlayAnnotations(a
 ### Annotation Rendering
 
 ```tsx
-import { CodeMirrorRenderer } from '@semiont/react-ui';
+import { CodeMirrorRenderer } from '@xynolog/react-ui';
 
 function AnnotatedSource({ segments }: { segments: TextSegment[] }) {
   const { sparkleAnnotationIds } = useResourceAnnotations();
@@ -478,7 +478,7 @@ hover emits `beckon:hover` once the pointer has dwelt for `hoverDelayMs`.
 `segmentTextWithAnnotations(content, textOffsets(content), annotations)`.
 Each `TextSegment` is one run of the content, from one offset to another. An offset counts Unicode
 code points, so it is the string's own position only in a content with no character outside the
-Basic Multilingual Plane; `textOffsets` (from `@semiont/core`) converts between the two:
+Basic Multilingual Plane; `textOffsets` (from `@xynolog/core`) converts between the two:
 
 ```typescript
 declare const segments: TextSegment[];
@@ -511,11 +511,11 @@ session bus then drive the cache to refresh automatically. Components that just
 need the data read it via `useObservable`:
 
 ```tsx
-import { useObservable, useSemiont } from '@semiont/react-ui';
-import { readyValue } from '@semiont/sdk';
+import { useObservable, useXynolog } from '@xynolog/react-ui';
+import { readyValue } from '@xynolog/sdk';
 
 function AnnotationsList({ rId }: { rId: ResourceId }) {
-  const browser = useSemiont();
+  const browser = useXynolog();
   const client = useObservable(browser.activeSession$)?.client;
   // Subscribing to this live query acquires the resource scope; the SDK cache
   // keeps it fresh off `mark:added` / `mark:removed` / `mark:body-updated`
@@ -542,7 +542,7 @@ screen only; `beckon.click` sends the same `browse:click` over the wire to every
 where it arrives on their session bus and the same subscribers handle it:
 
 ```tsx
-import { useEventSubscription } from '@semiont/react-ui';
+import { useEventSubscription } from '@xynolog/react-ui';
 
 // Open an annotation for this viewer: a local emit
 session.client.browse.click(annotationId);

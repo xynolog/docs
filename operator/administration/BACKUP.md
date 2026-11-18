@@ -1,6 +1,6 @@
 # Backup and Restore
 
-Back up a Semiont knowledge base and restore it with the `semiont` launcher. Backups are
+Back up a Xynolog knowledge base and restore it with the `xynolog` launcher. Backups are
 lossless — the complete event history and all content — and neither direction needs a running
 stack, because both are file operations.
 
@@ -13,7 +13,7 @@ schema — nothing is transformed, so there is nothing to specify:
 
 ```bash
 tar -xzf kb.tar.gz                         # a working KB directory
-find .semiont/events -name '*.jsonl'       # the history, one JSON object per line
+find .xynolog/events -name '*.jsonl'       # the history, one JSON object per line
 ```
 
 That is the design, not an omission. The content is already files at their natural paths and the
@@ -26,7 +26,7 @@ A restore is `tar -xzf` plus registering the root. Any tool that reads tar can r
 ## Backing up
 
 ```bash
-semiont export
+xynolog export
 ```
 
 Writes the knowledge base's record: the content files and the event log. Nothing derived is
@@ -47,14 +47,14 @@ a git-synced KB the commits are the log's tamper-evidence and `.git/config` reco
 came from. Restorable and attestable are different properties, and only you know which this
 archive is for.
 
-**`.semiont/export.json`** is written into the archive as an advisory marker, so a file found on a
+**`.xynolog/export.json`** is written into the archive as an advisory marker, so a file found on a
 drive years later can say what it is. Nothing reads it back for correctness — the moment a restore
 depended on it, it would be a format contract by the back door.
 
 ## Restoring
 
 ```bash
-semiont import <archive.tar.gz>
+xynolog import <archive.tar.gz>
 ```
 
 Untars the archive, checks the result is a KB, and registers the root. It replays nothing, so
@@ -65,9 +65,9 @@ Guards, all of which refuse rather than repair:
 
 - **A non-empty root is refused.** Two event logs interleaved in one directory is the only
   irreversible mistake available here.
-- **An archive with no `.semiont/` is named as not-a-KB**, rather than failing confusingly at the
+- **An archive with no `.xynolog/` is named as not-a-KB**, rather than failing confusingly at the
   next start.
-- **Entries with `..` or absolute paths are refused outright.** An archive from `semiont export`
+- **Entries with `..` or absolute paths are refused outright.** An archive from `xynolog export`
   cannot contain one, so its presence means the archive is corrupt or crafted.
 
 ## What is not backed up

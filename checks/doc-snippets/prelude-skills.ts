@@ -8,10 +8,10 @@
 import type {
   KbTarget as _KbTarget,
   OpenedSession as _OpenedSession,
-  SemiontSession as _SemiontSession,
-  SemiontClient as _SemiontClient,
+  XynologSession as _XynologSession,
+  XynologClient as _XynologClient,
   ResourceId as _ResourceId,
-} from '@semiont/sdk';
+} from '@xynolog/sdk';
 
 declare global {
   /** The knowledge base the skill's setup fence signs in to. */
@@ -19,9 +19,9 @@ declare global {
   /** What the skill's setup fence's sign-in gave: the session and the client it was built with. */
   const opened: _OpenedSession;
   /** The session the skill's setup fence signed in. */
-  const session: _SemiontSession;
+  const session: _XynologSession;
   /** That session's client. */
-  const semiont: _SemiontClient;
+  const xynolog: _XynologClient;
   /** The resource the skill is working on. */
   const rId: _ResourceId;
 }

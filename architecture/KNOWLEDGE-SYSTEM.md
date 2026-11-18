@@ -29,20 +29,20 @@ config:
   layout: elk
 ---
 graph TB
-    LIB["semiont-&lt;kb&gt;-librarian<br/>Gatherer · Matcher"]
+    LIB["xynolog-&lt;kb&gt;-librarian<br/>Gatherer · Matcher"]
 
     subgraph G2 [" "]
-        SMELT["semiont-&lt;kb&gt;-smelter<br/>Smelter — vector pipeline"]
-        WEAVE["semiont-&lt;kb&gt;-weaver<br/>Weaver — graph pipeline"]
-        ARCH["semiont-&lt;kb&gt;-archivist<br/>Stower · Browser · CloneTokenManager"]
-        QD["semiont-qdrant<br/>Qdrant — every KB's vector index"]
-        NEO["semiont-&lt;kb&gt;-neo4j<br/>Neo4j — graph projection"]
+        SMELT["xynolog-&lt;kb&gt;-smelter<br/>Smelter — vector pipeline"]
+        WEAVE["xynolog-&lt;kb&gt;-weaver<br/>Weaver — graph pipeline"]
+        ARCH["xynolog-&lt;kb&gt;-archivist<br/>Stower · Browser · CloneTokenManager"]
+        QD["xynolog-qdrant<br/>Qdrant — every KB's vector index"]
+        NEO["xynolog-&lt;kb&gt;-neo4j<br/>Neo4j — graph projection"]
         ANCH[("anchored-text store")]
         VIEWS[("views<br/>resources/ · projections/")]
         TREE[("KB working tree<br/>content · event log · git state")]
     end
 
-    OL["semiont-ollama<br/>Ollama — embeddings · local inference"]
+    OL["xynolog-ollama<br/>Ollama — embeddings · local inference"]
 
     ARCH -->|rw| TREE
     ARCH --> VIEWS

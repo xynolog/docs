@@ -4,7 +4,7 @@ A **job** is one of the protocol's [eight verbs](https://github.com/xynolog/prot
 
 So adding a kind of job adds something a verb can be asked to do. It adds no verb, no channel and no service. The `job:*` channels carry every job, the dispatcher queues every job, and a worker claims by a filter over the same description ([JOBS.md](https://github.com/xynolog/protocol/blob/main/contract/JOBS.md)). This page is the path of that change through the repository: each step, the file it is made in, and what fails when it is left out.
 
-It is not how to write a worker. A worker of your own that serves a job the protocol already has changes nothing here. The [`semiont-worker` skill](../builder/skills/semiont-worker/SKILL.md) builds one in TypeScript, in Rust and in Python, and tests hold what it shows: its TypeScript is type-checked against the built packages, and its Rust and its Python are, word for word, programs that tests run.
+It is not how to write a worker. A worker of your own that serves a job the protocol already has changes nothing here. The [`xynolog-worker` skill](../builder/skills/xynolog-worker/SKILL.md) builds one in TypeScript, in Rust and in Python, and tests hold what it shows: its TypeScript is type-checked against the built packages, and its Rust and its Python are, word for word, programs that tests run.
 
 The steps add a `mark` job of a new motivation, which is the usual case. Each was followed through the tree for one job that exists, **tagging**, the one that touches the most: params of its own, something the dispatcher adds to it, a unit for each category, progress codes of its own, and a member of the result. [A job of another verb](#a-job-of-another-verb) says what more a new `jobType` takes.
 
@@ -15,7 +15,7 @@ The steps add a `mark` job of a new motivation, which is the usual case. Each wa
 | 1 | [State the job](#1-state-the-job-in-the-spec) | `protocol/specs/src/components/schemas`, `protocol/specs/src/openapi.json`, `protocol/specs/src/service-telemetry/telemetry.json` | `npm run lint:spec-jobs`, `npm run lint:spec-archivist`; `protocol/conformance/worker-service/telemetry.test.ts` |
 | 2 | [Regenerate the types](#2-regenerate-the-types) | `packages/typescript/core`, `packages/go/sdk`, `packages/python/sdk` | CI's `generated-artifacts` job |
 | 3 | [Admit it](#3-admit-it-the-dispatcher) | `images/dispatcher/handlers/src/admission.rs` | the dispatcher's build; `protocol/conformance/dispatcher/create.test.ts` |
-| 4 | [Do it](#4-do-it-the-worker) | `images/worker/src/semiont_worker` | `mypy`, `pyright` and `pytest` in `images/worker` |
+| 4 | [Do it](#4-do-it-the-worker) | `images/worker/src/xynolog_worker` | `mypy`, `pyright` and `pytest` in `images/worker` |
 | 5 | [State how its reply is read](#5-state-how-its-reply-is-read) | `protocol/specs/src/worker/parser-cases.json` | `images/worker/tests/test_parser_cases.py`; `npm run lint:spec-case-tables` |
 | 6 | [Hold a Worker service to it](#6-hold-a-worker-service-to-it) | `protocol/conformance/worker-service` | `npm run lint:conformance-readmes`, `npm run lint:transport-contract`; `images/worker/tests/test_prompts.py` |
 | 7 | [Write the rule](#7-write-the-rule) | `protocol/contract/WORKER-SERVICE.md` | `npm run lint:transport-contract` |
@@ -51,11 +51,11 @@ No language's types of the protocol are written by hand. The spec is bundled fir
 
 | Language | How | What it writes |
 |---|---|---|
-| TypeScript | `npm run generate:openapi --workspace=@semiont/core`, then `npm run build --workspace=@semiont/core` | `@semiont/core`'s types, and with the build `MARK_MOTIVATIONS`, the list a client words its copy by |
+| TypeScript | `npm run generate:openapi --workspace=@xynolog/core`, then `npm run build --workspace=@xynolog/core` | `@xynolog/core`'s types, and with the build `MARK_MOTIVATIONS`, the list a client words its copy by |
 | Go | `go generate ./...` in `packages/go/sdk` | [`api/client_gen.go`](https://github.com/xynolog/sdk/blob/main/go/api/client_gen.go), which is committed |
 | Python | `uv run --project packages/python/sdk --locked python packages/python/sdk/scripts/generate_models.py` | [`types.py`](https://github.com/xynolog/sdk/blob/main/python/sdk/src/xynolog/types.py), which is committed |
-| Rust | nothing to run | `semiont::types`, made from `protocol/specs/src` by the SDK's build script when the crate is built |
-| Kotlin | nothing to run | `semiont.types`, made from `protocol/specs/src` by the SDK's Gradle build before every compile |
+| Rust | nothing to run | `xynolog::types`, made from `protocol/specs/src` by the SDK's build script when the crate is built |
+| Kotlin | nothing to run | `xynolog.types`, made from `protocol/specs/src` by the SDK's Gradle build before every compile |
 
 CI's `generated-artifacts` job fails on a committed file that is not what the spec generates ([Testing](TESTING.md#continuous-integration)).
 
@@ -71,7 +71,7 @@ The retry budget is set there too, by the verb: one retry for a `mark` job, whic
 
 ## 4. Do it: the worker
 
-The Worker service is Python, in [`images/worker/src/semiont_worker`](https://github.com/xynolog/images/tree/main/worker/src/xynolog_worker). Each module says at its head what it is. The ones a kind of job passes through:
+The Worker service is Python, in [`images/worker/src/xynolog_worker`](https://github.com/xynolog/images/tree/main/worker/src/xynolog_worker). Each module says at its head what it is. The ones a kind of job passes through:
 
 | Module | What it is |
 |---|---|
@@ -101,7 +101,7 @@ A processor reads nothing and sends nothing itself. It is handed the text, a pro
 - **It never states who asked.** An annotation says what made it. Who asked for the job is the record's to say, from the job a commit cites.
 - **What stops it is raised.** Whatever a processor raises fails the job, and a `DeterministicJobError` fails it as a failure no second attempt can mend.
 
-A processor is tested with no bus, no session and no queue: `images/worker/tests/test_processors.py` calls each one with the detection stood in for (`images/worker/tests/standing_in.py`) and holds what it hands over to be committed, what it reports and what it answers. `images/worker/tests/test_detection.py` holds a detection over a text, and `images/worker/tests/test_cancellation.py` where a job stops. [Testing § Python](TESTING.md#python) is how they are run.
+A processor is tested with no bus, no session and no queue: `images/worker/tests/test_processors.py` calls each one with the detection stood in for (`images/worker/tests/standing_in.py`) and holds what it hands over to be committed, what it reports and what it answers. `images/worker/tests/test_detection.py` holds a detection over a text, and `images/worker/tests/test_cancellation.py` where a job stops. [Testing § Running tests](TESTING.md#running-tests) is how they are run.
 
 ## 5. State how its reply is read
 
@@ -148,7 +148,7 @@ A knowledge base's software does the new job once its Inference document gives t
 
 The wire carries no sentence, so each client has its own words for a job:
 
-- **The launcher** calls an annotation of each motivation by a noun, in `markNouns` ([`mark.go`](https://github.com/xynolog/cli/blob/main/internal/launcher/verbs/mark.go)), and `TestEveryMotivationHasItsNoun` holds that table to `Motivation.json`. `semiont mark --delegate` takes the job's params as flags, and a param no flag gives is a flag added in the same file.
+- **The launcher** calls an annotation of each motivation by a noun, in `markNouns` ([`mark.go`](https://github.com/xynolog/cli/blob/main/internal/launcher/verbs/mark.go)), and `TestEveryMotivationHasItsNoun` holds that table to `Motivation.json`. `xynolog mark --delegate` takes the job's params as flags, and a param no flag gives is a flag added in the same file.
 - **The Browser** words a progress report from [`packages/typescript/react-ui/translations`](https://github.com/xynolog/sdk/tree/main/typescript/react-ui/translations). `delegate-progress-copy.test.ts` holds that there is one noun for every motivation the spec has, and `npm run lint:translations` that every locale has every key.
 
 A new progress code is words in both: the launcher's `progressText` ([`job.go`](https://github.com/xynolog/cli/blob/main/internal/launcher/verbs/job.go)), and a key in every locale. What a client shows a person to ask for the job with is that client's own.
@@ -174,6 +174,6 @@ The verb is one of the eight. A job is how a verb is done on someone's behalf, a
 
 - [JOBS.md](https://github.com/xynolog/protocol/blob/main/contract/JOBS.md): the job protocol, and the dispatcher's side of it
 - [WORKER-CONTRACT.md](https://github.com/xynolog/protocol/blob/main/contract/WORKER-CONTRACT.md): what every worker promises, whoever wrote it
-- [WORKER-SERVICE.md](https://github.com/xynolog/protocol/blob/main/contract/WORKER-SERVICE.md): what Semiont's Worker service does, rule by rule
+- [WORKER-SERVICE.md](https://github.com/xynolog/protocol/blob/main/contract/WORKER-SERVICE.md): what Xynolog's Worker service does, rule by rule
 - [`images/worker`](https://github.com/xynolog/images/blob/main/worker/README.md): the service's image, and how it is run
 - [Testing](TESTING.md): the suites, and what CI gates

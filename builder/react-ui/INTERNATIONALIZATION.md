@@ -1,12 +1,12 @@
 # Internationalization (i18n)
 
-`@semiont/react-ui` provides internationalization through a `TranslationProvider`, in one of two modes, making it suitable for any React application.
+`@xynolog/react-ui` provides internationalization through a `TranslationProvider`, in one of two modes, making it suitable for any React application.
 
 ## Overview
 
 The library provides:
 
-1. **Built-in translations** - one per supported language (`LOCALE_CODES` from `@semiont/core`), each loaded on demand
+1. **Built-in translations** - one per supported language (`LOCALE_CODES` from `@xynolog/core`), each loaded on demand
 2. **TranslationManager interface** - Contract for custom implementations
 3. **TranslationProvider** - The React Context every translated component reads
 4. **useTranslations hook** - Access translations in components
@@ -28,28 +28,28 @@ Nothing in the library assumes a language:
 Use the `TranslationProvider` with a `locale` prop to use built-in translations:
 
 ```tsx
-import { SemiontProvider, TranslationProvider, Toolbar } from '@semiont/react-ui';
+import { XynologProvider, TranslationProvider, Toolbar } from '@xynolog/react-ui';
 
 function App() {
   return (
     <TranslationProvider locale="es">
-      <SemiontProvider>
+      <XynologProvider>
         <Toolbar context="simple" activePanel={null} />
-      </SemiontProvider>
+      </XynologProvider>
     </TranslationProvider>
   );
 }
 ```
 
-`locale` is a `LocaleCode` from `@semiont/core`: the code of one of the languages `protocol/specs/src/locales/registry.json` names. The list is not restated here.
+`locale` is a `LocaleCode` from `@xynolog/core`: the code of one of the languages `protocol/specs/src/locales/registry.json` names. The list is not restated here.
 
 ### 2. Custom Translation Implementation
 
 Provide your own translation system via `TranslationManager`. This is especially useful for languages not included in the built-in translations:
 
 ```tsx
-import { SemiontProvider, TranslationProvider, Toolbar } from '@semiont/react-ui';
-import type { TranslationManager } from '@semiont/react-ui';
+import { XynologProvider, TranslationProvider, Toolbar } from '@xynolog/react-ui';
+import type { TranslationManager } from '@xynolog/react-ui';
 
 declare const myTranslations: Record<string, Record<string, string>>; // your app's messages
 
@@ -64,9 +64,9 @@ const myTranslationManager: TranslationManager = {
 function App() {
   return (
     <TranslationProvider translationManager={myTranslationManager}>
-      <SemiontProvider>
+      <XynologProvider>
         <Toolbar context="simple" activePanel={null} />
-      </SemiontProvider>
+      </XynologProvider>
     </TranslationProvider>
   );
 }
@@ -77,8 +77,8 @@ function App() {
 Here's how you'd add support for Klingon, a language not included in react-ui:
 
 ```tsx
-import { TranslationProvider } from '@semiont/react-ui';
-import type { TranslationManager } from '@semiont/react-ui';
+import { TranslationProvider } from '@xynolog/react-ui';
+import type { TranslationManager } from '@xynolog/react-ui';
 
 // Klingon translations for react-ui components
 const klingonTranslations: Record<string, Record<string, string>> = {
@@ -132,7 +132,7 @@ Implement the `TranslationManager` interface — one method,
 `t(namespace, key, params?)`, returning the string to show:
 
 ```typescript
-import type { TranslationManager } from '@semiont/react-ui';
+import type { TranslationManager } from '@xynolog/react-ui';
 
 const echo: TranslationManager = {
   t: (namespace, key) => `${namespace}.${key}`,
@@ -145,7 +145,7 @@ const echo: TranslationManager = {
 // src/hooks/useTranslationManager.ts
 import { useTranslation } from 'react-i18next';
 import { useMemo } from 'react';
-import type { TranslationManager } from '@semiont/react-ui';
+import type { TranslationManager } from '@xynolog/react-ui';
 
 export function useTranslationManager(): TranslationManager {
   const { i18n } = useTranslation();
@@ -158,7 +158,7 @@ export function useTranslationManager(): TranslationManager {
 }
 ```
 
-The Semiont Browser's manager, `useMergedTranslationManager`
+The Xynolog Browser's manager, `useMergedTranslationManager`
 (`images/browser/src/hooks/useMergedTranslationManager.ts`), reads the active
 locale's bundle from i18next and interpolates it with `interpolateTranslation`,
 the function the built-in managers use.
@@ -168,7 +168,7 @@ the function the built-in managers use.
 ```tsx
 // src/hooks/useTranslationManager.ts
 import { useState, useMemo } from 'react';
-import type { TranslationManager } from '@semiont/react-ui';
+import type { TranslationManager } from '@xynolog/react-ui';
 
 export function useTranslationManager(): TranslationManager {
   const [locale, setLocale] = useState('en');
@@ -187,7 +187,7 @@ export function useTranslationManager(): TranslationManager {
 
 ```tsx
 // app/providers.tsx
-import { TranslationProvider } from '@semiont/react-ui';
+import { TranslationProvider } from '@xynolog/react-ui';
 
 declare function useTranslationManager(): TranslationManager; // one of the hooks above
 
@@ -205,7 +205,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 ### 5. Use in Components
 
 ```tsx
-import { useTranslations } from '@semiont/react-ui';
+import { useTranslations } from '@xynolog/react-ui';
 
 function PanelButtons() {
   const t = useTranslations('Toolbar');
@@ -263,7 +263,7 @@ For type-safe translations, derive the types from the English messages:
 
 ```typescript
 // types/translations.ts
-import en from '@semiont/react-ui/translations/en';
+import en from '@xynolog/react-ui/translations/en';
 
 export type TranslationNamespace = keyof typeof en & string;
 export type TranslationKey<NS extends TranslationNamespace> = keyof (typeof en)[NS] & string;
@@ -284,7 +284,7 @@ string it resolves ICU plural expressions and replaces `{{name}}` with
 `params.name`:
 
 ```tsx
-import { interpolateTranslation, type TranslationManager } from '@semiont/react-ui';
+import { interpolateTranslation, type TranslationManager } from '@xynolog/react-ui';
 
 declare const locale: string; // the language the messages are written in
 declare const messages: Record<string, Record<string, string>>; // the active locale's messages
@@ -329,10 +329,10 @@ A plural expression names a param and gives a branch per case:
 
 Switching languages is the host's job. react-ui's `SettingsPanel` emits
 `settings:locale-changed` with the chosen locale; the host applies it — the
-Semiont Browser re-routes to the same path under the new locale prefix:
+Xynolog Browser re-routes to the same path under the new locale prefix:
 
 ```tsx
-import { useEventSubscription } from '@semiont/react-ui';
+import { useEventSubscription } from '@xynolog/react-ui';
 
 function LocaleSwitching() {
   useEventSubscription('settings:locale-changed', ({ locale }) => {
@@ -363,7 +363,7 @@ function DirectionalRoot({ children }: { children: React.ReactNode }) {
 Use the test utilities to provide mock translations:
 
 ```tsx
-import { renderWithProviders, createMockTranslationManager, screen } from '@semiont/react-ui/test-utils';
+import { renderWithProviders, createMockTranslationManager, screen } from '@xynolog/react-ui/test-utils';
 
 it('should display translated text', () => {
   const translations = createMockTranslationManager({
@@ -384,8 +384,8 @@ it('should display translated text', () => {
 Or render under react-ui's own English strings, for a test that asserts on the copy:
 
 ```tsx
-import { useTranslations } from '@semiont/react-ui';
-import { renderInEnglish, screen } from '@semiont/react-ui/test-utils';
+import { useTranslations } from '@xynolog/react-ui';
+import { renderInEnglish, screen } from '@xynolog/react-ui/test-utils';
 
 function SettingsButton() {
   const t = useTranslations('Toolbar');
@@ -405,7 +405,7 @@ its own providers.
 Or use the default mock (returns `"Namespace.key"`):
 
 ```tsx
-import { renderWithProviders, screen } from '@semiont/react-ui/test-utils';
+import { renderWithProviders, screen } from '@xynolog/react-ui/test-utils';
 
 it('should render with default translations', () => {
   renderWithProviders(<Toolbar context="simple" activePanel={null} />);
@@ -471,7 +471,7 @@ The library loads every built-in locale with a dynamic import:
 
 To add support for another locale:
 
-1. Add the language's row to `protocol/specs/src/locales/registry.json`; `@semiont/core` generates `LOCALE_CODES` from it
+1. Add the language's row to `protocol/specs/src/locales/registry.json`; `@xynolog/core` generates `LOCALE_CODES` from it
 2. Add the translation file, `translations/<code>.json`, with every namespace and key
 3. `npm run lint:translations` fails until every language the registry names has a file, and no file exists for a language it does not name
 4. The locale will be dynamically loaded when used
@@ -481,7 +481,7 @@ To add support for another locale:
 Use the `usePreloadTranslations` hook to preload translations before they're needed:
 
 ```tsx
-import { usePreloadTranslations } from '@semiont/react-ui';
+import { usePreloadTranslations } from '@xynolog/react-ui';
 
 function LanguageSwitcher() {
   const { preload, isLoaded } = usePreloadTranslations();

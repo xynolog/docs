@@ -1,12 +1,12 @@
 # Security
 
-What Semiont enforces, what it leaves to the issuer and to your platform, and what it does not do. To report a vulnerability, see [Reporting security issues](#reporting-security-issues).
+What Xynolog enforces, what it leaves to the issuer and to your platform, and what it does not do. To report a vulnerability, see [Reporting security issues](#reporting-security-issues).
 
-## What Semiont enforces
+## What Xynolog enforces
 
-**Every request is authenticated.** Authentication is bearer-only: an `Authorization: Bearer` token on every request, and no session cookies. Semiont is a resource server, not an authorization server. It runs no sign-in flow and holds no password. People and services obtain tokens from the knowledge base's trusted issuer, and the gateway verifies each one against that issuer's published keys. Four operations are public: `GET /`, `GET /api/health`, `GET /api/openapi.json` and `GET /.well-known/oauth-protected-resource`. [Authentication](./AUTHENTICATION.md) has the whole model.
+**Every request is authenticated.** Authentication is bearer-only: an `Authorization: Bearer` token on every request, and no session cookies. Xynolog is a resource server, not an authorization server. It runs no sign-in flow and holds no password. People and services obtain tokens from the knowledge base's trusted issuer, and the gateway verifies each one against that issuer's published keys. Four operations are public: `GET /`, `GET /api/health`, `GET /api/openapi.json` and `GET /.well-known/oauth-protected-resource`. [Authentication](./AUTHENTICATION.md) has the whole model.
 
-**There is one authorization decision: authenticated, or 401.** No gateway route returns 403, and none reads a human role. Every authenticated caller can read and write all content in the knowledge base. Two roles exist, and both mark services, not people: `semiont-service` admits a service's account to the archivist, and `semiont-worker` admits a worker's claim on a job. See [RBAC.md](https://github.com/xynolog/protocol/blob/main/contract/RBAC.md).
+**There is one authorization decision: authenticated, or 401.** No gateway route returns 403, and none reads a human role. Every authenticated caller can read and write all content in the knowledge base. Two roles exist, and both mark services, not people: `xynolog-service` admits a service's account to the archivist, and `xynolog-worker` admits a worker's claim on a job. See [RBAC.md](https://github.com/xynolog/protocol/blob/main/contract/RBAC.md).
 
 **Every body is validated.** Each JSON body is checked against its schema in `protocol/specs/` and bounded by its operation's size limit.
 
@@ -27,12 +27,12 @@ Who may sign in is decided at the issuer, and nowhere else. The gateway admits e
 - **Admission**: who may register, and from which domains.
 - **Multi-factor authentication**, and federation with another provider.
 - **Token lifetime**, which is also the revocation window. Disabling an account stops new tokens at once; a token already issued works until it expires.
-- **The accounts themselves.** Semiont keeps no user table.
+- **The accounts themselves.** Xynolog keeps no user table.
 
 ## What is your platform's
 
 - **TLS.** The gateway serves HTTP and sends `Strict-Transport-Security`, which a browser honours only over HTTPS. Terminate TLS in front of it.
-- **Network placement.** Only the gateway and the Browser need to be reachable by clients. Everything else can sit on a private network. Where a stack the launcher starts on your machine listens is in [Ports](../LOCAL-SEMIONT.md#ports): this machine alone by default, and with `semiont settings network lan` its gateway and its issuer's realm on the network too, over plain HTTP ([Reaching it from another machine](../LOCAL-SEMIONT.md#reaching-it-from-another-machine)).
+- **Network placement.** Only the gateway and the Browser need to be reachable by clients. Everything else can sit on a private network. Where a stack the launcher starts on your machine listens is in [Ports](../LOCAL-XYNOLOG.md#ports): this machine alone by default, and with `xynolog settings network lan` its gateway and its issuer's realm on the network too, over plain HTTP ([Reaching it from another machine](../LOCAL-XYNOLOG.md#reaching-it-from-another-machine)).
 - **Limits per address**, and allow or block lists. The gateway limits per principal, after a token is read.
 - **Secrets.** Where they are stored and how they reach each container: see [Secrets](../services/SECRETS.md).
 - **File permissions** on the knowledge base's working tree and the stores beside it.
@@ -40,7 +40,7 @@ Who may sign in is decided at the issuer, and nowhere else. The gateway admits e
 
 ## Where data is, and what is recorded
 
-- **Content and the event log are plain files** in the knowledge base's working tree. Semiont does not encrypt them; encryption at rest is the storage's.
+- **Content and the event log are plain files** in the knowledge base's working tree. Xynolog does not encrypt them; encryption at rest is the storage's.
 - **Every event carries the DID of whoever caused it**, so the event log is the audit trail.
 - **A person's name is recorded** once per name they have had, so a reader can resolve a DID to a person from the log alone. **Their email is never recorded.**
 - **The graph, the vectors and the views** are derived from those files and hold nothing that is not in them.
@@ -53,7 +53,7 @@ The secrets a stack has, who generates each and which service receives it are in
 
 Every published image is scanned for `HIGH` and `CRITICAL` vulnerabilities before it is pushed, and a finding with a fix fails the publish. Each image carries a signed build provenance and a bill of materials, and the service images also pass a licence policy. The gateway's and the dispatcher's binaries record the crates they link, which is what the scan reads, and those crates are checked against the RustSec advisory database daily.
 
-`semiont start` verifies each of Semiont's images before it runs it, and runs it by its digest: its build provenance must be signed by this repository's publish workflow at a release tag ([What `semiont start` checks](./IMAGES.md#what-semiont-start-checks)). Where something else runs the images, verify an image before running it where it matters: [Supply-chain verification](./IMAGES.md#supply-chain-verification).
+`xynolog start` verifies each of Xynolog's images before it runs it, and runs it by its digest: its build provenance must be signed by this repository's publish workflow at a release tag ([What `xynolog start` checks](./IMAGES.md#what-xynolog-start-checks)). Where something else runs the images, verify an image before running it where it matters: [Supply-chain verification](./IMAGES.md#supply-chain-verification).
 
 ## What to watch
 
@@ -63,7 +63,7 @@ Every published image is scanned for `HIGH` and `CRITICAL` vulnerabilities befor
 
 Structured logs carry `trace_id` and `span_id`, so a failing request's log line leads to its trace: see [Observability](./OBSERVABILITY.md).
 
-## What Semiont does not do
+## What Xynolog does not do
 
 - **Access control within a knowledge base.** There is no per-resource, per-annotation or per-user permission. Whoever can sign in can read and write everything in it. Separate what must be kept separate into different knowledge bases, and control at the issuer who is issued a token for each.
 - **Encryption at rest.**
@@ -73,8 +73,8 @@ Structured logs carry `trace_id` and `span_id`, so a failing request's log line 
 
 ## Reporting security issues
 
-Do not open a public issue. Report privately through GitHub Security Advisories at <https://github.com/The-AI-Alliance/semiont/security/advisories/new>, with a description, steps to reproduce, the affected versions and the impact. The repository's [SECURITY.md](https://github.com/xynolog/.github/blob/main/SECURITY.md) is the policy.
+Do not open a public issue. Report privately through GitHub Security Advisories at <https://github.com/xynolog/images/security/advisories/new>, with a description, steps to reproduce, the affected versions and the impact. The repository's [SECURITY.md](https://github.com/xynolog/.github/blob/main/SECURITY.md) is the policy.
 
 ## Your responsibilities
 
-Semiont is open-source software, provided as is. Whoever deploys it is responsible for the controls their use needs, for compliance with the regulations that apply to them, and for assessing and maintaining their own deployment.
+Xynolog is open-source software, provided as is. Whoever deploys it is responsible for the controls their use needs, for compliance with the regulations that apply to them, and for assessing and maintaining their own deployment.

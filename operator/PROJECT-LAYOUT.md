@@ -1,14 +1,14 @@
 # What is in a knowledge base
 
-A knowledge base is a directory managed by both `git` and Semiont. Your resource files live directly in its root, beside `.semiont/`, which holds the knowledge base's identity, the documents describing its stack, and its event log. All of it is meant to be committed.
+A knowledge base is a directory managed by both `git` and Xynolog. Your resource files live directly in its root, beside `.xynolog/`, which holds the knowledge base's identity, the documents describing its stack, and its event log. All of it is meant to be committed.
 
-This page is what an operator needs to recognize and commit. How Semiont reads and writes these files, and where everything derived from them is kept, is in [where a knowledge base lives on disk](../architecture/FILESYSTEM.md).
+This page is what an operator needs to recognize and commit. How Xynolog reads and writes these files, and where everything derived from them is kept, is in [where a knowledge base lives on disk](../architecture/FILESYSTEM.md).
 
 ## Directory Structure
 
 ```
 my-kb/
-├── .semiont/
+├── .xynolog/
 │   ├── config.yaml                   # Name and permanent identity (commit)
 │   ├── events/                       # Event log (commit)
 │   │   ├── __system__/               # System-scoped events (entity types, etc.)
@@ -25,11 +25,11 @@ my-kb/
 └── <your content>                    # Resource files — any structure you choose
 ```
 
-### `.semiont/config.yaml`
+### `.xynolog/config.yaml`
 
-The project file: the knowledge base's name, whether git stages its changes, and its permanent `did:web` domain, which is stamped into every event. Commit it: it is who the knowledge base is. See [Configuration](./administration/CONFIGURATION.md#semiontconfigyaml).
+The project file: the knowledge base's name, whether git stages its changes, and its permanent `did:web` domain, which is stamped into every event. Commit it: it is who the knowledge base is. See [Configuration](./administration/CONFIGURATION.md#xynologconfigyaml).
 
-### `.semiont/events/`
+### `.xynolog/events/`
 
 The event log: an append-only record of everything that has happened to every resource — creations, annotations, tag changes, moves, and job lifecycle. Commit this to git alongside your resource files so the full history travels with the repository.
 
@@ -38,9 +38,9 @@ Two kinds of streams live under `events/`:
 - **Per-resource streams**, at `events/{ab}/{cd}/{resourceId}/events-NNNNNN.jsonl`. The two 2-character shard directories come from a Jump Consistent Hash of the resource id, keeping any single shard directory from exceeding a few thousand entries at scale.
 - **The `events/__system__/` stream**, for events that have no resource, such as `frame:entity-type-added`, which registers an entity type for the whole knowledge base.
 
-### `.semiont/stack/`
+### `.xynolog/stack/`
 
-The stack's documents, each a YAML document held to its schema in [`protocol/specs/src/stack/`](https://github.com/xynolog/protocol/blob/main/specs/src/stack/README.md): the knowledge base's own services and the issuer it trusts (`knowledge-base.yaml`), its indexes (`index.yaml`), and under `inference/` one document per way of serving its models, usually one per provider. The worker that does its jobs is shared, and so is its document (`semiont settings worker`). So is the Keycloak the launcher runs for every knowledge base that names `shared` as its issuer, each in a realm of its own (`semiont settings issuer`). `semiont init` writes them; `semiont start --config <name>` picks the Inference document a start runs. A document states no machine address and no secret, so it is safe to commit and works on any machine. See [Configuration](./administration/CONFIGURATION.md#semiontstack).
+The stack's documents, each a YAML document held to its schema in [`protocol/specs/src/stack/`](https://github.com/xynolog/protocol/blob/main/specs/src/stack/README.md): the knowledge base's own services and the issuer it trusts (`knowledge-base.yaml`), its indexes (`index.yaml`), and under `inference/` one document per way of serving its models, usually one per provider. The worker that does its jobs is shared, and so is its document (`xynolog settings worker`). So is the Keycloak the launcher runs for every knowledge base that names `shared` as its issuer, each in a realm of its own (`xynolog settings issuer`). `xynolog init` writes them; `xynolog start --config <name>` picks the Inference document a start runs. A document states no machine address and no secret, so it is safe to commit and works on any machine. See [Configuration](./administration/CONFIGURATION.md#xynologstack).
 
 ### Resource files
 
@@ -48,7 +48,7 @@ Resource files (documents, images, PDFs, etc.) live anywhere in the project root
 
 Real KBs organise their content however suits the domain. Two examples:
 
-- **[semiont-gutenberg-kb](https://github.com/The-AI-Alliance/semiont-gutenberg-kb)** — public-domain literature, organised by author and work:
+- **[semiont-gutenberg-kb](https://github.com/xynoplex/semiont-gutenberg-kb)** — public-domain literature, organised by author and work:
   ```
   authors/Aeschylus/Four_Plays_by_Aeschylus/sections/Prologos.txt
   authors/Aeschylus/Four_Plays_by_Aeschylus/places/Scythian_steppe.md
@@ -60,7 +60,7 @@ Real KBs organise their content however suits the domain. Two examples:
   photos/
   ```
 
-Neither layout is prescribed by Semiont. The only constraint is that the path you choose
+Neither layout is prescribed by Xynolog. The only constraint is that the path you choose
 at creation time is recorded as the `storageUri` on the resource's primary representation.
 The event log is append-only, so the creating event's path never changes — but the location
 the projection serves is **maintained across moves**: a later `yield:moved` relocates it,
@@ -76,21 +76,21 @@ A knowledge base after two resources have been added:
 
 ```
 % ls -A
-.semiont  authors  data  README.md
+.xynolog  authors  data  README.md
 
-% find .semiont -type f | sort
-.semiont/config.yaml
-.semiont/events/50/fa/47488f8a27471bf16f33aba56af90d12/events-000001.jsonl
-.semiont/events/66/71/1ed8b4936cfad473c2a7b14c22a945c0/events-000001.jsonl
-.semiont/events/__system__/events-000001.jsonl
-.semiont/stack/index.yaml
-.semiont/stack/inference/anthropic.yaml
-.semiont/stack/inference/ollama-gemma.yaml
-.semiont/stack/knowledge-base.yaml
+% find .xynolog -type f | sort
+.xynolog/config.yaml
+.xynolog/events/50/fa/47488f8a27471bf16f33aba56af90d12/events-000001.jsonl
+.xynolog/events/66/71/1ed8b4936cfad473c2a7b14c22a945c0/events-000001.jsonl
+.xynolog/events/__system__/events-000001.jsonl
+.xynolog/stack/index.yaml
+.xynolog/stack/inference/anthropic.yaml
+.xynolog/stack/inference/ollama-gemma.yaml
+.xynolog/stack/knowledge-base.yaml
 
 % git log --oneline
 9f12ab3 Add Aeschylus resources + initial annotations
-8c001a7 semiont init
+8c001a7 xynolog init
 ```
 
 Note the `__system__` stream alongside the two per-resource shard directories — that's where global events (like new entity-type registrations) live, and it's committed the same as everything else.
@@ -99,14 +99,14 @@ Note the `__system__` stream alongside the two per-resource shard directories �
 
 ```bash
 mkdir my-kb && cd my-kb
-semiont init
+xynolog init
 ```
 
-`semiont init` runs `git init` if the directory is not already a git repository, and stages what it wrote.
+`xynolog init` runs `git init` if the directory is not already a git repository, and stages what it wrote.
 
 ## Related
 
-- [Running knowledge bases on your computer](./LOCAL-SEMIONT.md): starting a stack for a knowledge base
+- [Running knowledge bases on your computer](./LOCAL-XYNOLOG.md): starting a stack for a knowledge base
 - [Configuration](./administration/CONFIGURATION.md): what the project file and the stack's documents hold
 - [Where a knowledge base lives on disk](../architecture/FILESYSTEM.md): the event log, the views, and what rebuilds what
 - [Knowledge Bases](../KNOWLEDGE-BASES.md): the demo knowledge bases, and starting one of your own

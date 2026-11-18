@@ -1,5 +1,5 @@
 ---
-name: semiont-tour
+name: xynolog-tour
 description: Drive a participant's Browser from outside — a timed, branching "guided tour" of a knowledge base: browse --browser moves them to a resource or opens an annotation, beckon offers choices, listen reports where they went
 disable-model-invocation: false
 user-invocable: true
@@ -23,7 +23,7 @@ not take the wheel.
 | how often | every step of the tour | once, at the start |
 
 This skill is about the bus path. For the cold start, see
-[`semiont-local`](../semiont-local/SKILL.md) — the launcher deliberately never opens a browser
+[`xynolog-local`](../xynolog-local/SKILL.md) — the launcher deliberately never opens a browser
 window or hands it a session (it knows origins, never URLs), so somebody opens the page and
 logs in once, and the tour drives from there.
 
@@ -37,11 +37,11 @@ Four drives and one report:
 
 | move | command | channel |
 |---|---|---|
-| put a resource on their screen | `semiont browse <id> --browser` | `browse:resource-open` |
-| **open an annotation** (panel entry + scroll) | `semiont browse --annotation <id> --browser` | `browse:click` |
-| offer a branch (no scroll) | `semiont beckon --resource <id> --annotation <id> --sparkle` | `beckon:sparkle` |
-| say "start here" (scrolls) | `semiont beckon --resource <id> --annotation <id>` | `beckon:focus` |
-| see where they went | `semiont listen --channel browse:resource-viewed` | report |
+| put a resource on their screen | `xynolog browse <id> --browser` | `browse:resource-open` |
+| **open an annotation** (panel entry + scroll) | `xynolog browse --annotation <id> --browser` | `browse:click` |
+| offer a branch (no scroll) | `xynolog beckon --resource <id> --annotation <id> --sparkle` | `beckon:sparkle` |
+| say "start here" (scrolls) | `xynolog beckon --resource <id> --annotation <id>` | `beckon:focus` |
+| see where they went | `xynolog listen --channel browse:resource-viewed` | report |
 
 **`browse` advances the story; `beckon` offers a choice.** This is the shape of a tour, and
 getting it backwards is the common mistake. The two `browse --browser` forms are how a guide
@@ -76,8 +76,8 @@ screen — and zero subscribers means it did not happen. Under `set -e` that mak
 Read the KB first — every verb takes ids, and `browse` is what produces them:
 
 ```sh
-semiont browse --entity-type Chapter --limit 20 --json | jq -r '.resources[] | "\(.["@id"])\t\(.name)"'
-semiont browse res-intro --annotations --json | jq -r '.annotations[] | select(.motivation=="linking") | .id'
+xynolog browse --entity-type Chapter --limit 20 --json | jq -r '.resources[] | "\(.["@id"])\t\(.name)"'
+xynolog browse res-intro --annotations --json | jq -r '.annotations[] | select(.motivation=="linking") | .id'
 ```
 
 Reference annotations (`motivation: "linking"`) are the branch points — they already mean "this
@@ -91,37 +91,37 @@ set -euo pipefail
 
 # Wait until somebody is actually watching. Presence is CONNECTION lifecycle:
 # this fires when a Browser opens an event stream, not when a token is minted.
-semiont listen --channel session:joined --json | head -1 >/dev/null
+xynolog listen --channel session:joined --json | head -1 >/dev/null
 
 # Fails (exit 1) if nobody is subscribed, so `set -e` stops the tour rather
 # than narrating to an empty room. Add --launch to start the Browser when none
 # is running — it starts a CONTAINER, and someone must still open a web
 # browser and log in.
-semiont browse res-intro --browser
+xynolog browse res-intro --browser
 sleep 90
 
 # Keep moving: open the passage that matters, don't just point at it. The
 # panel comes up with this entry selected and the view scrolls to it.
-semiont browse --annotation ann-thesis --browser
+xynolog browse --annotation ann-thesis --browser
 sleep 60
 
 # Advance to the next stop on the guide's schedule.
-semiont browse res-method --browser
+xynolog browse res-method --browser
 sleep 90
 
 # NOW hand over a choice — this is what beckon is for. Two sparkles mark the
 # options without scroll-fighting; one focus says which to start with.
-semiont beckon --resource res-method --annotation ref-history --sparkle
-semiont beckon --resource res-method --annotation ref-sources --sparkle
-semiont beckon --resource res-method --annotation ref-history
+xynolog beckon --resource res-method --annotation ref-history --sparkle
+xynolog beckon --resource res-method --annotation ref-sources --sparkle
+xynolog beckon --resource res-method --annotation ref-history
 
 # Branch on where they actually went — including arrivals by link, back button,
 # or a typed URL, not just cues they followed.
-semiont listen --channel browse:resource-viewed --json |
+xynolog listen --channel browse:resource-viewed --json |
   while read -r ev; do
     case "$(jq -r '.payload.resourceId' <<<"$ev")" in
-      res-history) semiont browse --annotation ann-origins --browser ;;
-      res-sources) semiont browse res-sources-detail --browser ;;
+      res-history) xynolog browse --annotation ann-origins --browser ;;
+      res-sources) xynolog browse res-sources-detail --browser ;;
     esac
   done
 ```
@@ -130,11 +130,11 @@ Note the rhythm: **four `browse` moves carry the tour, one `beckon` cluster offe
 branch.** The guide keeps the story moving on its own schedule and hands over control at the
 moment a choice is genuinely interesting — not at every step.
 
-Timing is `sleep`. Semiont has no scheduler and wants none — the tour's pace is the author's.
+Timing is `sleep`. Xynolog has no scheduler and wants none — the tour's pace is the author's.
 
 ## Watching it happen
 
-`semiont listen` renders for a human by default and is line-delimited JSON under `--json`:
+`xynolog listen` renders for a human by default and is line-delimited JSON under `--json`:
 
 ```
   14:03:12 ● alice@example.com joined  — 1 connection watching
@@ -181,7 +181,7 @@ State these to the user rather than letting them discover them mid-demo:
   connections existed. Never that a human looked.
 - **A beckon at an annotation never moves the viewer.** `beckon:focus` always carries a
   `resourceId`, and with an annotation it is a *guard*: a viewer on a different resource ignores
-  it. A beckon at a resource alone (`semiont beckon <id>`) does move the viewer: it brings that
+  it. A beckon at a resource alone (`xynolog beckon <id>`) does move the viewer: it brings that
   resource forward, at its top, as `browse <id> --browser` does, but it is fire-and-forget and
   gates nothing on an empty room.
 - **Opening an annotation the viewer has not loaded does nothing.** It is a silent no-op, not
@@ -198,15 +198,15 @@ The SDK expresses every tour move through `beckon`, whose four drives go out on 
 arrival report:
 
 ```ts
-import { annotationId } from '@semiont/sdk';
+import { annotationId } from '@xynolog/sdk';
 
 const annId = annotationId('ann-thesis');
 
-const watching = await semiont.beckon.openResource(rId);  // browse:resource-open
-await semiont.beckon.click(annId);                        // browse:click
-await semiont.beckon.sparkleAll(annId);                   // beckon:sparkle
-await semiont.beckon.attention(rId, annId);               // beckon:focus
-semiont.browse.resourceViewed(rId);                       // browse:resource-viewed, the report
+const watching = await xynolog.beckon.openResource(rId);  // browse:resource-open
+await xynolog.beckon.click(annId);                        // browse:click
+await xynolog.beckon.sparkleAll(annId);                   // beckon:sparkle
+await xynolog.beckon.attention(rId, annId);               // beckon:focus
+xynolog.browse.resourceViewed(rId);                       // browse:resource-viewed, the report
 
 if (watching === 0) console.error('Nobody is watching this knowledge base');
 ```
@@ -224,18 +224,18 @@ and `beckon.sparkle()` are this viewer's own fan-out — from a Node script they
 and that is correct. A wire emit there would broadcast one viewer's own click to the whole
 room, which is the drive-versus-report loop the split exists to prevent.
 
-For anything long-running, build on [`semiont-session`](../semiont-session/SKILL.md) rather
+For anything long-running, build on [`xynolog-session`](../xynolog-session/SKILL.md) rather
 than a bare client: a tour that outlives its access token needs the refresh machinery, and
-`session.client.bus.on(channel)` is the SDK equivalent of `semiont listen`, and
+`session.client.bus.on(channel)` is the SDK equivalent of `xynolog listen`, and
 `session.client.wire.frames(channel, resourceId)`, which holds the resource's scope while it
-is read, of `semiont listen --scope`.
+is read, of `xynolog listen --scope`.
 
 **Either surface drives a tour.** The launcher's moves are one command each with no
 token lifecycle to own; the SDK path is the same wire with a programmable driver around it.
 
 ## Related
 
-- [`semiont-local`](../semiont-local/SKILL.md) — get a KB and a Browser running first.
-- [`semiont-session`](../semiont-session/SKILL.md) — long-running SDK scripts, token refresh.
+- [`xynolog-local`](../xynolog-local/SKILL.md) — get a KB and a Browser running first.
+- [`xynolog-session`](../xynolog-session/SKILL.md) — long-running SDK scripts, token refresh.
 - [Beckon flow](https://github.com/xynolog/protocol/blob/main/contract/flows/BECKON.md) — attention coordination, including the in-browser half.
 - [Browse flow](https://github.com/xynolog/protocol/blob/main/contract/flows/BROWSE.md) — navigation intent vs framework routing.

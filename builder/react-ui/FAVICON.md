@@ -1,10 +1,10 @@
 # Favicon Assets
 
-`@semiont/react-ui` ships a set of Semiont-branded favicons, and a component that renders the mark inline.
+`@xynolog/react-ui` ships a set of Xynolog-branded favicons, and a component that renders the mark inline.
 
 ## Available Files
 
-All favicon files are available in `node_modules/@semiont/react-ui/public/favicons/`:
+All favicon files are available in `node_modules/@xynolog/react-ui/public/favicons/`:
 
 - **favicon.ico** - Multi-resolution icon (16x16, 32x32, 48x48)
 - **favicon.svg** - Scalable vector format
@@ -25,7 +25,7 @@ Create a script to copy favicons to your public directory:
 const fs = require('fs');
 const path = require('path');
 
-const sourceDir = path.join(__dirname, '../node_modules/@semiont/react-ui/public/favicons');
+const sourceDir = path.join(__dirname, '../node_modules/@xynolog/react-ui/public/favicons');
 const targetDir = path.join(__dirname, '../public');
 
 const files = [
@@ -53,20 +53,20 @@ Add to your build process:
 
 ### Option 2: Manual Setup
 
-Copy the files from `node_modules/@semiont/react-ui/public/favicons/` to your public directory.
+Copy the files from `node_modules/@xynolog/react-ui/public/favicons/` to your public directory.
 
 ### Option 3: Use the React Component
 
 For inline SVG usage in your app:
 
 ```tsx
-import { SemiontFavicon } from '@semiont/react-ui';
+import { XynologFavicon } from '@xynolog/react-ui';
 
 function Header() {
   return (
     <div className="header">
-      <SemiontFavicon size={40} variant="gradient" />
-      <span>My Semiont App</span>
+      <XynologFavicon size={40} variant="gradient" />
+      <span>My Xynolog App</span>
     </div>
   );
 }
@@ -100,10 +100,10 @@ export const metadata = {
 
 ## React Component API
 
-The `SemiontFavicon` component accepts the following props:
+The `XynologFavicon` component accepts the following props:
 
 ```tsx
-interface SemiontFaviconProps {
+interface XynologFaviconProps {
   size?: number;        // Default: 32
   className?: string;   // Additional CSS classes
   variant?: 'gradient' | 'solid' | 'outline';  // Default: 'gradient'

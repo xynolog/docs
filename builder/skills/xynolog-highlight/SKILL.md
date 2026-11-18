@@ -1,12 +1,12 @@
 ---
-name: semiont-highlight
-description: Add highlighting annotations to a Semiont resource — mark key passages, important claims, or noteworthy content, by delegating the pass to the knowledge base's worker or by hand
+name: xynolog-highlight
+description: Add highlighting annotations to a Xynolog resource — mark key passages, important claims, or noteworthy content, by delegating the pass to the knowledge base's worker or by hand
 disable-model-invocation: false
 user-invocable: true
 allowed-tools: Bash, Read, Write, Glob, Grep
 ---
 
-You are helping a user add highlighting annotations to a Semiont resource. Highlights mark passages worth a reader's attention: key claims, important evidence, surprising findings, or anything the user wants to surface.
+You are helping a user add highlighting annotations to a Xynolog resource. Highlights mark passages worth a reader's attention: key claims, important evidence, surprising findings, or anything the user wants to surface.
 
 This skill works in the annotation layer of [the layered data model](../README.md#the-layers). A `highlighting` annotation is a span anyone can query, so a later skill or the Browser can surface what was marked.
 
@@ -18,21 +18,21 @@ This skill works in the annotation layer of [the layered data model](../README.m
 
 ## Sign in
 
-`SemiontSession.signInDevice(...)` signs a person in at the knowledge base's issuer with the device authorization grant (RFC 8628): the issuer mints a code, `onCode` shows the person where to approve it, and no password passes through the script. The sign-in is kept in `kept`, a `MemorySignIn` here, so the script signs in again each time it starts; `SemiontSession.fromKept(...)` then opens the session over it, which keeps the token fresh. An access token is short-lived (five minutes from the Keycloak a launcher stack runs), so a session, not a bare client, is what keeps a script working past that. `fromKept` gives the session with the client it was built with, which end together. Sign in once, use `opened.session.client` for every call, and `opened.dispose()` when done: that closes its client, then ends the session.
+`XynologSession.signInDevice(...)` signs a person in at the knowledge base's issuer with the device authorization grant (RFC 8628): the issuer mints a code, `onCode` shows the person where to approve it, and no password passes through the script. The sign-in is kept in `kept`, a `MemorySignIn` here, so the script signs in again each time it starts; `XynologSession.fromKept(...)` then opens the session over it, which keeps the token fresh. An access token is short-lived (five minutes from the Keycloak a launcher stack runs), so a session, not a bare client, is what keeps a script working past that. `fromKept` gives the session with the client it was built with, which end together. Sign in once, use `opened.session.client` for every call, and `opened.dispose()` when done: that closes its client, then ends the session.
 
-A script that already holds an access token can use `SemiontClient.fromHttp({ baseUrl, token })` and skip the sign-in, but then nothing renews the token.
+A script that already holds an access token can use `XynologClient.fromHttp({ baseUrl, token })` and skip the sign-in, but then nothing renews the token.
 
 ```typescript
-import { SemiontSession, MemorySignIn, httpKb } from '@semiont/sdk';
+import { XynologSession, MemorySignIn, httpKb } from '@xynolog/sdk';
 
-const url = new URL(process.env.SEMIONT_API_URL ?? 'http://localhost:4000');
+const url = new URL(process.env.XYNOLOG_API_URL ?? 'http://localhost:4000');
 const kb = httpKb({
-  id: 'semiont-highlight', label: 'Semiont',
+  id: 'xynolog-highlight', label: 'Xynolog',
   host: url.hostname, port: Number(url.port || 4000),
   protocol: url.protocol === 'https:' ? 'https' : 'http',
 });
 const kept = new MemorySignIn();
-await SemiontSession.signInDevice({
+await XynologSession.signInDevice({
   kb,
   kept,
   onCode: ({ verificationUri, verificationUriComplete, userCode }) => {
@@ -40,13 +40,13 @@ await SemiontSession.signInDevice({
     if (!verificationUriComplete) console.error(`Code: ${userCode}`);
   },
 });
-const opened = await SemiontSession.fromKept({ kb, kept });
-const semiont = opened.session.client;
+const opened = await XynologSession.fromKept({ kb, kept });
+const xynolog = opened.session.client;
 ```
 
 ## Delegate
 
-`semiont.mark.delegate(rId, params)` creates a job for the stack's worker and follows it to its end. The params state the job's `motivation` and what that motivation takes: a highlighting job takes `instructions`, `density` and `sourceLanguage`. It returns a `DelegationObservable`. Read, it gives the job's events, and each has a `kind`:
+`xynolog.mark.delegate(rId, params)` creates a job for the stack's worker and follows it to its end. The params state the job's `motivation` and what that motivation takes: a highlighting job takes `instructions`, `density` and `sourceLanguage`. It returns a `DelegationObservable`. Read, it gives the job's events, and each has a `kind`:
 
 - `progress`: the worker's report, with a `percentage`.
 - `failed`: one attempt failed and the queue is running the job again.
@@ -55,11 +55,11 @@ const semiont = opened.session.client;
 Awaiting the call resolves to the completion itself, the `job:complete` the job ended with. Its `result` is a `mark` job's, one of two. A job that did its work gives its counts: `found` is what the model proposed, `persisted` is what was written, and `errors`, present only when there were some, is how many of the proposed could not be anchored in the text. A resource whose text could not be read gives a decline, `{ declined: true, reason }`. One check tells the two apart.
 
 ```typescript
-import { resourceId } from '@semiont/sdk';
+import { resourceId } from '@xynolog/sdk';
 
 const rId = resourceId('doc-123');
 
-const done = await semiont.mark.delegate(rId, {
+const done = await xynolog.mark.delegate(rId, {
   motivation: 'highlighting',
   instructions: 'Focus on key claims and supporting evidence',
   density: 5,
@@ -78,7 +78,7 @@ opened.dispose();
 To watch progress as well, call `.run(onEvent)`. It subscribes once and resolves to the same completion:
 
 ```typescript
-const done = await semiont.mark.delegate(rId, { motivation: 'highlighting', density: 5 }).run((event) => {
+const done = await xynolog.mark.delegate(rId, { motivation: 'highlighting', density: 5 }).run((event) => {
   if (event.kind === 'progress') console.log(`${event.data.percentage}%`);
 });
 ```
@@ -92,7 +92,7 @@ The call has no deadline of its own. If the job says nothing for ten seconds, th
 A highlight has no body: the motivation on a target is the whole annotation.
 
 ```typescript
-await semiont.mark.annotation({
+await xynolog.mark.annotation({
   target: {
     source: rId,
     selector: {
@@ -109,17 +109,17 @@ await semiont.mark.annotation({
 ## Complete script
 
 ```typescript
-import { SemiontSession, MemorySignIn, httpKb, resourceId } from '@semiont/sdk';
+import { XynologSession, MemorySignIn, httpKb, resourceId } from '@xynolog/sdk';
 
 async function highlight(resourceIdStr: string): Promise<void> {
-  const url = new URL(process.env.SEMIONT_API_URL ?? 'http://localhost:4000');
+  const url = new URL(process.env.XYNOLOG_API_URL ?? 'http://localhost:4000');
   const kb = httpKb({
-    id: 'semiont-highlight', label: 'Semiont',
+    id: 'xynolog-highlight', label: 'Xynolog',
     host: url.hostname, port: Number(url.port || 4000),
     protocol: url.protocol === 'https:' ? 'https' : 'http',
   });
   const kept = new MemorySignIn();
-  await SemiontSession.signInDevice({
+  await XynologSession.signInDevice({
     kb,
     kept,
     onCode: ({ verificationUri, verificationUriComplete, userCode }) => {
@@ -127,11 +127,11 @@ async function highlight(resourceIdStr: string): Promise<void> {
       if (!verificationUriComplete) console.error(`Code: ${userCode}`);
     },
   });
-  const opened = await SemiontSession.fromKept({ kb, kept });
-  const semiont = opened.session.client;
+  const opened = await XynologSession.fromKept({ kb, kept });
+  const xynolog = opened.session.client;
 
   try {
-    const done = await semiont.mark.delegate(resourceId(resourceIdStr), {
+    const done = await xynolog.mark.delegate(resourceId(resourceIdStr), {
       motivation: 'highlighting',
       instructions: process.env.HIGHLIGHT_INSTRUCTIONS ?? 'Focus on key claims and supporting evidence',
       density: Number(process.env.HIGHLIGHT_DENSITY ?? 5),
@@ -164,7 +164,7 @@ highlight(target).catch((e) => {
 - **Ask what to highlight** if the user has not said: key claims, risks, supporting evidence, quotes. `instructions` is how the model learns what matters.
 - **Density is the main dial.** It is the number of highlights to aim for in each 2,000 words; the Browser offers 1 to 15. Start near 5 for a selective pass, go to 10 or more for dense technical material, and to 1 to 3 for a light editorial pass.
 - **What `mark.delegate` can read.** A resource with text: Markdown, plain text, HTML, JSON, or a PDF. A resource with no text at all, such as an image, fails the job. A document whose text could not be read (an encrypted or damaged PDF, or one that yields no text) completes with a `declined` result and a reason code.
-- **Check results** with `await semiont.browse.annotations(rId).fresh()`, filtered with `isHighlight` from `@semiont/sdk`; `getAnnotationExactText` gives the passage each one marks.
+- **Check results** with `await xynolog.browse.annotations(rId).fresh()`, filtered with `isHighlight` from `@xynolog/sdk`; `getAnnotationExactText` gives the passage each one marks.
 - **Manual mode is for corrections.** If the model missed one passage, add it by hand instead of running the job again.
-- **From the command line.** `semiont mark --delegate <resourceId> --motivation highlighting` runs the same job from the [launcher](https://github.com/xynolog/cli/blob/main/README.md#delegating-to-the-stack), with `--instructions`, `--density`. Use it for a one-off; write a script when the work repeats.
-- **Errors.** Every SDK throw extends `SemiontError`: catch it and route on its `code`. `BusRequestError` (a bus request, with a code such as `bus.timeout`) and `JobFailedError` narrow it. See [Error Handling](../../Usage.md#error-handling).
+- **From the command line.** `xynolog mark --delegate <resourceId> --motivation highlighting` runs the same job from the [launcher](https://github.com/xynolog/cli/blob/main/README.md#delegating-to-the-stack), with `--instructions`, `--density`. Use it for a one-off; write a script when the work repeats.
+- **Errors.** Every SDK throw extends `XynologError`: catch it and route on its `code`. `BusRequestError` (a bus request, with a code such as `bus.timeout`) and `JobFailedError` narrow it. See [Error Handling](../../Usage.md#error-handling).

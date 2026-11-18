@@ -1,11 +1,11 @@
 # API Integration
 
-Guide to working with the Semiont API from `@semiont/react-ui`.
+Guide to working with the Xynolog API from `@xynolog/react-ui`.
 
 ## Overview
 
-`@semiont/react-ui` does not own a data-fetching layer. Fetching and caching
-are an SDK concern: `@semiont/sdk` exposes the typed API surface and an RxJS
+`@xynolog/react-ui` does not own a data-fetching layer. Fetching and caching
+are an SDK concern: `@xynolog/sdk` exposes the typed API surface and an RxJS
 read-through cache (stale-while-revalidate). React components consume that
 surface as **live queries** via the `useObservable()` hook.
 
@@ -27,19 +27,19 @@ focused on how a component reaches the client and reads/writes through it.
 
 ## Getting the client
 
-`SemiontProvider` puts the module-scoped `SemiontBrowser` singleton into
-context. `useSemiont()` returns that browser. The browser exposes
-`activeSession$` — an observable of the current `SemiontSession` (or `null`
+`XynologProvider` puts the module-scoped `XynologBrowser` singleton into
+context. `useXynolog()` returns that browser. The browser exposes
+`activeSession$` — an observable of the current `XynologSession` (or `null`
 when no KB session is active). The session's `.client` is the
-`SemiontClient`, which carries the `browse` / `mark` / `bind` / … namespaces.
+`XynologClient`, which carries the `browse` / `mark` / `bind` / … namespaces.
 
 ```tsx
-import { useSemiont, useObservable } from '@semiont/react-ui';
+import { useXynolog, useObservable } from '@xynolog/react-ui';
 
 function useClient() {
-  const browser = useSemiont();
+  const browser = useXynolog();
   const session = useObservable(browser.activeSession$);
-  return session?.client; // SemiontClient | undefined
+  return session?.client; // XynologClient | undefined
 }
 ```
 
@@ -58,10 +58,10 @@ For list reads the ready value is the `ResourceList` envelope
 (`{ resources, total, offset, limit }`), not a bare array.
 
 ```tsx
-import { useSemiont, useObservable } from '@semiont/react-ui';
+import { useXynolog, useObservable } from '@xynolog/react-ui';
 
 function RecentResources() {
-  const client = useObservable(useSemiont().activeSession$)?.client;
+  const client = useObservable(useXynolog().activeSession$)?.client;
   const state = useObservable(client?.browse.resources({ limit: 20 }));
 
   if (!state || state.status === 'pending') return <div>Loading…</div>;
@@ -81,7 +81,7 @@ For a one-shot read outside the live cache, use
 `await client.browse.resources(filters).fresh()` — it resolves to the same
 `ResourceList` envelope, so the array is `.resources` on the result. For
 compact projection in observable pipes, `readyValue(state)?.resources`
-(`readyValue` is exported from `@semiont/sdk`) collapses the non-ready states
+(`readyValue` is exported from `@xynolog/sdk`) collapses the non-ready states
 to `undefined`.
 
 **Available reads** (all return `CacheObservable<…>`):
@@ -104,24 +104,24 @@ the last subscriber unmounts, the scope is released.
 ### Search (`createSearchPipeline`)
 
 Search is `match.resources(search)` driven by a debounced input. `createSearchPipeline` (re-exported here from
-`@semiont/sdk`) encapsulates the debounce + distinct + switchMap +
+`@xynolog/sdk`) encapsulates the debounce + distinct + switchMap +
 loading-state shape so components don't reassemble it by hand:
 
 ```tsx
 import {
-  useSemiont,
+  useXynolog,
   useObservable,
   createSearchPipeline,
-} from '@semiont/react-ui';
-import { readyValue } from '@semiont/sdk';
+} from '@xynolog/react-ui';
+import { readyValue } from '@xynolog/sdk';
 import { map } from 'rxjs/operators';
 import { useState, useEffect } from 'react';
-import type { components } from '@semiont/core';
+import type { components } from '@xynolog/core';
 
 type ResourceDescriptor = components['schemas']['ResourceDescriptor'];
 
 function MySearchUI() {
-  const client = useObservable(useSemiont().activeSession$)?.client;
+  const client = useObservable(useXynolog().activeSession$)?.client;
   const [pipeline] = useState(() =>
     createSearchPipeline<ResourceDescriptor>(
       // The fetch closure must return Observable<T[] | undefined>: map each
@@ -181,7 +181,7 @@ is no manual `invalidate`/`refetch` step in the component.
 
 ```tsx
 function ResourceActions({ rId }: { rId: ResourceId }) {
-  const client = useObservable(useSemiont().activeSession$)?.client;
+  const client = useObservable(useXynolog().activeSession$)?.client;
 
   const archive = () => client?.mark.archive(rId);
   const remove = (annotationId: AnnotationId) => client?.mark.delete(rId, annotationId);
@@ -203,13 +203,13 @@ in the SDK. react-ui just calls them.
 Two buses exist, and `useEventSubscription` subscribes to both so components
 don't need to know which scope a channel is on:
 
-- **App / shell bus** — on `SemiontBrowser` (panel, shell, tabs, nav,
+- **App / shell bus** — on `XynologBrowser` (panel, shell, tabs, nav,
   settings; events that must work without a KB session).
-- **Session bus** — on `SemiontClient` (`mark:*`, `beckon:*`, `gather:*`,
+- **Session bus** — on `XynologClient` (`mark:*`, `beckon:*`, `gather:*`,
   `match:*`, `bind:*`, `yield:*`, `browse:*`; events tied to a live KB).
 
 ```tsx
-import { useEventSubscription, useEventSubscriptions } from '@semiont/react-ui';
+import { useEventSubscription, useEventSubscriptions } from '@xynolog/react-ui';
 
 // The host's own reactions.
 declare function triggerSparkleAnimation(id: AnnotationId): void;
@@ -235,7 +235,7 @@ The ref-wrapped handler means your handler can change every render without
 re-subscribing; the hook re-subscribes only when the channel set changes.
 
 For lower-level access you can reach the buses directly:
-`semiont.emit/on/stream` on the browser, and `session.client.bus` on a
+`xynolog.emit/on/stream` on the browser, and `session.client.bus` on a
 session. Most components should
 prefer the hooks.
 
@@ -247,7 +247,7 @@ navigation), not for keeping `browse.*` reads fresh.
 ## Error handling
 
 `browse.*` reads surface their errors through the observable. Transport-level
-errors (including `APIError`, the status-coded `SemiontError` subclass) are
+errors (including `APIError`, the status-coded `XynologError` subclass) are
 published on the session's error stream — `session.errors$`, republished from
 `client.transport.errors$`.
 
@@ -265,19 +265,19 @@ inspect the value/error from the `browse.*` observable, or branch on the
 `await`ed result / thrown `APIError` from a write call.
 
 `APIError` and the transport classes (`HttpTransport`, `HttpContentTransport`)
-are exported from `@semiont/http-transport`. The `components` type comes from
-`@semiont/core`. Everything else — the client, session, browser, namespaces,
-cache, and `createSearchPipeline` — comes from `@semiont/sdk`.
+are exported from `@xynolog/http-transport`. The `components` type comes from
+`@xynolog/core`. Everything else — the client, session, browser, namespaces,
+cache, and `createSearchPipeline` — comes from `@xynolog/sdk`.
 
 ## Testing
 
 See [TESTING.md](TESTING.md) for the full testing guide. To stub a read, mock
-the `BrowseNamespace` method (exported from `@semiont/sdk`) to return a
+the `BrowseNamespace` method (exported from `@xynolog/sdk`) to return a
 `CacheObservable` of a ready state:
 
 ```tsx
-import { renderWithProviders, screen } from '@semiont/react-ui/test-utils';
-import { BrowseNamespace, CacheObservable, type CacheState, type ResourceList } from '@semiont/sdk';
+import { renderWithProviders, screen } from '@xynolog/react-ui/test-utils';
+import { BrowseNamespace, CacheObservable, type CacheState, type ResourceList } from '@xynolog/sdk';
 import { of } from 'rxjs';
 
 declare function RecentResources(): React.JSX.Element; // the component under test
@@ -299,6 +299,6 @@ it('renders resources', async () => {
 - [SERVICE-HOOK-COMPONENT.md](https://github.com/xynolog/sdk/blob/main/typescript/react-ui/docs/SERVICE-HOOK-COMPONENT.md) — the three-layer Service → Hook → Component pattern
 - [`protocol/contract/CACHE-SEMANTICS.md`](https://github.com/xynolog/protocol/blob/main/contract/CACHE-SEMANTICS.md) — read-through cache freshness and invalidation contract
 - [EVENTS.md](EVENTS.md) — event-driven architecture and channels
-- [SESSION.md](SESSION.md) — `SemiontProvider` / session lifecycle
+- [SESSION.md](SESSION.md) — `XynologProvider` / session lifecycle
 - [TESTING.md](TESTING.md) — testing components that read and write through the client
-- [@semiont/sdk](https://github.com/xynolog/sdk/tree/main/typescript/sdk) — `SemiontBrowser`, `SemiontClient`, the read-through cache, and `BrowseNamespace`
+- [@xynolog/sdk](https://github.com/xynolog/sdk/tree/main/typescript/sdk) — `XynologBrowser`, `XynologClient`, the read-through cache, and `BrowseNamespace`

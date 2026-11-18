@@ -1,6 +1,6 @@
 # Build with the OCaml SDK
 
-Start with the [OCaml SDK README](https://github.com/xynolog/sdk/blob/main/ocaml/sdk/README.md) to build and install the library. The examples use `Semiont.Client` from an Eio application.
+Start with the [OCaml SDK README](https://github.com/xynolog/sdk/blob/main/ocaml/sdk/README.md) to build and install the library. The examples use `Xynolog.Client` from an Eio application.
 
 ## Connect and manage lifetimes
 
