@@ -52,7 +52,7 @@ No language's types of the protocol are written by hand. The spec is bundled fir
 | Language | How | What it writes |
 |---|---|---|
 | TypeScript | `npm run generate:openapi --workspace=@xynolog/core`, then `npm run build --workspace=@xynolog/core` | `@xynolog/core`'s types, and with the build `MARK_MOTIVATIONS`, the list a client words its copy by |
-| Go | `go generate ./...` in sdk's `go/` | [`api/client_gen.go`](https://github.com/xynolog/sdk/blob/main/go/api/client_gen.go), which is committed |
+| Go | `make generate` in sdk | [`api/types_gen.go`](https://github.com/xynolog/sdk/blob/main/go/api/types_gen.go), which is committed |
 | Python | `uv run --project packages/python/sdk --locked python packages/python/sdk/scripts/generate_models.py` | [`types.py`](https://github.com/xynolog/sdk/blob/main/python/sdk/src/xynolog/types.py), which is committed |
 | Rust | nothing to run | `xynolog::types`, made from `protocol/specs/src` by the SDK's build script when the crate is built |
 | Kotlin | nothing to run | `xynolog.types`, made from `protocol/specs/src` by the SDK's Gradle build before every compile |
