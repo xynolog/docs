@@ -2,7 +2,7 @@
 
 A **job** is one of the protocol's [eight verbs](https://github.com/xynolog/protocol/blob/main/contract/README.md#the-eight-verbs) handed to an agent: asked for with parameters, and done by whoever claims it. A job description is its `jobType`, which is the verb, and the params that verb takes. Two verbs can be handed over today. A `mark` job annotates a resource for one motivation (`highlighting`, `commenting`, `assessing`, `linking` or `tagging`), and a `yield` job makes a resource.
 
-So adding a kind of job adds something a verb can be asked to do. It adds no verb, no channel and no service. The `job:*` channels carry every job, the dispatcher queues every job, and a worker claims by a filter over the same description ([JOBS.md](https://github.com/xynolog/protocol/blob/main/contract/JOBS.md)). This page is the path of that change through the repository: each step, the file it is made in, and what fails when it is left out.
+So adding a kind of job adds something a verb can be asked to do. It adds no verb, no channel and no service. The `job:*` channels carry every job, the dispatcher queues every job, and a worker claims by a filter over the same description ([JOBS.md](https://github.com/xynolog/protocol/blob/main/contract/JOBS.md)). This page is the path of that change through the repositories: each step, the file it is made in, and what fails when it is left out.
 
 It is not how to write a worker. A worker of your own that serves a job the protocol already has changes nothing here. The [`xynolog-worker` skill](../builder/skills/xynolog-worker/SKILL.md) builds one in TypeScript, in Rust and in Python, and tests hold what it shows: its TypeScript is type-checked against the built packages, and its Rust and its Python are, word for word, programs that tests run.
 
@@ -22,7 +22,7 @@ The steps add a `mark` job of a new motivation, which is the usual case. Each wa
 | 8 | [Give it an engine](#8-give-it-an-engine) | a knowledge base's Inference document; nothing in the launcher | `TestEveryEngineJobHasAFilter`, in cli's `internal/launcher` |
 | 9 | [Word it in each client](#9-word-it-in-each-client) | cli's `internal/launcher/verbs/mark.go`, sdk's `typescript/react-ui/translations` | `TestEveryMotivationHasItsNoun`; `delegate-progress-copy.test.ts`; `translations-census.test.ts` |
 
-The numbers are the order the change reaches each part, and not the order to write it in. The repository works test first: step 5's cases and step 6's case are written before step 4's code, and each is seen to fail for the missing job.
+The numbers are the order the change reaches each part, and not the order to write it in. Xynolog works test first: step 5's cases and step 6's case are written before step 4's code, and each is seen to fail for the missing job.
 
 ## 1. State the job in the spec
 
@@ -53,7 +53,7 @@ No language's types of the protocol are written by hand. sdk's generator, [`code
 2. Run `make generate`, which rewrites every SDK's generated files from it, and commit what it writes.
 3. `make check-generated`, which CI's `generated` job runs, fails on a committed file that is not what the generator writes.
 
-[CODEGEN.md](https://github.com/xynolog/sdk/blob/main/CODEGEN.md) says what each SDK's generated code is. cli and images run the same generator, from the SDK their `sdk.lock` pins, with `make generate` and `make check-generated` of their own.
+[CODEGEN.md](https://github.com/xynolog/sdk/blob/main/CODEGEN.md) says what each SDK's generated code is. cli and images run the same generator, the one the SDK bundle at their `sdk.lock` commit carries, with `make generate` and `make check-generated` of their own, and images' services build against that bundle. Steps 3, 4, 8 and 9 have the job's types once their `sdk.lock` moves to an SDK commit that has them.
 
 In the TypeScript, the Rust, the Python and the Kotlin SDK, `mark.delegate` takes a `MarkJobParams`, so a caller can ask for the new job as soon as the types have it. No SDK method is written for a motivation.
 
@@ -105,7 +105,7 @@ What a worker does to a text and to a model's reply is stated in tables every wo
 
 The tables beside it hold what every kind shares, and a new kind adds to one only where it changes the rule: where a text is cut ([`chunk-cases.json`](https://github.com/xynolog/protocol/blob/main/specs/src/text/chunk-cases.json)), how its pieces are planned ([`chunk-plan-cases.json`](https://github.com/xynolog/protocol/blob/main/specs/src/worker/chunk-plan-cases.json)), and how a failure is classed ([`failure-class-cases.json`](https://github.com/xynolog/protocol/blob/main/specs/src/worker/failure-class-cases.json)).
 
-A table is one that Protocol's reader names and types ([`spec.ml`](https://github.com/xynolog/protocol/blob/main/reader/lib/spec.ml)), and `make validate` reads each through its schema and refuses a file of `specs/src` the reader does not account for.
+A table is one that Protocol's reader names and types ([`spec.ml`](https://github.com/xynolog/protocol/blob/main/reader/lib/spec.ml)), so a new one is named there too, and `make validate` holds each table to its schema.
 
 ## 6. Hold a Worker service to it
 
