@@ -79,7 +79,7 @@ xynolog login          # approve in a browser; only tokens come back
 
 No password reaches the launcher, and the session renews itself; `xynolog logout` ends it. It is the CLI's own session — an SDK app signs in separately.
 
-For local-network access notes, supply-chain verification, and the native [desktop app](https://github.com/xynolog/desktop/releases) alternative, see the **[analyst docs](../analyst/README.md)**.
+For local-network access notes, supply-chain verification, and the native desktop app alternative, see the **[analyst docs](../analyst/README.md)**.
 
 ## 7. Ingest content
 

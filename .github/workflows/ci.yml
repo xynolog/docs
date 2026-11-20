@@ -125,13 +125,19 @@ jobs:
           node:24.15.0-bookworm
           sh -lc 'npm install --no-audit --no-fund && npm run check'
 
+  # Every link, anchor, repository path, npm script and make target the docs
+  # name resolves at main of the repository that has it (links.yml, which also
+  # runs daily).
+  links:
+    uses: ./.github/workflows/links.yml
+
   # What the ruleset requires. It waits for every other job, a census holds
   # that list to the workflow's jobs, and it fails when any of them failed or
   # was cancelled. A job skipped by its own condition passes.
   gate:
     name: CI Gate
     if: always()
-    needs: [dco, labels, sdk, doc-snippets]
+    needs: [dco, labels, sdk, doc-snippets, links]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7.0.1
