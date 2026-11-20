@@ -1,0 +1,25 @@
+name: Links
+
+# ci.yml calls this on every pull request, merge queue entry and push to main,
+# and CI Gate waits for it. It also runs daily, because the repositories the
+# docs link move their files without any run here.
+on:
+  workflow_call:
+  schedule:
+    - cron: "23 5 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  links:
+    name: Every link, path, script and make target the docs name resolves at main
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: Test the check
+        run: python3 -m unittest discover -s checks/links
+
+      - name: Check the docs against every repository they link, cloned as a reader reaches it
+        run: python3 checks/links/check.py --clones "$RUNNER_TEMP/clones"
