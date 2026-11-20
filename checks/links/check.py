@@ -4,16 +4,17 @@ resolves, at main of the repository that has it.
 
     python3 checks/links/check.py --clones DIR
 
-Run from the root of a docs checkout. Each xynolog repository the docs link is
-cloned into DIR, which must not exist yet: at depth 1 and anonymously, as a
-reader reaches it, so a repository a reader cannot open fails to clone. Then:
+Run from the root of a docs checkout; the docs are its tracked Markdown files.
+Each xynolog repository they link is cloned into DIR, which must not exist
+yet: at depth 1 and anonymously, as a reader reaches it, so a repository a
+reader cannot open fails to clone. Then:
 
-- every Markdown link (inline, reference definition, href and src) resolves:
-  a relative one in this checkout, and never into a submodule, which GitHub
+- every link (inline, reference definition, href and src) resolves: a
+  relative one in this checkout, and never into a submodule, which GitHub
   does not show; a github.com/xynolog URL at main of the repository it names;
   and an anchor to a heading of the Markdown file it names;
-- every github.com/xynolog/<repo>/(blob|tree|raw)/<ref>/<path> URL in any
-  tracked file, a code span's or a script's included, resolves too;
+- every github.com/xynolog/<repo>/(blob|tree|raw)/<ref>/<path> URL resolves
+  too, a code span's included;
 - a path in a code span that names a repository, by its first segment or as
   "<repo>'s `path`", is a file or directory of that repository;
 - `npm run X` names a script of some package.json, and `make X` a target of
@@ -171,14 +172,10 @@ COMMAND = re.compile(r"(?:^|&&|\|\||;|\|)\s*(?:\$\s+)?(make|npm run)((?:[ \t]+[^
 
 
 def named_repositories(tree):
-    """The xynolog repositories other than this one that the docs' tracked files name."""
+    """The xynolog repositories other than this one that the docs name."""
     names = set()
-    for path in tree.files():
-        try:
-            text = tree.read(path)
-        except UnicodeDecodeError:
-            continue
-        names.update(m[1] for m in REPO_URL.finditer(text))
+    for path in tree.files(".md"):
+        names.update(m[1] for m in REPO_URL.finditer(tree.read(path)))
     names.discard(THIS)
     return sorted(names)
 
@@ -312,20 +309,16 @@ class Checker:
 
     def check(self):
         failures = set()
-        for file in self.docs.files():
-            try:
-                text = self.docs.read(file)
-            except UnicodeDecodeError:
-                continue
-            if file.endswith(".md"):
-                for line, target in links(text):
-                    failures.add((file, line, self.link(file, target)))
-                for line, snippet, before, fenced in code(text):
-                    for verb, name in commands(snippet):
-                        failures.add((file, line, self.command(verb, name)))
-                    if not fenced:
-                        for match in PATH.finditer(snippet):
-                            failures.add((file, line, self.path(match[1], before)))
+        for file in self.docs.files(".md"):
+            text = self.docs.read(file)
+            for line, target in links(text):
+                failures.add((file, line, self.link(file, target)))
+            for line, snippet, before, fenced in code(text):
+                for verb, name in commands(snippet):
+                    failures.add((file, line, self.command(verb, name)))
+                if not fenced:
+                    for match in PATH.finditer(snippet):
+                        failures.add((file, line, self.path(match[1], before)))
             for match in REPO_URL.finditer(text):
                 line = text.count("\n", 0, match.start()) + 1
                 failures.add((file, line, self.url(match[1], match[2] or "")))
