@@ -108,7 +108,7 @@ begins within `connectSeconds` and `readSeconds` together of its first send, its
 and a read whose answer did not is not sent again; and an upload is never sent again: its body is
 streamed. How long the gateway waits is the Archivist's document's to say (its `x-xynolog-limits`),
 as it is for the Python services that read it ([the gateway's
-calls](../../images/gateway/docs/ARCHITECTURE.md#calls-to-the-archivist)), and those waits end
+calls](https://github.com/xynolog/images/blob/main/gateway/docs/ARCHITECTURE.md#calls-to-the-archivist)), and those waits end
 inside a client's own deadline on its request, `httpRequestTimeoutMs`.
 
 ## What deliberately does not retry
