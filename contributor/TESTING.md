@@ -105,7 +105,7 @@ Each repository runs its own suites, in containers, from its `Makefile`; `make h
 | [images](https://github.com/xynolog/images) | The Browser's, the Rust workspace's and each Python project's |
 | [protocol](https://github.com/xynolog/protocol/blob/main/conformance/README.md) | The conformance suites, against the implementations a run names |
 | [cli](https://github.com/xynolog/cli/blob/main/README.md#development) | The launcher's, which takes minutes |
-| [desktop](https://github.com/xynolog/desktop) | Desktop's, its control client's among them |
+| desktop | Desktop's, its control client's among them |
 
 The Browser's own guide is [TESTING.md](https://github.com/xynolog/images/blob/main/browser/docs/TESTING.md), react-ui's is [TESTING.md](https://github.com/xynolog/sdk/blob/main/typescript/react-ui/docs/TESTING.md), and the gateway's is [TESTING.md](https://github.com/xynolog/images/blob/main/gateway/docs/TESTING.md).
 

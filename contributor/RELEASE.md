@@ -7,7 +7,7 @@ Each repository releases on its own, by its own workflow:
 | [sdk](https://github.com/xynolog/sdk/blob/main/README.md#releasing) | One verified bundle of the nine SDKs' packages, on a GitHub Release | `release-artifacts.yml`, on the `v*` tag `scripts/tag-release.sh` pushes |
 | [images](https://github.com/xynolog/images) | The eight images, to `ghcr.io/xynolog` | [`publish-service-images.yml`](https://github.com/xynolog/images/blob/main/.github/workflows/publish-service-images.yml) and [`publish-browser.yml`](https://github.com/xynolog/images/blob/main/.github/workflows/publish-browser.yml), dispatched with a version |
 | [cli](https://github.com/xynolog/cli/blob/main/README.md#releasing) | The `xynolog` launcher's archives for macOS, Linux and Windows, its `.deb` and `.rpm` packages, checksums and SBOMs, on a GitHub Release | `release.yml`, on a `v*` tag |
-| [desktop](https://github.com/xynolog/desktop) | Xynolog Desktop's installers, on a GitHub Release | `release.yml`, on a `v*` tag |
+| desktop | Xynolog Desktop's installers, on a GitHub Release | `release.yml`, on a `v*` tag |
 | [homebrew-xynolog](https://github.com/xynolog/homebrew-xynolog) | The `xynolog` formula, which builds the launcher from the cli commit it names | a pull request that moves the formula |
 
 ## Container images

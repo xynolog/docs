@@ -20,7 +20,7 @@ container run --publish 3000:3000 -it ghcr.io/xynolog/xynolog-browser:latest
 
 The image serves static files and holds no knowledge-base configuration. You connect to knowledge bases from the page.
 
-**As a desktop app.** Xynolog Desktop is packaged for Apple Silicon Macs and Linux x64 as a Debian package. Download it from the [GitHub releases](https://github.com/xynolog/desktop/releases); install notes, including the macOS Gatekeeper step and Linux system requirements, are in [desktop's README](https://github.com/xynolog/desktop/blob/main/README.md).
+**As a desktop app.** Xynolog Desktop is packaged for Apple Silicon Macs and Linux x64 as a Debian package.
 
 ## Connect and sign in
 

@@ -14,7 +14,7 @@ Each part of Xynolog is a repository of its own, with its own CI ending in `CI G
 | [sdk](https://github.com/xynolog/sdk) | The SDKs in nine languages, and the artifact bundle images, cli and desktop build against |
 | [images](https://github.com/xynolog/images) | The Browser and the seven service images |
 | [cli](https://github.com/xynolog/cli) | The `xynolog` launcher |
-| [desktop](https://github.com/xynolog/desktop) | Xynolog Desktop |
+| desktop | Xynolog Desktop |
 | [build-tools](https://github.com/xynolog/build-tools) | The scripts the other repositories share |
 | [docs](https://github.com/xynolog/docs) | These docs |
 
