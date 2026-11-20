@@ -129,23 +129,7 @@ it('should have no WCAG violations', async () => {
 
 ### CI/CD Integration
 
-```yaml
-# .github/workflows/ci.yml
-# react-ui's accessibility tests run inside its suite (the test-package job);
-# `npm run test:a11y --workspace=@xynolog/react-ui` runs them alone, locally.
-
-- name: Audit the signed-out pages
-  run: |
-    cd images/browser
-    lhci collect
-
-- name: Assert the audit's scores
-  run: |
-    cd images/browser
-    lhci assert
-```
-
-`images/browser/lighthouserc.json` names the pages Lighthouse audits and the accessibility score they must reach.
+react-ui's accessibility tests run inside its suite, which sdk's CI runs in its `tests` job (`make test-typescript`). In sdk's `typescript/`, `npm run test:a11y --workspace=@xynolog/react-ui` runs them alone.
 
 ## Implementation Guidelines
 

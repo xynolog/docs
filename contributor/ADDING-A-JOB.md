@@ -12,15 +12,15 @@ The steps add a `mark` job of a new motivation, which is the usual case. Each wa
 
 | | Step | Where | What fails when it is left out |
 |---|---|---|---|
-| 1 | [State the job](#1-state-the-job-in-the-spec) | `protocol/specs/src/components/schemas`, `protocol/specs/src/openapi.json`, `protocol/specs/src/service-telemetry/telemetry.json` | `npm run lint:spec-jobs`, `npm run lint:spec-archivist`; `protocol/conformance/worker-service/telemetry.test.ts` |
-| 2 | [Regenerate the types](#2-regenerate-the-types) | sdk's `typescript/core`, sdk's `go/`, sdk's `python/sdk` | CI's `generated-artifacts` job |
+| 1 | [State the job](#1-state-the-job-in-the-spec) | `protocol/specs/src/components/schemas`, `protocol/specs/src/openapi.json`, `protocol/specs/src/service-telemetry/telemetry.json` | protocol's `make validate`; `protocol/conformance/worker-service/telemetry.test.ts` |
+| 2 | [Regenerate the types](#2-regenerate-the-types) | sdk, at a Protocol pin that has the job | sdk's `make check-generated` (CI's `generated` job) |
 | 3 | [Admit it](#3-admit-it-the-dispatcher) | `images/dispatcher/handlers/src/admission.rs` | the dispatcher's build; `protocol/conformance/dispatcher/create.test.ts` |
 | 4 | [Do it](#4-do-it-the-worker) | `images/worker/src/xynolog_worker` | `mypy`, `pyright` and `pytest` in `images/worker` |
-| 5 | [State how its reply is read](#5-state-how-its-reply-is-read) | `protocol/specs/src/worker/parser-cases.json` | `images/worker/tests/test_parser_cases.py`; `npm run lint:spec-case-tables` |
-| 6 | [Hold a Worker service to it](#6-hold-a-worker-service-to-it) | `protocol/conformance/worker-service` | `npm run lint:conformance-readmes`, `npm run lint:transport-contract`; `images/worker/tests/test_prompts.py` |
-| 7 | [Write the rule](#7-write-the-rule) | `protocol/contract/WORKER-SERVICE.md` | `npm run lint:transport-contract` |
+| 5 | [State how its reply is read](#5-state-how-its-reply-is-read) | `protocol/specs/src/worker/parser-cases.json` | `images/worker/tests/test_parser_cases.py`; protocol's `make validate` |
+| 6 | [Hold a Worker service to it](#6-hold-a-worker-service-to-it) | `protocol/conformance/worker-service` | `images/worker/tests/test_prompts.py` |
+| 7 | [Write the rule](#7-write-the-rule) | `protocol/contract/WORKER-SERVICE.md` | nothing checks it |
 | 8 | [Give it an engine](#8-give-it-an-engine) | a knowledge base's Inference document; nothing in the launcher | `TestEveryEngineJobHasAFilter`, in cli's `internal/launcher` |
-| 9 | [Word it in each client](#9-word-it-in-each-client) | cli's `internal/launcher/verbs/mark.go`, sdk's `typescript/react-ui/translations` | `TestEveryMotivationHasItsNoun`; `delegate-progress-copy.test.ts`; `npm run lint:translations` |
+| 9 | [Word it in each client](#9-word-it-in-each-client) | cli's `internal/launcher/verbs/mark.go`, sdk's `typescript/react-ui/translations` | `TestEveryMotivationHasItsNoun`; `delegate-progress-copy.test.ts`; `translations-census.test.ts` |
 
 The numbers are the order the change reaches each part, and not the order to write it in. The repository works test first: step 5's cases and step 6's case are written before step 4's code, and each is seen to fail for the missing job.
 
@@ -33,7 +33,7 @@ A job description is the spec's, so the job starts there, in [`protocol/specs/sr
 - [`MarkJobParams.json`](https://github.com/xynolog/protocol/blob/main/specs/src/components/schemas/MarkJobParams.json) gains it as a member and in its mapping, and [`protocol/specs/src/openapi.json`](https://github.com/xynolog/protocol/blob/main/specs/src/openapi.json) names it among its `components.schemas`.
 - [`ArchivistEngines.json`](https://github.com/xynolog/protocol/blob/main/specs/src/components/schemas/ArchivistEngines.json) gains the motivation under `jobs.mark`, so that a knowledge base can say which engine software does the job with.
 
-`npm run lint:spec-jobs` holds `MarkJobParams` to `Motivation`: its members are the schemas its mapping names, the mapping names one for each motivation and for nothing else, each member's `motivation` is the one value that selects it, and each member is closed. `npm run lint:spec-archivist` holds the engines' motivations to the same list. A step left out fails one of the two.
+Protocol's reader, which `make validate` in protocol runs, holds `MarkJobParams` to `Motivation` ([`jobs_rules.ml`](https://github.com/xynolog/protocol/blob/main/reader/lib/jobs_rules.ml)): its members are the schemas its mapping names, the mapping names one for each motivation and for nothing else, each member's `motivation` is the one value that selects it, and each member is closed. It holds the engines' motivations to the same list ([`archivist_rules.ml`](https://github.com/xynolog/protocol/blob/main/reader/lib/archivist_rules.ml)). A step left out fails `make validate`.
 
 What the job needs no schema of its own for:
 
@@ -47,17 +47,13 @@ The worker's telemetry is the spec's too. [`protocol/specs/src/service-telemetry
 
 ## 2. Regenerate the types
 
-No language's types of the protocol are written by hand. The spec is bundled first, `npm run openapi:bundle`, and then:
+No language's types of the protocol are written by hand. sdk's generator, [`codegen/`](https://github.com/xynolog/sdk/blob/main/codegen/README.md), writes every SDK's from the Protocol commit sdk pins:
 
-| Language | How | What it writes |
-|---|---|---|
-| TypeScript | `npm run generate:openapi --workspace=@xynolog/core`, then `npm run build --workspace=@xynolog/core` | `@xynolog/core`'s types, and with the build `MARK_MOTIVATIONS`, the list a client words its copy by |
-| Go | `make generate` in sdk | [`api/types_gen.go`](https://github.com/xynolog/sdk/blob/main/go/api/types_gen.go), which is committed |
-| Python | `uv run --project packages/python/sdk --locked python packages/python/sdk/scripts/generate_models.py` | [`types.py`](https://github.com/xynolog/sdk/blob/main/python/sdk/src/xynolog/types.py), which is committed |
-| Rust | nothing to run | `xynolog::types`, made from `protocol/specs/src` by the SDK's build script when the crate is built |
-| Kotlin | nothing to run | `xynolog.types`, made from `protocol/specs/src` by the SDK's Gradle build before every compile |
+1. In sdk, move the `protocol` submodule to the Protocol commit that has the job.
+2. Run `make generate`, which rewrites every SDK's generated files from it, and commit what it writes.
+3. `make check-generated`, which CI's `generated` job runs, fails on a committed file that is not what the generator writes.
 
-CI's `generated-artifacts` job fails on a committed file that is not what the spec generates ([Testing](TESTING.md#continuous-integration)).
+[CODEGEN.md](https://github.com/xynolog/sdk/blob/main/CODEGEN.md) says what each SDK's generated code is. cli and images run the same generator, from the SDK their `sdk.lock` pins, with `make generate` and `make check-generated` of their own.
 
 In the TypeScript, the Rust, the Python and the Kotlin SDK, `mark.delegate` takes a `MarkJobParams`, so a caller can ask for the new job as soon as the types have it. No SDK method is written for a motivation.
 
@@ -109,15 +105,15 @@ What a worker does to a text and to a model's reply is stated in tables every wo
 
 The tables beside it hold what every kind shares, and a new kind adds to one only where it changes the rule: where a text is cut ([`chunk-cases.json`](https://github.com/xynolog/protocol/blob/main/specs/src/text/chunk-cases.json)), how its pieces are planned ([`chunk-plan-cases.json`](https://github.com/xynolog/protocol/blob/main/specs/src/worker/chunk-plan-cases.json)), and how a failure is classed ([`failure-class-cases.json`](https://github.com/xynolog/protocol/blob/main/specs/src/worker/failure-class-cases.json)).
 
-`npm run lint:spec-case-tables` fails on a table whose runner does not name it, and on a `*-cases.json` file added beside these that the gate does not list.
+A table is one that Protocol's reader names and types ([`spec.ml`](https://github.com/xynolog/protocol/blob/main/reader/lib/spec.ml)), and `make validate` reads each through its schema and refuses a file of `specs/src` the reader does not account for.
 
 ## 6. Hold a Worker service to it
 
 The [worker-service suite](https://github.com/xynolog/protocol/blob/main/conformance/worker-service/README.md) starts the service as a process and meets it only at its boundary, so its cases judge an implementation in any language. A kind of job has a file there, as [`tagging.test.ts`](https://github.com/xynolog/protocol/blob/main/conformance/worker-service/tagging.test.ts) is: a job queued as the dispatcher would hand it over, the stand-in provider's answers scripted, and then every request to the provider, every batch committed, every checkpoint, every progress report and the completion, each held whole.
 
 - Each prompt the case holds is a file of `prompts/`, the exact text sent. `images/worker/tests/test_prompts.py` fails until the worker's own tests build every such file word for word.
-- The suite's README lists the file, with the rules it holds. `npm run lint:conformance-readmes` fails on a file the README does not name.
-- The comment that heads the file names the sections of `WORKER-SERVICE.md` it is about. `npm run lint:transport-contract` fails on a file no rule of that document names.
+- The suite's README lists the file, with the rules it holds.
+- The comment that heads the file names the sections of `WORKER-SERVICE.md` it is about.
 
 What every kind does is held in files of its own, and a new kind joins those that apply to it: a job cancelled partway (`cancel.test.ts`), a job resumed from a checkpoint (`resume.test.ts`), a job that is declined or cannot be run (`declines.test.ts`).
 
@@ -130,7 +126,7 @@ What every kind does is held in files of its own, and a new kind joins those tha
 - its progress, as a rule of its own under [Progress](https://github.com/xynolog/protocol/blob/main/contract/WORKER-SERVICE.md#progress);
 - and its part in whatever shared rule it changes: what its result adds, when it is declined, how it resumes.
 
-Each rule ends with the cases that hold it. A new rule takes the next number of its letter, wherever it stands, and no rule's number changes. `npm run lint:transport-contract` fails on a rule that names a case the suite does not have.
+Each rule ends with the cases that hold it. A new rule takes the next number of its letter, wherever it stands, and no rule's number changes.
 
 Three other documents say something of each kind of job: [JOBS.md § `job:create`](https://github.com/xynolog/protocol/blob/main/contract/JOBS.md#jobcreate), what admission checks; [Mark § Delegation](https://github.com/xynolog/protocol/blob/main/contract/flows/MARK.md#delegation), the params a caller gives; and the operator's [Configuration § Inference](../operator/administration/CONFIGURATION.md#inference), each job's engine.
 
@@ -140,7 +136,7 @@ A knowledge base's Inference document says which engine, a provider and a model,
 
 A Worker service reads no document of a knowledge base. The launcher writes the engines, as the Inference document states them, into two documents: the Archivist's, which answers the knowledge base's engines, and the worker's ([`WorkerConfig`](https://github.com/xynolog/protocol/blob/main/specs/src/worker/WorkerConfig.json)), in which each engine's `jobs` are the filters of the jobs the worker does with it. The worker claims with those filters and no other.
 
-Nothing in the launcher is written for a new motivation. The filters it writes are derived from the generated engines ([`archivistdoc.go`](https://github.com/xynolog/cli/blob/main/internal/launcher/archivistdoc.go), [`workerdoc.go`](https://github.com/xynolog/cli/blob/main/internal/launcher/workerdoc.go)), so they follow step 1's engines and step 2's `client_gen.go`. `TestEveryEngineJobHasAFilter` holds that every job the engines have is given a filter that names it.
+Nothing in the launcher is written for a new motivation. The filters it writes are derived from the generated engines ([`archivistdoc.go`](https://github.com/xynolog/cli/blob/main/internal/launcher/archivistdoc.go), [`workerdoc.go`](https://github.com/xynolog/cli/blob/main/internal/launcher/workerdoc.go)), so they follow step 1's engines and step 2's generated types. `TestEveryEngineJobHasAFilter` holds that every job the engines have is given a filter that names it.
 
 A knowledge base's software does the new job once its Inference document gives the job an engine.
 
@@ -148,23 +144,23 @@ A knowledge base's software does the new job once its Inference document gives t
 
 The wire carries no sentence, so each client has its own words for a job:
 
-- **The launcher** calls an annotation of each motivation by a noun, in `markNouns` ([`mark.go`](https://github.com/xynolog/cli/blob/main/internal/launcher/verbs/mark.go)), and `TestEveryMotivationHasItsNoun` holds that table to `Motivation.json`. `xynolog mark --delegate` takes the job's params as flags, and a param no flag gives is a flag added in the same file.
-- **The Browser** words a progress report from [sdk's `typescript/react-ui/translations`](https://github.com/xynolog/sdk/tree/main/typescript/react-ui/translations). `delegate-progress-copy.test.ts` holds that there is one noun for every motivation the spec has, and `npm run lint:translations` that every locale has every key.
+- **The launcher** calls an annotation of each motivation by a noun, in `markNouns` ([`job.go`](https://github.com/xynolog/cli/blob/main/internal/launcher/verbs/job.go)), and `TestEveryMotivationHasItsNoun` holds that table to `Motivation.json`. `xynolog mark --delegate` takes the job's params as flags, and a param no flag gives is a flag added in the same file.
+- **The Browser** words a progress report from [sdk's `typescript/react-ui/translations`](https://github.com/xynolog/sdk/tree/main/typescript/react-ui/translations). `delegate-progress-copy.test.ts` holds that there is one noun for every motivation the spec has, and `translations-census.test.ts` that every locale has every key.
 
 A new progress code is words in both: the launcher's `progressText` ([`job.go`](https://github.com/xynolog/cli/blob/main/internal/launcher/verbs/job.go)), and a key in every locale. What a client shows a person to ask for the job with is that client's own.
 
 ## A job of another verb
 
-A job of a verb that has none today is a new value of [`JobType.json`](https://github.com/xynolog/protocol/blob/main/specs/src/components/schemas/JobType.json), and more of the spec is told apart by that value. `npm run lint:spec-jobs` holds each of these to it:
+A job of a verb that has none today is a new value of [`JobType.json`](https://github.com/xynolog/protocol/blob/main/specs/src/components/schemas/JobType.json), and more of the spec is told apart by that value. Protocol's reader holds each of these to it:
 
 - [`JobCreateCommand`](https://github.com/xynolog/protocol/blob/main/specs/src/components/schemas/JobCreateCommand.json), the description a job is asked for with;
 - [`JobQueuedEvent`](https://github.com/xynolog/protocol/blob/main/specs/src/components/schemas/JobQueuedEvent.json), the announcement, which carries the description less the job's input;
 - [`JobFilter`](https://github.com/xynolog/protocol/blob/main/specs/src/components/schemas/JobFilter.json), by which a claim names the verb's jobs;
 - [`JobCompleteCommand`](https://github.com/xynolog/protocol/blob/main/specs/src/components/schemas/JobCompleteCommand.json), which carries the verb's result. The results every verb reports are together [`JobResult`](https://github.com/xynolog/protocol/blob/main/specs/src/components/schemas/JobResult.json), each closed, with no member that says which it is and no required member in common with another.
 
-`npm run lint:spec-archivist` holds the engines' job types to `JobType`, so `ArchivistEngines` gains the verb under `jobs`. The dispatcher's admission says what resource the job is recorded under and what its retry budget is.
+The reader holds the engines' job types to `JobType` too, so `ArchivistEngines` gains the verb under `jobs`. The dispatcher's admission says what resource the job is recorded under and what its retry budget is.
 
-A verb's job is also written into each SDK, where a motivation's is not. The claiming of the TypeScript, the Rust, the Python and the Kotlin SDK hands a worker a held job of its verb, which completes with that verb's result (`claims.ts`, `claims.rs`, `claims.py`, `Claims.kt`), and the verb's namespace has the `delegate` that asks for the job and follows it. [`protocol/specs/src/client/surface.json`](https://github.com/xynolog/protocol/blob/main/specs/src/client/surface.json) states the method, and `npm run lint:client-surface` holds each SDK to it.
+A verb's job is also written into each SDK, where a motivation's is not. The claiming of the TypeScript, the Rust, the Python and the Kotlin SDK hands a worker a held job of its verb, which completes with that verb's result (`claims.ts`, `claims.rs`, `claims.py`, `Claims.kt`), and the verb's namespace has the `delegate` that asks for the job and follows it. [`protocol/specs/src/client/surface.json`](https://github.com/xynolog/protocol/blob/main/specs/src/client/surface.json) states the method. Protocol's reader holds its cases to the methods' parameters, and sdk's [`surface_coverage.ml`](https://github.com/xynolog/sdk/blob/main/codegen/test/surface_coverage.ml) records what each SDK lacks of it, which sdk's `make test-codegen` holds to the pinned Protocol.
 
 The rest is the path above: the worker's processor and its branch, the suite's file, the rules, the job's engine (`spec.engines.jobs.<jobType>` in an Inference document) and each client's words.
 

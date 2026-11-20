@@ -91,7 +91,7 @@ Workspace suites run with nothing listening. CI's package matrix starts no datab
 
 ### How the conformance suites are configured
 
-[`protocol/conformance/vitest.config.ts`](https://github.com/xynolog/protocol/blob/main/conformance/vitest.config.ts) is its own config, not derived from the shared one. It holds nine projects over one shared harness: `gateway`, `dispatcher`, `archivist`, `sdk`, `worker`, `worker-service`, `weaver`, `smelter` and `librarian`. It uses the `forks` pool with up to four workers, since each file boots its own gateways, issuer and broker, and a 60-second test timeout.
+[`protocol/conformance/vitest.config.ts`](https://github.com/xynolog/protocol/blob/main/conformance/vitest.config.ts) is its own config, not derived from the shared one. It holds eight projects over one shared harness: `gateway`, `dispatcher`, `archivist`, `sdk`, `worker`, `worker-service`, `weaver` and `smelter`. The `librarian` suite runs on the OCaml harness instead ([`conformance/ocaml/librarian`](https://github.com/xynolog/protocol/blob/main/conformance/ocaml/librarian/README.md)). It uses the `forks` pool with up to four workers, since each file boots its own gateways, issuer and broker, and a 60-second test timeout.
 
 Each gateway the suite starts gets a fresh temporary directory holding its `GatewayConfig` document, and an environment of `PATH` plus the variables the case sets, such as `JWT_SECRET` and `XYNOLOG_OIDC_CLIENT_ID`. Nothing else from your shell reaches it.
 

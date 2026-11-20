@@ -88,7 +88,7 @@ believe them at first:
    ([`xynolog`](https://github.com/xynolog/sdk/blob/main/python/sdk/README.md)) has the same client,
    cache, state units and sessions on asyncio, typed for `mypy` and `pyright`,
    and is held to the same tables and the same suite. The Go SDK
-   ([`go/sdk`](https://github.com/xynolog/sdk/blob/main/go/README.md)), the module the `xynolog`
+   ([`github.com/xynolog/sdk/go`](https://github.com/xynolog/sdk/blob/main/go/README.md)), the module the `xynolog`
    launcher is built on, has the same client, cache, state units and
    sessions, with a context on every call that waits and an iterator for
    every sequence, and is held to the same tables and the same suite. The

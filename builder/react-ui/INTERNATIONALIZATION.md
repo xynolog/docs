@@ -228,7 +228,7 @@ name, read with `useTranslations('SessionEndedModal')`.
 
 The namespaces are the top-level keys of `translations/en.json`, which is the
 list; it is not restated here. Every locale has every namespace and every key:
-`npm run lint:translations` fails the build on any key missing from, or extra
+[`translations-census.test.ts`](https://github.com/xynolog/sdk/blob/main/typescript/react-ui/src/lib/__tests__/translations-census.test.ts) fails react-ui's suite on any key missing from, or extra
 in, any locale.
 
 ## Translation File Structure
@@ -473,7 +473,7 @@ To add support for another locale:
 
 1. Add the language's row to `protocol/specs/src/locales/registry.json`; `@xynolog/core` generates `LOCALE_CODES` from it
 2. Add the translation file, `translations/<code>.json`, with every namespace and key
-3. `npm run lint:translations` fails until every language the registry names has a file, and no file exists for a language it does not name
+3. `translations-census.test.ts` fails until every language the registry names has a file, and no file exists for a language it does not name
 4. The locale will be dynamically loaded when used
 
 ### Preloading Translations

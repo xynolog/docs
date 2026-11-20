@@ -113,5 +113,5 @@ The **Moderation** section has three pages: **Recent Resources**, **Entity Tags*
 
 - [KEYBOARD-NAV.md](KEYBOARD-NAV.md): the keyboard shortcuts
 - [ACCESSIBILITY.md](ACCESSIBILITY.md): what the Browser provides for assistive technology
-- [docs/builder](../builder/README.md): doing the same work from code, or from the `xynolog` launcher
+- [Builder docs](../builder/README.md): doing the same work from code, or from the `xynolog` launcher
 - [images/browser/docs](https://github.com/xynolog/images/tree/main/browser/docs): how the Browser is built
