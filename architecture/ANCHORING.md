@@ -40,7 +40,7 @@ server has no canvas.
 
 ## Two directions over one map
 
-`@xynolog/core/pdf-anchoring` holds an inverse pair, and which one runs depends
+`@xynolog/core`'s `pdf-anchoring.ts` holds an inverse pair, and which one runs depends
 on who is annotating.
 
 ```

@@ -14,7 +14,7 @@ Each SDK makes the same choice: the form that can be read over time is the primi
 
 ## The nine shapes
 
-Every namespace method returns exactly one of these. Which one is the method's row in [`protocol/specs/src/client/surface.json`](https://github.com/xynolog/protocol/blob/main/specs/src/client/surface.json), the table every SDK is held to: `lint:client-surface` fails a method whose signature is not its row's.
+Every namespace method returns exactly one of these. Which one is the method's row in [`protocol/specs/src/client/surface.json`](https://github.com/xynolog/protocol/blob/main/specs/src/client/surface.json), the table every SDK is held to: [`client-surface.test.ts`](https://github.com/xynolog/sdk/blob/main/typescript/sdk/src/__tests__/client-surface.test.ts) fails a method whose returned shape is not its row's.
 
 | Shape | What it is | TypeScript | Rust | Python | Go | Kotlin | C# | Swift | Haskell |
 |---|---|---|---|---|---|---|---|---|---|
@@ -136,7 +136,7 @@ The discipline is enforceable. A namespace method's return type must be one of:
 - `void`
 - `Promise<number | undefined>` (wire drives only)
 
-Plain `Observable<T>` does not appear on the public verb-namespace surface. (It still appears on lifecycle / escape-hatch surfaces — `client.transport.state$`, `client.transport.errors$`, `client.bus.on(channel)` — see "Plain Observables" below.) The rule is enforced: every namespace method is a row of [`protocol/specs/src/client/surface.json`](https://github.com/xynolog/protocol/blob/main/specs/src/client/surface.json) with the shape of what it returns, `lint:client-surface` fails a method whose signature is not its row's, and every SDK is held to the same table. The table names two more shapes than this list, because it covers every namespace: `job`'s four lifecycle streams are `events`, and `yield.resource`'s `UploadObservable` is its own row.
+Plain `Observable<T>` does not appear on the public verb-namespace surface. (It still appears on lifecycle / escape-hatch surfaces — `client.transport.state$`, `client.transport.errors$`, `client.bus.on(channel)` — see "Plain Observables" below.) The rule is enforced: every namespace method is a row of [`protocol/specs/src/client/surface.json`](https://github.com/xynolog/protocol/blob/main/specs/src/client/surface.json) with the shape of what it returns, `client-surface.test.ts` fails a method whose returned shape is not its row's, and every SDK is held to the same table. The table names two more shapes than this list, because it covers every namespace: `job`'s four lifecycle streams are `events`, and `yield.resource`'s `UploadObservable` is its own row.
 
 ### What this looks like at the call site
 

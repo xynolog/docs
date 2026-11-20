@@ -126,4 +126,4 @@ Read in this order. Most people need only the first three.
 
 ## Other readers
 
-Running a knowledge base is [docs/operator](../operator/README.md). Changing Xynolog itself, these docs and the SDK included, is [docs/contributor](../contributor/README.md).
+Running a knowledge base is in the [operator docs](../operator/README.md). Changing Xynolog itself, these docs and the SDK included, is in the [contributor docs](../contributor/README.md).
