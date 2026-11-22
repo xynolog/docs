@@ -12,12 +12,12 @@ The steps add a `mark` job of a new motivation, which is the usual case. Each wa
 
 | | Step | Where | What fails when it is left out |
 |---|---|---|---|
-| 1 | [State the job](#1-state-the-job-in-the-spec) | `protocol/specs/src/components/schemas`, `protocol/specs/src/openapi.json`, `protocol/specs/src/service-telemetry/telemetry.json` | protocol's `make validate`; `protocol/conformance/worker-service/telemetry.test.ts` |
+| 1 | [State the job](#1-state-the-job-in-the-spec) | `protocol/specs/src/components/schemas`, `protocol/specs/src/openapi.json`, `protocol/specs/src/service-telemetry/telemetry.json` | protocol's `make validate`; `protocol/conformance/ocaml/worker_service/exported.ml` |
 | 2 | [Regenerate the types](#2-regenerate-the-types) | sdk, at a Protocol pin that has the job | sdk's `make check-generated` (CI's `generated` job) |
-| 3 | [Admit it](#3-admit-it-the-dispatcher) | `images/dispatcher/handlers/src/admission.rs` | the dispatcher's build; `protocol/conformance/dispatcher/create.test.ts` |
+| 3 | [Admit it](#3-admit-it-the-dispatcher) | `images/dispatcher/handlers/src/admission.rs` | the dispatcher's build; `protocol/conformance/ocaml/dispatcher/create.ml` |
 | 4 | [Do it](#4-do-it-the-worker) | `images/worker/src/xynolog_worker` | `mypy`, `pyright` and `pytest` in `images/worker` |
 | 5 | [State how its reply is read](#5-state-how-its-reply-is-read) | `protocol/specs/src/worker/parser-cases.json` | `images/worker/tests/test_parser_cases.py`; protocol's `make validate` |
-| 6 | [Hold a Worker service to it](#6-hold-a-worker-service-to-it) | `protocol/conformance/worker-service` | `images/worker/tests/test_prompts.py` |
+| 6 | [Hold a Worker service to it](#6-hold-a-worker-service-to-it) | `protocol/conformance/ocaml/worker_service` | `images/worker/tests/test_prompts.py` |
 | 7 | [Write the rule](#7-write-the-rule) | `protocol/contract/WORKER-SERVICE.md` | nothing checks it |
 | 8 | [Give it an engine](#8-give-it-an-engine) | a knowledge base's Inference document; nothing in the launcher | `TestEveryEngineJobHasAFilter`, in cli's `internal/launcher` |
 | 9 | [Word it in each client](#9-word-it-in-each-client) | cli's `internal/launcher/verbs/mark.go`, sdk's `typescript/react-ui/translations` | `TestEveryMotivationHasItsNoun`; `delegate-progress-copy.test.ts`; `translations-census.test.ts` |
@@ -43,7 +43,7 @@ What the job needs no schema of its own for:
 
 What the dispatcher adds to a job it hands over is stated in [`JobParams.json`](https://github.com/xynolog/protocol/blob/main/specs/src/components/schemas/JobParams.json): the job's `resourceId`, and for a tagging job `schema`, the tag schema its `schemaId` names. Something added for the new job is a property there.
 
-The worker's telemetry is the spec's too. [`protocol/specs/src/service-telemetry/telemetry.json`](https://github.com/xynolog/protocol/blob/main/specs/src/service-telemetry/telemetry.json) lists the values of `job.motivation` on the worker's three rows of a job, and of `detection.label` on its rows of a detection, where the label is the worker's own word for the kind (`tag`). The Worker service's suite holds the first to `MarkJobParams` (`telemetry.test.ts`), and the worker's tests the second to the labels its code has (`images/worker/tests/test_chunk_plan.py`).
+The worker's telemetry is the spec's too. [`protocol/specs/src/service-telemetry/telemetry.json`](https://github.com/xynolog/protocol/blob/main/specs/src/service-telemetry/telemetry.json) lists the values of `job.motivation` on the worker's three rows of a job, and of `detection.label` on its rows of a detection, where the label is the worker's own word for the kind (`tag`). The Worker service's suite holds the first to `MarkJobParams` (`exported.ml`), and the worker's tests the second to the labels its code has (`images/worker/tests/test_chunk_plan.py`).
 
 ## 2. Regenerate the types
 
@@ -63,7 +63,7 @@ In the TypeScript, the Rust, the Python and the Kotlin SDK, `mark.delegate` take
 
 The retry budget is set there too, by the verb: one retry for a `mark` job, which reads the same text again and takes up where its checkpoint left it, and none for a `yield` job, of which a second run would be another document.
 
-[JOBS.md § `job:create`](https://github.com/xynolog/protocol/blob/main/contract/JOBS.md#jobcreate) states each check and its refusal, and the dispatcher's suite holds a dispatcher to them (`protocol/conformance/dispatcher/create.test.ts`).
+[JOBS.md § `job:create`](https://github.com/xynolog/protocol/blob/main/contract/JOBS.md#jobcreate) states each check and its refusal, and the dispatcher's suite holds a dispatcher to them (`protocol/conformance/ocaml/dispatcher/create.ml`).
 
 ## 4. Do it: the worker
 
@@ -109,13 +109,13 @@ A table is one that Protocol's reader names and types ([`spec.ml`](https://githu
 
 ## 6. Hold a Worker service to it
 
-The [worker-service suite](https://github.com/xynolog/protocol/blob/main/conformance/worker-service/README.md) starts the service as a process and meets it only at its boundary, so its cases judge an implementation in any language. A kind of job has a file there, as [`tagging.test.ts`](https://github.com/xynolog/protocol/blob/main/conformance/worker-service/tagging.test.ts) is: a job queued as the dispatcher would hand it over, the stand-in provider's answers scripted, and then every request to the provider, every batch committed, every checkpoint, every progress report and the completion, each held whole.
+The [worker-service suite](https://github.com/xynolog/protocol/blob/main/conformance/ocaml/worker_service/README.md) starts the service as a process and meets it only at its boundary, so its cases judge an implementation in any language. A kind of job has a file there, as [`tagging.ml`](https://github.com/xynolog/protocol/blob/main/conformance/ocaml/worker_service/tagging.ml) is: a job queued as the dispatcher would hand it over, the stand-in provider's answers scripted, and then every request to the provider, every batch committed, every checkpoint, every progress report and the completion, each held whole.
 
-- Each prompt the case holds is a file of `prompts/`, the exact text sent. `images/worker/tests/test_prompts.py` fails until the worker's own tests build every such file word for word.
+- Each prompt the case holds, and the request it is sent in, is a row of [`worker/prompt-cases.json`](https://github.com/xynolog/protocol/blob/main/specs/src/worker/prompt-cases.json) that the case names. `images/worker/tests/test_prompts.py` holds the worker's prompts, word for word, to the suite's at the Protocol commit images pins.
 - The suite's README lists the file, with the rules it holds.
 - The comment that heads the file names the sections of `WORKER-SERVICE.md` it is about.
 
-What every kind does is held in files of its own, and a new kind joins those that apply to it: a job cancelled partway (`cancel.test.ts`), a job resumed from a checkpoint (`resume.test.ts`), a job that is declined or cannot be run (`declines.test.ts`).
+What every kind does is held in files of its own, and a new kind joins those that apply to it: a job cancelled partway (`cancel.ml`), a job resumed from a checkpoint (`resume.ml`), a job that is declined or cannot be run (`declines.ml`).
 
 ## 7. Write the rule
 
