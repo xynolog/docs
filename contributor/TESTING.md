@@ -103,7 +103,7 @@ Each repository runs its own suites, in containers, from its `Makefile`; `make h
 
 | Repository | Its suites |
 |---|---|
-| [sdk](https://github.com/xynolog/sdk/blob/main/README.md#development) | Every SDK's, each in its language's container |
+| [sdk](https://github.com/xynolog/sdk/blob/main/CONTRIBUTING.md#building-and-testing) | Every SDK's, each in its language's container |
 | [images](https://github.com/xynolog/images) | The Browser's, the Rust workspace's and each Python project's |
 | [protocol](https://github.com/xynolog/protocol/blob/main/conformance/README.md) | The conformance suites, against the implementations a run names |
 | [cli](https://github.com/xynolog/cli/blob/main/README.md#development) | The launcher's, which takes minutes |

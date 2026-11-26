@@ -4,7 +4,7 @@ How Xynolog's dependencies are kept current, how a vulnerable one is fixed, and 
 
 ## Dependabot
 
-Each repository's `.github/dependabot.yml` names the ecosystems Dependabot updates there, and every Dependabot pull request is labelled `dependencies`. The [sdk's README](https://github.com/xynolog/sdk/blob/main/README.md#development) lists the manifests it covers, and which it cannot.
+Each repository's `.github/dependabot.yml` names the ecosystems Dependabot updates there, and every Dependabot pull request is labelled `dependencies`. [sdk's CONTRIBUTING.md](https://github.com/xynolog/sdk/blob/main/CONTRIBUTING.md#building-and-testing) lists the manifests it covers, and which it cannot.
 
 ## Advisories
 

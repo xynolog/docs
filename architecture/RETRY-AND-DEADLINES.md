@@ -25,7 +25,6 @@ peers that answer differently.
 
 | policy | who waits | for what | budget |
 |---|---|---|---|
-| `STARTUP_FETCH_RETRY` | a TypeScript agent signing in (`agent-token.ts`, in `@xynolog/http-transport`) | the issuer to grant its token, and the **gateway** to name it (`GET /api/users/me`) | 8 × 1s→8s ≈ 39s |
 | `emitRetry`, in [`protocol/specs/src/client/timing.json`](https://github.com/xynolog/protocol/blob/main/specs/src/client/timing.json) | every SDK, for each emit | the **gateway** to accept one `/bus/emit` | the one `timing.json` states, once per credential: a renewed credential starts a fresh one |
 | the catalog reader's, in images' `shared/python/service/src/xynolog_service/catalog.py` | weaver, smelter | the **archivist** to subscribe | 17 × 1s→30s ≈ 361s |
 | `EMBEDDING_PROVIDER_RETRY`, in images' `shared/python/vectors/src/xynolog_vectors/_retry.py` | librarian, smelter | the **embedding provider** to serve a model | 12 × 1s→15s ≈ 120s |
@@ -119,6 +118,13 @@ the smelter's ([SMELTER.md](https://github.com/xynolog/protocol/blob/main/contra
 unbounded await leaves a container hung where a restart-on-exit policy can only rescue a process
 that exits.
 
+**An agent's sign-in** is made once in every SDK: one grant at the issuer, and one
+`GET /api/users/me` for the gateway to name it. The patience for an issuer or a gateway still
+starting is the service's. A worker service starts that knowledge base again on its own backoff
+([WORKER-SERVICE.md R3](https://github.com/xynolog/protocol/blob/main/contract/WORKER-SERVICE.md#knowledge-bases)),
+and the Archivist exits with status 1 for its restart policy to start it again
+([ARCHIVIST.md § Boot and shutdown](https://github.com/xynolog/protocol/blob/main/contract/ARCHIVIST.md#boot-and-shutdown)).
+
 **The SSE reconnect** is the one unbounded loop, with its own ladder capped at 60s. A dropped
 subscription must always come back; every other site is a request with a caller waiting.
 
@@ -126,10 +132,9 @@ subscription must always come back; every other site is a request with a caller 
 
 The `retry` module holds the mechanism, in each SDK that has one. Policies, deadlines and provider-specific predicates live in
 the package that owns the question, and that placement is load-bearing: an embedding path that
-borrows `STARTUP_FETCH_RETRY` — sized for *until the gateway starts listening* — expires
-waiting for a model download and kills the services that embed on every first boot.
-`STARTUP_FETCH_RETRY` is the one hand-written policy in TypeScript's core. `emitRetry` is
-hand-written in no SDK: it is client timing, and every SDK takes it from
+borrowed a budget sized for *until the gateway starts listening* would expire waiting for a
+model download and kill the services that embed on every first boot. No SDK hand-writes a
+budget. `emitRetry` and `refreshRetry` are client timing, and every SDK takes them from
 [`protocol/specs/src/client/timing.json`](https://github.com/xynolog/protocol/blob/main/specs/src/client/timing.json).
 
 ## See also

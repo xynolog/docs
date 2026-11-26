@@ -45,7 +45,7 @@ go get github.com/xynolog/sdk/go
 
 The [Kotlin SDK](https://github.com/xynolog/sdk/blob/main/kotlin/sdk/README.md) has `suspend` functions and `Flow`s in Kotlin, and in Java a `CompletableFuture` for each and a `Flow.Publisher` for each stream. It has the client, live queries, sessions, the state units, a worker's claims, the annotation readers and builders, and a registry of several knowledge bases with a person's sign-in by a page redirect.
 
-The SDK is not published yet. [Its README](https://github.com/xynolog/sdk/blob/main/kotlin/sdk/README.md#installing) builds its jar from source.
+[Its README](https://github.com/xynolog/sdk/blob/main/kotlin/sdk/README.md#install) says how to install it.
 
 ### C# and .NET
 
